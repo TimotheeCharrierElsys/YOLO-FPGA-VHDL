@@ -1,6 +1,12 @@
 Welcome to the YOLO implementation on FPGA's documentation!
 ===========================================================
 
+.. |pic_repository| image:: fig/third_party/github.svg
+  :alt: Repository
+  :target: https://github.com/TimotheeCharrierElsys/doc
+
+|pic_repository|
+
 .. note::
    This project is under active development.
 
@@ -10,7 +16,14 @@ Welcome to the YOLO implementation on FPGA's documentation!
   e.g when the FIFO is empty, the ``write_level`` reported will be one higher than the
   real level.
 
+.. toctree::
+  :caption: User guide
+  :hidden:
+
+  getting_started
 
 .. toctree::
-      getting-started
-      code/module_common.rst
+  :caption: Modules
+  :hidden:
+
+  modules/common/doc/module_common
