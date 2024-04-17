@@ -10,6 +10,6 @@ Scoped constraints
 CNN overview
 ------------
 
-.. figure:: fig/architecture.png
+.. figure:: fig/architecture.svg
     :align: center
     :alt: Convolutional Neural Network architecture

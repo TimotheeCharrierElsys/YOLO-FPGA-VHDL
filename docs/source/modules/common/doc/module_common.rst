@@ -9,7 +9,7 @@ full_adder.v
 
 .. code-block:: verilog
     :linenos:
-    :caption: Full adder module
+    :caption: Full Adder module
 
     module full_adder (
         input a, 
@@ -35,9 +35,12 @@ full_adder.v
 ripple_carry_adder.v 
 --------------------
 
+.. image:: ripple_carry_adder.svg
+    :alt: Ripple Carry Adder architecture
+
 .. code-block:: verilog
     :linenos:
-    :caption: Ripple Carry Adder
+    :caption: Ripple Carry Adder module
 
     module adder100 (
         input [99:0] a,
@@ -51,10 +54,6 @@ ripple_carry_adder.v
 
     endmodule
 
-
-.. figure:: ripple_carry_adder.png
-    :align: right
-    :alt: Ripple Carry Adder architecture
-
-
-The **drawback** of the ripple carry adder is that the delay for an adder to compute the carry out (from the carry-in, in the worst case) is fairly slow, and the second-stage adder cannot begin computing its carry-out until the first-stage adder has finished.
+.. warning::
+    The **drawback** of the ripple carry adder is that the delay for an adder to compute the carry out (from the carry-in, in the worst case) is fairly slow, and the second-stage adder cannot begin computing its carry-out until the first-stage adder has finished.
+    See :ref:`common.full_adder` for the ...
