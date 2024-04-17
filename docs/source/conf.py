@@ -17,6 +17,9 @@ extensions = [
     'sphinx.ext.duration',
     'sphinx.ext.doctest',
     'sphinx.ext.autodoc',
+    "sphinx.ext.graphviz",
+    "sphinx.ext.intersphinx",
+    "sphinx_copybutton",
 ]
 
 templates_path = ['_templates']
@@ -28,3 +31,11 @@ exclude_patterns = []
 
 html_theme = 'furo'
 html_static_path = ['_static']
+
+html_theme_options = {
+    "navigation_with_keys": True,
+     "top_of_page_button": "edit",
+}
+
+pygments_style = "emacs"
+pygments_dark_style = "monokai"
