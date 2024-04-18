@@ -20,11 +20,14 @@ extensions = [
     "sphinx.ext.graphviz",
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
+    "sphinxcontrib.bibtex",
 ]
 
 templates_path = ['_templates']
 exclude_patterns = []
 
+bibtex_bibfiles = ['refs.bib']
+bibtex_encoding = 'latin'
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
