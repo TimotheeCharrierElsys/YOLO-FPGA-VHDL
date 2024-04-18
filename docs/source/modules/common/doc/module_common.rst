@@ -54,6 +54,8 @@ ripple_carry_adder.v
 
     endmodule
 
+`View source code on GitHub <https://github.com/hdl-modules/hdl-modules/tree/main/modules/common/src/addr_pkg.vhd>`__.
+
 .. warning::
     The **drawback** of the ripple carry adder is that the delay for an adder to compute the carry out (from the carry-in, in the worst case) is fairly slow, and the second-stage adder cannot begin computing its carry-out until the first-stage adder has finished.
     See :ref:`common.full_adder` for the ...
