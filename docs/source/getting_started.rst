@@ -10,6 +10,13 @@ Scoped constraints
 CNN overview
 ------------
 
-.. figure:: fig/architecture.svg
-    :align: center
-    :alt: Convolutional Neural Network architecture
+.. image:: fig/architecture.svg
+    :alt: Convolutional Neural Network architecture$
+
+Convolution computation
+-----------------------
+
+Convolution calculation process (adapted from :cite:t:`9278149`)
+
+.. image:: fig/convolution.svg
+    :alt: Convolution calculation process$

@@ -1,9 +1,9 @@
 Welcome to the YOLO implementation on FPGA's documentation!
 ===========================================================
 
-.. |pic_repository| image:: fig/third_party/github.svg
+.. |pic_repository| image:: fig/repository.svg
   :alt: Repository
-  :target: https://github.com/TimotheeCharrierElsys/doc
+  :target: https://github.com/TimotheeCharrierElsys/doc/tree/dev
 
 |pic_repository|
 
@@ -27,3 +27,12 @@ Welcome to the YOLO implementation on FPGA's documentation!
   :hidden:
 
   modules/common/doc/module_common
+
+.. toctree::
+  :caption: Bibliography
+  :hidden:
+
+  references
+
+.. attention:: HEY BE CAREFUL
+  
