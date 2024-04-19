@@ -100,6 +100,9 @@ One improvement is a carry-select adder, shown below. The first-stage adder is t
 
     endmodule
 
+.. image:: https://kroki.io/wavedrom/svg/eNqrVijOTM9LzLFSiOZSUKhWyEvMTbVSUErOyVbSUYCB8sQykGCBHgjUALGSQq0OsnKXxJJEhHqo8go9YxPTihpbvQqgVApQBdAOpYzUxBQgVykpP6USRJckZuaAaJC8UiyasUGphaWpxSVQk6HGGugZ6ukZ1BjqGcBcgarJMTk7L788JzUlPRWoEarJEOJ0A0OQ07liawGPW0Gr
+    :alt: Wavedrom example
+
 
 .. warning::
     The carry select adder use more components.
