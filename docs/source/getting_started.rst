@@ -4,8 +4,13 @@ Getting started
 Project
 -------
 
+.. image:: fig/general-proposed-architecture.svg
+    :alt: overall structure of hardware system$
+
 Scoped constraints
 ------------------
+
+Optimized inference on FPGA :cite:t:`abdelouahab2018accelerating`
 
 CNN overview
 ------------
