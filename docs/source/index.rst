@@ -18,21 +18,16 @@ Welcome to the YOLO implementation on FPGA's documentation!
 
 .. toctree::
   :caption: User guide
-  :hidden:
 
   getting_started
 
 .. toctree::
   :caption: Modules
-  :hidden:
 
   modules/common/doc/module_common
 
 .. toctree::
   :caption: Bibliography
-  :hidden:
 
   references
-
-.. attention:: HEY BE CAREFUL
   
