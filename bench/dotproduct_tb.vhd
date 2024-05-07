@@ -3,7 +3,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.dotproduct_pkg.all;
+library LIB_RTL;
+use LIB_RTL.dotproduct_pkg.all;
+-- use work.dotproduct_pkg.all;
 
 entity dotproduct_top_tb is
 end;
