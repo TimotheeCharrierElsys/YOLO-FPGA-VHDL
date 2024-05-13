@@ -1,0 +1,34 @@
+#! /bin/bash
+# cd C:/Users/UF523TCH/Documents/GIT/YOLO-FPGA-VHDL
+
+echo "Removing libs"
+
+vdel -lib ./LIB/LIB_RTL -all
+vdel -lib ./LIB/LIB_BENCH -all
+
+echo "Creating libs"
+
+vlib ./LIB/LIB_RTL
+vmap LIB_RTL ./LIB/LIB_RTL
+vlib ./LIB/LIB_BENCH
+vmap LIB_BENCH ./LIB/LIB_BENCH
+
+echo "Compiling RTL sources"
+
+vcom -work LIB_RTL ./SRC/RTL/dotproduct_pkg.vhd
+vcom -work LIB_RTL ./SRC/RTL/adder.vhd
+vcom -work LIB_RTL ./SRC/RTL/multiplication.vhd
+vcom -work LIB_RTL ./SRC/RTL/dotproduct.vhd
+
+echo "Compiling BENCH sources"
+
+vcom -work LIB_BENCH ./SRC/BENCH/adder_tb.vhd
+vsim LIB_BENCH.adder_tb_conf
+do ./SRC/WAVEFORM/adder_tb_wave.do
+
+# vcom -work LIB_BENCH ./SRC/BENCH/multiplication_tb.vhd
+# vsim LIB_BENCH.multiplication_tb_conf
+# do ./SRC/WAVEFORM/multiplication_tb_wave.do
+
+# vcom -work LIb_BENCH ./SRC/BENCH/dotproduct_tb.vhd
+# vsim LIB_BENCH.dotproduct_top_tb_conf #-do ./SRC/WAVEFORM/dotproduct_tb_wave.do
