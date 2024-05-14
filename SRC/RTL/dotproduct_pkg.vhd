@@ -11,12 +11,10 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 package dotproduct_pkg is
-    constant c_N : integer := 2; -- Size of the vectors
-
     subtype t_bit8 is std_logic_vector(7 downto 0);
     subtype t_bit16 is std_logic_vector(15 downto 0);
-    type t_in_vec is array (0 to c_N - 1) of t_bit8;   -- !Input vector type
-    type t_out_vec is array (0 to c_N - 1) of t_bit16; --! Output vector type
+    type t_in_vec is array (integer range <>) of t_bit8;   -- !Input vector type
+    type t_out_vec is array (integer range <>) of t_bit16; --! Output vector type
 
     function dotproduct (a : t_in_vec; b : t_in_vec) return t_bit16; -- !Dot product function
 

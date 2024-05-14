@@ -6,10 +6,10 @@ use ieee.numeric_std.all;
 library LIB_RTL;
 use LIB_RTL.dotproduct_pkg.all;
 
-entity dotproduct_top_tb is
+entity dotproduct_pipelined_top_tb is
 end;
 
-architecture dotproduct_top_tb_arch of dotproduct_top_tb is
+architecture dotproduct_pipelined_top_tb_arch of dotproduct_pipelined_top_tb is
     -- Clock period
     constant clk_period : time := 5 ns;
     -- Generics
@@ -21,7 +21,7 @@ architecture dotproduct_top_tb_arch of dotproduct_top_tb is
     signal i_B_s      : t_in_vec(VECTOR_SIZE - 1 downto 0) := (x"77", x"55", x"01", x"05");
     signal o_result_s : t_bit16;
 
-    component dotproduct_top
+    component dotproduct_pipelined_top
         generic (
             VECTOR_SIZE : integer
         );
@@ -33,10 +33,9 @@ architecture dotproduct_top_tb_arch of dotproduct_top_tb is
             o_result : out t_bit16
         );
     end component;
-
 begin
 
-    UUT : dotproduct_top
+    UUT : dotproduct_pipelined_top
     generic map(
         VECTOR_SIZE => VECTOR_SIZE
     )
@@ -53,10 +52,10 @@ begin
 
 end;
 
-configuration dotproduct_top_tb_conf of dotproduct_top_tb is
-    for dotproduct_top_tb_arch
-        for UUT : dotproduct_top
-            use entity LIB_RTL.dotproduct_top(dotproduct_top_arch);
+configuration dotproduct_pipelined_top_tb_conf of dotproduct_pipelined_top_tb is
+    for dotproduct_pipelined_top_tb_arch
+        for UUT : dotproduct_pipelined_top
+            use entity LIB_RTL.dotproduct_pipelined_top(dotproduct_pipelined_top_arch);
         end for;
     end for;
-end configuration dotproduct_top_tb_conf;
+end configuration dotproduct_pipelined_top_tb_conf;
