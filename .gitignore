@@ -2,6 +2,7 @@
 /docs/build
 /LIB/LIB_RTL
 /LIB/LIB_BENCH
+/SRC/temp
 modelsim.ini
 vsim.wlf
 wlft2wta98
