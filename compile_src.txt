@@ -16,19 +16,18 @@ vmap LIB_BENCH ./LIB/LIB_BENCH
 echo "Compiling RTL sources"
 
 vcom -work LIB_RTL ./SRC/RTL/dotproduct_pkg.vhd
-vcom -work LIB_RTL ./SRC/RTL/adder.vhd
-vcom -work LIB_RTL ./SRC/RTL/multiplication.vhd
 vcom -work LIB_RTL ./SRC/RTL/dotproduct.vhd
+vcom -work LIB_RTL ./SRC/RTL/dotproduct_pipelined.vhd
 
 echo "Compiling BENCH sources"
 
-vcom -work LIB_BENCH ./SRC/BENCH/adder_tb.vhd
-vsim LIB_BENCH.adder_tb_conf
-do ./SRC/WAVEFORM/adder_tb_wave.do
+vcom -work LIb_BENCH ./SRC/BENCH/dotproduct_tb.vhd
+vsim LIB_BENCH.dotproduct_top_tb_conf
+do ./SRC/WAVEFORM/dotproduct_top_tb_wave.do
+run 100 ns
 
-# vcom -work LIB_BENCH ./SRC/BENCH/multiplication_tb.vhd
-# vsim LIB_BENCH.multiplication_tb_conf
-# do ./SRC/WAVEFORM/multiplication_tb_wave.do
 
-# vcom -work LIb_BENCH ./SRC/BENCH/dotproduct_tb.vhd
-# vsim LIB_BENCH.dotproduct_top_tb_conf #-do ./SRC/WAVEFORM/dotproduct_tb_wave.do
+# vcom -work LIb_BENCH ./SRC/BENCH/dotproduct_pipelined_tb.vhd
+# vsim LIB_BENCH.dotproduct_pipelined_top_tb_conf
+# do ./SRC/WAVEFORM/dotproduct_pipelined_top_tb_wave.do
+# run 100 ns
