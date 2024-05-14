@@ -4,10 +4,10 @@ add wave -noupdate -radix decimal /dotproduct_top_tb/UUT/i_clk
 add wave -noupdate -radix decimal /dotproduct_top_tb/UUT/i_reset
 add wave -noupdate -radix decimal /dotproduct_top_tb/UUT/i_A
 add wave -noupdate -radix decimal /dotproduct_top_tb/UUT/i_B
-add wave -noupdate -radix decimal /dotproduct_top_tb/UUT/o_C
+add wave -noupdate -radix decimal /dotproduct_top_tb/UUT/o_result
 add wave -noupdate -radix decimal /dotproduct_top_tb/UUT/reg
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {99189 ps} 0}
+WaveRestoreCursors {{Cursor 1} {17500 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
@@ -23,4 +23,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {99050 ps} {100050 ps}
+WaveRestoreZoom {0 ps} {105 ns}
