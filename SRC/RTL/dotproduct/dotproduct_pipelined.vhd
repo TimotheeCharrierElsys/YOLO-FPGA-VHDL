@@ -8,7 +8,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library LIB_RTL;
-use LIB_RTL.dotproduct_pkg.all;
+use LIB_RTL.conv_pack.all;
 
 entity dotproduct_pipelined_top is
     generic (
@@ -24,33 +24,43 @@ entity dotproduct_pipelined_top is
 end entity dotproduct_pipelined_top;
 
 architecture dotproduct_pipelined_top_arch of dotproduct_pipelined_top is
+
     -- 
     -- SIGNALS
-    signal mult_reg : t_out_vec(VECTOR_SIZE - 1 downto 0);
-    signal sum_reg  : t_bit16;
-    signal reg      : t_bit16;
+    --
+    signal partial_sum : t_int_vec(VECTOR_SIZE - 1 downto 0);
+    signal sum_reg     : t_bit16;
+    signal reg         : t_bit16;
+    signal sum         : integer;
 begin
-    -- Stage process: Computes one multiplication and one addition
+
+    -- 
+    -- ASYNC SEQUENTIAL PROCESS
+    -- 
     stage_process : process (i_clk, i_reset) is
-        variable mult : t_out_vec(VECTOR_SIZE - 1 downto 0);
-        variable sum  : t_bit16 := (others => '0');
     begin
         if i_reset = '1' then
-            mult_reg <= (others => (others => '0'));
-            sum_reg  <= (others => '0');
-            reg      <= (others => '0');
+            partial_sum <= (others => 0);
+            sum_reg     <= (others => '0');
+            reg         <= (others => '0');
+            sum         <= 0;
         elsif rising_edge(i_clk) then
-            sum := (others => '0');
+
+            -- Stage 1: Compute partial products
             for i in 0 to VECTOR_SIZE - 1 loop
-                mult(i) := std_logic_vector(signed(i_A(i)) * signed(i_B(i)));
-                mult_reg(i) <= mult(i);
-                sum_reg     <= sum;
-                sum := std_logic_vector(signed(sum_reg) + signed(mult_reg(i)));
+                partial_sum(i) <= to_integer(signed(i_A(i))) * to_integer(signed(i_B(i)));
             end loop;
-            reg <= sum_reg;
+
+            -- Stage 2: Sum the partial products
+            sum <= 0;
+            for i in 0 to VECTOR_SIZE - 1 loop
+                sum <= sum + partial_sum(i);
+            end loop;
+
+            -- Stage 3: Assign the sum to the register
+            reg <= std_logic_vector(to_signed(sum, 16));
         end if;
     end process stage_process;
 
     o_result <= reg;
-
 end architecture dotproduct_pipelined_top_arch;

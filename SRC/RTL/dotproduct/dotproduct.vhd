@@ -8,7 +8,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library LIB_RTL;
-use LIB_RTL.dotproduct_pkg.all;
+use LIB_RTL.conv_pack.all;
 
 entity dotproduct_top is
     generic (
@@ -24,25 +24,31 @@ entity dotproduct_top is
 end entity dotproduct_top;
 
 architecture dotproduct_top_arch of dotproduct_top is
+
     -- 
     -- SIGNALS
-    -- 
-    signal reg : t_bit16;
+    signal r_A : t_in_vec(VECTOR_SIZE - 1 downto 0);
+    signal r_B : t_in_vec(VECTOR_SIZE - 1 downto 0);
     signal sum : t_bit16;
 
 begin
 
+    r_A <= i_A;
+    r_B <= i_b;
+
+    -- 
+    -- ASYNC SEQUENTIAL PROCESS
+    -- 
     p_dotproduct_top : process (i_clk, i_reset) is
     begin
         if i_reset = '1' then
-            reg <= (others => '0');
             sum <= (others => '0');
         elsif rising_edge(i_clk) then
-            sum <= dotproduct(i_A, i_B); -- Compute the dot product 
-            reg <= sum;                  -- Store the result in reg
+            sum <= dotproduct(r_A, r_B); -- Compute the dot product 
         end if;
     end process p_dotproduct_top;
 
-    o_result <= reg;
+    -- Output update
+    o_result <= sum;
 
 end architecture dotproduct_top_arch;
