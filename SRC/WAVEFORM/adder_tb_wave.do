@@ -1,16 +1,16 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
-add wave -noupdate -radix unsigned /adder_tb/UUT/i_clk
-add wave -noupdate -radix unsigned /adder_tb/UUT/i_reset
-add wave -noupdate -radix unsigned /adder_tb/UUT/i_A
-add wave -noupdate -radix unsigned /adder_tb/UUT/i_B
-add wave -noupdate -radix unsigned /adder_tb/UUT/o_C
-add wave -noupdate -radix unsigned /adder_tb/UUT/A_u
-add wave -noupdate -radix unsigned /adder_tb/UUT/B_u
-add wave -noupdate -radix unsigned /adder_tb/UUT/C_u
-add wave -noupdate -radix unsigned /adder_tb/UUT/reg
+add wave -noupdate -radix decimal /adder_tb/UUT/i_clk
+add wave -noupdate -radix decimal /adder_tb/UUT/i_reset
+add wave -noupdate -radix decimal /adder_tb/UUT/i_A
+add wave -noupdate -radix decimal /adder_tb/UUT/i_B
+add wave -noupdate -radix decimal /adder_tb/UUT/o_result
+add wave -noupdate -radix decimal /adder_tb/UUT/A_signed
+add wave -noupdate -radix decimal /adder_tb/UUT/B_signed
+add wave -noupdate -radix decimal /adder_tb/UUT/sum_signed
+add wave -noupdate -radix decimal /adder_tb/UUT/result_reg
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {10798 ps} 0}
+WaveRestoreCursors {{Cursor 1} {43564 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
