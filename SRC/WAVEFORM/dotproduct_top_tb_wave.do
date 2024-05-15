@@ -5,9 +5,11 @@ add wave -noupdate -radix decimal /dotproduct_top_tb/UUT/i_reset
 add wave -noupdate -radix decimal /dotproduct_top_tb/UUT/i_A
 add wave -noupdate -radix decimal /dotproduct_top_tb/UUT/i_B
 add wave -noupdate -radix decimal /dotproduct_top_tb/UUT/o_result
-add wave -noupdate -radix decimal /dotproduct_top_tb/UUT/reg
+add wave -noupdate -radix decimal /dotproduct_top_tb/UUT/r_A
+add wave -noupdate -radix decimal /dotproduct_top_tb/UUT/r_B
+add wave -noupdate -radix decimal /dotproduct_top_tb/UUT/sum
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {17500 ps} 0}
+WaveRestoreCursors {{Cursor 1} {16848 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100

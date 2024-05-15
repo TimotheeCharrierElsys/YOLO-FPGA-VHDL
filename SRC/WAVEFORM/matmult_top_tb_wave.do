@@ -1,14 +1,15 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
-add wave -noupdate -radix unsigned /accumulator_tb/i_clk
-add wave -noupdate -radix unsigned /accumulator_tb/i_reset
-add wave -noupdate -radix unsigned /accumulator_tb/i_A
-add wave -noupdate -radix unsigned /accumulator_tb/i_B
-add wave -noupdate -radix unsigned /accumulator_tb/i_C
-add wave -noupdate -radix unsigned /accumulator_tb/I_D
-add wave -noupdate -radix unsigned /accumulator_tb/o_E
+add wave -noupdate -radix decimal /matmult_top_tb/UUT/i_clk
+add wave -noupdate -radix decimal /matmult_top_tb/UUT/i_reset
+add wave -noupdate -radix decimal /matmult_top_tb/UUT/i_A
+add wave -noupdate -radix decimal /matmult_top_tb/UUT/i_B
+add wave -noupdate -radix decimal /matmult_top_tb/UUT/o_result
+add wave -noupdate -radix decimal /matmult_top_tb/UUT/r_A
+add wave -noupdate -radix decimal /matmult_top_tb/UUT/r_B
+add wave -noupdate -radix decimal /matmult_top_tb/UUT/r_result
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {0 ps} 0}
+WaveRestoreCursors {{Cursor 1} {86300 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
