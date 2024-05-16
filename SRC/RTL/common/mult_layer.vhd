@@ -30,10 +30,9 @@ architecture mult_layer_arch of mult_layer is
     -- SIGNALS 
     --
 
-    signal r_A      : t_in_vec(VECTOR_SIZE - 1 downto 0);
-    signal r_B      : t_in_vec(VECTOR_SIZE - 1 downto 0);
-    signal r_result : t_out_vec(VECTOR_SIZE - 1 downto 0);
-    signal r_reg    : t_out_vec(VECTOR_SIZE - 1 downto 0);
+    signal r_A      : t_in_vec(VECTOR_SIZE - 1 downto 0);  --! Signal for i_A
+    signal r_B      : t_in_vec(VECTOR_SIZE - 1 downto 0);  --! Signal for i_B
+    signal r_result : t_out_vec(VECTOR_SIZE - 1 downto 0); --! Signal for the Output Result
 
     --
     -- COMPONENTS 
@@ -57,6 +56,7 @@ begin
     r_A <= i_A;
     r_B <= i_B;
 
+    -- Pipelined Multiplication Layer
     REG_OUT_GEN : for i in 0 to VECTOR_SIZE - 1 generate
         register_gen_inst : register_gen
         generic map(
@@ -67,11 +67,12 @@ begin
             i_reset  => i_reset,
             i_enable => i_enable,
             i_data   => std_logic_vector(signed(r_A(i)) * signed(r_B(i))),
-            o_data   => r_reg(i)
+            o_data   => r_result(i)
         );
     end generate;
 
-    o_result <= r_reg;
+    -- Output Update
+    o_result <= r_result;
 
 end architecture;
 

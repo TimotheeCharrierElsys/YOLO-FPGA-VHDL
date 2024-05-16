@@ -9,9 +9,8 @@ add wave -noupdate -radix decimal /mult_layer_tb/UUT/o_result
 add wave -noupdate -radix decimal /mult_layer_tb/UUT/r_A
 add wave -noupdate -radix decimal /mult_layer_tb/UUT/r_B
 add wave -noupdate -radix decimal /mult_layer_tb/UUT/r_result
-add wave -noupdate -radix decimal /mult_layer_tb/UUT/r_reg
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {27832 ps} 0}
+WaveRestoreCursors {{Cursor 1} {16569 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
