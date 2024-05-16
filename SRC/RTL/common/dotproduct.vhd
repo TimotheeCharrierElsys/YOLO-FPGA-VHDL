@@ -6,6 +6,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use ieee.math_real.all;
 
 library LIB_RTL;
 use LIB_RTL.conv_pkg.all;
@@ -25,6 +26,12 @@ entity dotproduct is
 end entity dotproduct;
 
 architecture dotproduct_arch of dotproduct is
+
+    -- 
+    -- CONSTANTS
+    -- 
+
+    constant N_STAGES : integer := integer(ceil(log2(real(VECTOR_SIZE))));
 
     --
     -- SIGNALS 

@@ -13,12 +13,12 @@ architecture dotproduct_top_tb_arch of dotproduct_top_tb is
     -- Clock period
     constant clk_period : time := 5 ns;
     -- Generics
-    constant VECTOR_SIZE : integer := 4;
+    constant VECTOR_SIZE : integer := 8;
     -- Ports
     signal i_clk_s    : std_logic                          := '0';
     signal i_reset_s  : std_logic                          := '1';
-    signal i_A_s      : t_in_vec(VECTOR_SIZE - 1 downto 0) := (x"11", x"08", x"05", x"00");
-    signal i_B_s      : t_in_vec(VECTOR_SIZE - 1 downto 0) := (x"77", x"55", x"01", x"05");
+    signal i_A_s      : t_in_vec(VECTOR_SIZE - 1 downto 0) := (x"00", x"01", x"02", x"03", x"04", x"05", x"06", x"07");
+    signal i_B_s      : t_in_vec(VECTOR_SIZE - 1 downto 0) := (x"00", x"01", x"02", x"03", x"04", x"05", x"06", x"07");
     signal o_result_s : t_bit16;
 
     component dotproduct_top

@@ -23,36 +23,6 @@ package conv_pkg is
 
     function dotproduct (a : t_in_vec; b : t_in_vec) return t_bit16; --! Dot product Function
 
-    component matmult_core
-        generic (
-            VECTOR_SIZE : integer
-        );
-        port (
-            i_clk    : in std_logic;
-            i_reset  : in std_logic;
-            i_start  : in std_logic;
-            i_A      : in t_in_vec(VECTOR_SIZE - 1 downto 0);
-            i_B      : in t_in_vec(VECTOR_SIZE - 1 downto 0);
-            o_result : out t_bit16
-        );
-    end component;
-
-    component matmult_top
-        generic (
-            WIDTH  : integer;
-            HEIGHT : integer
-        );
-        port (
-            i_clk    : in std_logic;
-            i_reset  : in std_logic;
-            i_start  : std_logic;
-            i_A      : in t_in_mat(WIDTH - 1 downto 0)(HEIGHT - 1 downto 0);
-            i_B      : in t_in_mat(WIDTH - 1 downto 0)(HEIGHT - 1 downto 0);
-            o_result : out t_out_mat(WIDTH - 1 downto 0)(HEIGHT - 1 downto 0);
-            o_valid  : out std_logic
-        );
-    end component;
-
 end package conv_pkg;
 
 package body conv_pkg is

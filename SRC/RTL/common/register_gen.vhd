@@ -26,15 +26,18 @@ architecture register_gen_arch of register_gen is
     -- SIGNALS 
     --
 
-    signal r_data : std_logic_vector(BITWIDTH - 1 downto 0);
+    signal r_data : std_logic_vector(BITWIDTH - 1 downto 0); --! Registered Data
 
 begin
 
     p_register_gen_seq : process (i_clk, i_reset)
     begin
+        -- Reset the registered data if i_reset is asserted
         if i_reset = '1' then
             r_data <= (others => '0');
-            elsif rising_edge(i_clk) then
+            
+        -- Load input data into the register on each rising clock edge if i_enable is asserted
+        elsif rising_edge(i_clk) then
             if i_enable = '1' then
                 r_data <= i_data;
             end if;
