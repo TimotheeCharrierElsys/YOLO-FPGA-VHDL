@@ -8,7 +8,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library LIB_RTL;
-use LIB_RTL.conv_pack.all;
+use LIB_RTL.conv_pkg.all;
 
 entity add_layer is
     generic (

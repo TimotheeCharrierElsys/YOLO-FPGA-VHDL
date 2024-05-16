@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------
---!     @Package    conv_pack
+--!     @Package    conv_pkg
 --!     @brief      This package provides a function to compute the dot product
 --!                 of two vectors represented as arrays of float32.
 --!     @author     Timothée Charrier
@@ -9,7 +9,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-package conv_pack is
+package conv_pkg is
     subtype t_bit8 is std_logic_vector(7 downto 0);
     subtype t_bit16 is std_logic_vector(15 downto 0);
     subtype t_bit16_signed is signed(15 downto 0);
@@ -21,7 +21,7 @@ package conv_pack is
     type t_in_mat is array(integer range <>) of t_in_vec;   --! Input Matrix Type
     type t_out_mat is array(integer range <>) of t_out_vec; --! Output Matrix Type
 
-    function dotproduct (a : t_in_vec; b : t_in_vec) return t_bit16; --! Dot product function
+    function dotproduct (a : t_in_vec; b : t_in_vec) return t_bit16; --! Dot product Function
 
     component matmult_core
         generic (
@@ -53,9 +53,9 @@ package conv_pack is
         );
     end component;
 
-end package conv_pack;
+end package conv_pkg;
 
-package body conv_pack is
+package body conv_pkg is
 
     -----------------------------------------------------------------------------------
     --! @Function    : dotproduct
@@ -75,4 +75,4 @@ package body conv_pack is
         end loop;
         return std_logic_vector(to_signed(sum, 16)); -- Return the dot product
     end function dotproduct;
-end package body conv_pack;
+end package body conv_pkg;
