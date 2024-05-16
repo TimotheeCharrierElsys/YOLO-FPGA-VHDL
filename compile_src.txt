@@ -19,6 +19,9 @@ vcom -work LIB_RTL ./SRC/RTL/conv_pack.vhd
 vcom -work LIB_RTL ./SRC/RTL/common/counter.vhd
 vcom -work LIB_RTL ./SRC/RTL/common/adder.vhd
 vcom -work LIB_RTL ./SRC/RTL/common/register_gen.vhd
+vcom -work LIB_RTL ./SRC/RTL/common/add_layer.vhd
+vcom -work LIB_RTL ./SRC/RTL/common/mult_layer.vhd
+vcom -work LIB_RTL ./SRC/RTL/common/dotproduct.vhd
 # vcom -work LIB_RTL ./SRC/RTL/dotproduct/dotproduct.vhd
 # vcom -work LIB_RTL ./SRC/RTL/matmult/matmult_core.vhd
 # vcom -work LIB_RTL ./SRC/RTL/matmult/matmult_top.vhd
@@ -40,6 +43,21 @@ echo "Compiling BENCH sources"
 # vcom -work LIB_BENCH ./SRC/BENCH/common/register_gen_tb.vhd
 # vsim LIB_BENCH.register_gen_tb_conf
 # do ./SRC/WAVEFORM/register_gen_tb_wave.do
+# run 100 ns
+
+# vcom -work LIB_BENCH ./SRC/BENCH/common/add_layer_tb.vhd
+# vsim LIB_BENCH.add_layer_tb_conf
+# do ./SRC/WAVEFORM/add_layer_tb_wave.do
+# run 100 ns
+
+vcom -work LIB_BENCH ./SRC/BENCH/common/mult_layer_tb.vhd
+vsim LIB_BENCH.mult_layer_tb_conf
+do ./SRC/WAVEFORM/mult_layer_tb_wave.do
+run 100 ns
+
+# vcom -work LIB_BENCH ./SRC/BENCH/common/dotproduct_tb.vhd
+# vsim LIB_BENCH.dotproduct_tb_conf
+# do ./SRC/WAVEFORM/dotproduct_tb_wave.do
 # run 100 ns
 
 # vcom -work LIB_BENCH ./SRC/BENCH/dotproduct/dotproduct_tb.vhd
