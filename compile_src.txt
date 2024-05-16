@@ -20,9 +20,8 @@ vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/common/register_gen.vhd
 vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/common/add_layer.vhd
 vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/common/mult_layer.vhd
 vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/common/dotproduct.vhd
-# vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/common/convolution.vhd
 
-vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/dotproduct/dotproduct.vhd
+# vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/dotproduct/dotproduct.vhd
 # vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/matmult/matmult_core.vhd
 # vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/matmult/matmult_top.vhd
 # vcom -2008 -check_synthesis - work LIB_RTL ./SRC/RTL/matmult.vhd
