@@ -1,18 +1,23 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
-add wave -noupdate -radix decimal /dotproduct_tb/UUT/i_clk
-add wave -noupdate -radix decimal /dotproduct_tb/UUT/i_reset
-add wave -noupdate -radix decimal /dotproduct_tb/UUT/i_enable
-add wave -noupdate -radix decimal /dotproduct_tb/UUT/i_A
-add wave -noupdate -radix decimal /dotproduct_tb/UUT/i_B
-add wave -noupdate -radix decimal /dotproduct_tb/UUT/o_result
-add wave -noupdate -radix decimal /dotproduct_tb/UUT/r_A
-add wave -noupdate -radix decimal /dotproduct_tb/UUT/r_B
-add wave -noupdate -radix decimal /dotproduct_tb/UUT/r_mult_to_add
-add wave -noupdate -radix decimal /dotproduct_tb/UUT/r_result
-add wave -noupdate -radix decimal /dotproduct_tb/UUT/r_count
+add wave -noupdate /dotproduct_tb/UUT/i_clk
+add wave -noupdate /dotproduct_tb/UUT/i_reset
+add wave -noupdate /dotproduct_tb/UUT/i_enable
+add wave -noupdate /dotproduct_tb/UUT/i_A
+add wave -noupdate /dotproduct_tb/UUT/i_B
+add wave -noupdate /dotproduct_tb/UUT/o_result
+add wave -noupdate /dotproduct_tb/UUT/r_A
+add wave -noupdate /dotproduct_tb/UUT/r_B
+add wave -noupdate /dotproduct_tb/UUT/r_mult_to_add
+add wave -noupdate /dotproduct_tb/UUT/r_result
+add wave -noupdate /dotproduct_tb/UUT/temp1
+add wave -noupdate /dotproduct_tb/UUT/temp2
+add wave -noupdate /dotproduct_tb/UUT/temp3
+add wave -noupdate /dotproduct_tb/UUT/temp4
+add wave -noupdate /dotproduct_tb/UUT/temp5
+add wave -noupdate /dotproduct_tb/UUT/temp6
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {15359 ps} 0}
+WaveRestoreCursors {{Cursor 1} {7354 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
