@@ -15,16 +15,18 @@ vmap LIB_BENCH ./LIB/LIB_BENCH
 
 echo "Compiling RTL sources"
 
-vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/conv_pkg.vhd
-vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/common/register_gen.vhd
-vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/common/add_layer.vhd
-vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/common/mult_layer.vhd
-vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/common/dotproduct.vhd
+# vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/conv_pkg.vhd
+# vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/common/register_gen.vhd
+# vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/common/mult_layer.vhd
+# vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/common/dotproduct.vhd
+# vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/common/multiple_operand_adder.vhd
+# vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/common/matmult_dot.vhd
+# vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/common/pipelined_moa.vhd
 
 # vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/dotproduct/dotproduct.vhd
-# vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/matmult/matmult_core.vhd
-# vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/matmult/matmult_top.vhd
-# vcom -2008 -check_synthesis - work LIB_RTL ./SRC/RTL/matmult.vhd
+
+vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/pipelined_moa/pipelined_moa_pkg.vhd
+vcom -2008 -check_synthesis -work LIB_RTL ./SRC/RTL/pipelined_moa/pipelined_moa.vhd
 
 echo "Compiling BENCH sources"
 
@@ -43,14 +45,19 @@ echo "Compiling BENCH sources"
 # do ./SRC/WAVEFORM/mult_layer_tb_wave.do
 # run 100 ns
 
-vcom -work LIB_BENCH ./SRC/BENCH/common/dotproduct_tb.vhd
-vsim LIB_BENCH.dotproduct_tb_conf
-do ./SRC/WAVEFORM/dotproduct_tb_wave.do
-run 100 ns
+# vcom -work LIB_BENCH ./SRC/BENCH/common/dotproduct_tb.vhd
+# vsim LIB_BENCH.dotproduct_tb_conf
+# do ./SRC/WAVEFORM/dotproduct_tb_wave.do
+# run 100 ns
 
-# vcom -work LIB_BENCH ./SRC/BENCH/common/convolution_tb.vhd
-# vsim LIB_BENCH.convolution_tb_conf
-# do ./SRC/WAVEFORM/convolution_tb_wave.do
+# vcom -work LIB_BENCH ./SRC/BENCH/common/matmult_dot_tb.vhd
+# vsim LIB_BENCH.matmult_dot_tb_conf
+# do ./SRC/WAVEFORM/matmult_dot_tb_wave.do
+# run 100 ns
+
+# vcom -work LIB_BENCH ./SRC/BENCH/common/multiple_operand_adder_tb.vhd
+# vsim LIB_BENCH.multiple_operand_adder_tb_conf
+# do ./SRC/WAVEFORM/multiple_operand_adder_tb_wave.do
 # run 100 ns
 
 # vcom -work LIB_BENCH ./SRC/BENCH/dotproduct/dotproduct_tb.vhd
@@ -58,12 +65,4 @@ run 100 ns
 # do ./SRC/WAVEFORM/dotproduct_top_tb_wave.do
 # run 100 ns
 
-# vcom -work LIB_BENCH ./SRC/BENCH/matmult/matmult_core_tb.vhd
-# vsim LIB_BENCH.matmult_core_tb_conf
-# do ./SRC/WAVEFORM/matmult_core_tb_wave.do
-# run 100 ns
-
-# vcom -work LIB_BENCH ./SRC/BENCH/matmult/matmult_top_tb.vhd
-# vsim LIB_BENCH.matmult_top_tb_conf
-# do ./SRC/WAVEFORM/matmult_top_tb_wave.do
-# run 100 ns
+vcom -2008 -check_synthesis -work LIB_BENCH ./SRC/BENCH/pipelined_moa/pipelined_moa_tb.vhd
