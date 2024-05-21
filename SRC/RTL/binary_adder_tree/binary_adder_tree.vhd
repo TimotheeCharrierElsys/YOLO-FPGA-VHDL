@@ -24,8 +24,8 @@ entity binary_adder_tree is
     port (
         i_clk  : in std_logic;                                --! Clock signal
         i_rst  : in std_logic;                                --! Reset signal
-        i_data : in t_vec(0 to N_OPD - 1)(0 to BITWIDTH - 1); --! Input data vector
-        o_data : out std_logic_vector(0 to BITWIDTH - 1)      --! Output data
+        i_data : in t_vec(0 to N_OPD - 1)(BITWIDTH - 1 downto 0); --! Input data vector
+        o_data : out std_logic_vector(BITWIDTH - 1 downto 0)      --! Output data
     );
 end binary_adder_tree;
 
@@ -45,7 +45,7 @@ architecture binary_adder_tree_arch of binary_adder_tree is
 
     --! @signal r_pipeline
     --! @brief Multi-dimensional array representing the pipeline stages.
-    signal r_pipeline : t_mat(0 to N_STAGES)(0 to N_OPD - 1)(0 to BITWIDTH - 1);
+    signal r_pipeline : t_mat(0 to N_STAGES)(0 to N_OPD - 1)(BITWIDTH - 1 downto 0);
 
 begin
 
