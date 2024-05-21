@@ -20,7 +20,7 @@ architecture binary_adder_tree_tb_arch of binary_adder_tree_tb is
     -- CONSTANTS
     -------------------------------------------------------------------------------------
     constant i_clk_period : time    := 10 ns; --! Clock period
-    constant N_OPD        : integer := 10;    --! Number of operands
+    constant N_OPD        : integer := 8;     --! Number of operands
     constant BITWIDTH     : integer := 8;     --! Bit BITWIDTH of each operand
 
     -------------------------------------------------------------------------------------
@@ -85,8 +85,6 @@ begin
         i_data(5) <= std_logic_vector(to_unsigned(6, BITWIDTH));
         i_data(6) <= std_logic_vector(to_unsigned(7, BITWIDTH));
         i_data(7) <= std_logic_vector(to_unsigned(8, BITWIDTH));
-        i_data(8) <= std_logic_vector(to_unsigned(9, BITWIDTH));
-        i_data(9) <= std_logic_vector(to_unsigned(10, BITWIDTH));
 
         -- Wait for enough time to allow the pipeline to process the inputs
         wait for (N_OPD * i_clk_period);

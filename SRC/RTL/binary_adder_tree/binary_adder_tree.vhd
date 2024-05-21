@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------------
 --!     @Package    binary_adder_tree
---!     @brief      This package provides the pipelined MOA binary tree entity and architecture
+--!     @brief      This package provides the pipelined MOA tree entity and architecture
 --!     @author     Timothée Charrier
 -----------------------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ use LIB_RTL.binary_adder_tree_pkg.all;
 --!        by half in each stage until the final sum is obtained.
 entity binary_adder_tree is
     generic (
-        N_OPD    : integer := 8; --! Number of operands
+        N_OPD    : integer := 8; --! Number of operands (must be a power of 2)
         BITWIDTH : integer := 8  --! Bit width of each operand
     );
     port (
@@ -38,7 +38,6 @@ architecture binary_adder_tree_arch of binary_adder_tree is
     --! @constant N_STAGES
     --! @brief Number of stages required to complete the addition process.
     constant N_STAGES : integer := integer(ceil(log2(real(N_OPD))));
-    constant OFFSET   : integer := integer(N_OPD mod 2 ** (N_STAGES - 1));
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
@@ -46,7 +45,7 @@ architecture binary_adder_tree_arch of binary_adder_tree is
 
     --! @signal r_pipeline
     --! @brief Multi-dimensional array representing the pipeline stages.
-    signal r_pipeline : t_pipeline(0 to N_STAGES)(0 to N_OPD - 1 + OFFSET)(0 to BITWIDTH - 1);
+    signal r_pipeline : t_mat(0 to N_STAGES)(0 to N_OPD - 1)(0 to BITWIDTH - 1);
 
 begin
 
@@ -60,7 +59,7 @@ begin
         if i_rst = '1' then
             -- Initialize the pipeline with zeros on reset
             for stage in 0 to N_STAGES loop
-                for i in 0 to N_OPD - 1 + OFFSET loop
+                for i in 0 to N_OPD - 1 loop
                     r_pipeline(stage)(i) <= (others => '0');
                 end loop;
             end loop;
@@ -72,8 +71,8 @@ begin
 
             -- Perform pipelined addition
             for stage in 1 to N_STAGES loop
-                for i in 0 to (N_OPD - 1 + OFFSET) / (2 ** stage) loop
-                    if (2 * i + 1) < (N_OPD + OFFSET) / (2 ** (stage - 1)) then
+                for i in 0 to (N_OPD / (2 ** stage)) - 1 loop
+                    if (2 * i + 1) < (N_OPD / (2 ** (stage - 1))) then
                         r_pipeline(stage)(i) <= std_logic_vector(unsigned(r_pipeline(stage - 1)(2 * i)) + unsigned(r_pipeline(stage - 1)(2 * i + 1)));
                     else
                         r_pipeline(stage)(i) <= r_pipeline(stage - 1)(2 * i);
