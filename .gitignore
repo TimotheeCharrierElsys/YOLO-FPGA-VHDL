@@ -2,13 +2,8 @@
 /docs/build
 /LIB/LIB_RTL
 /LIB/LIB_BENCH
-/SRC/temp
-/SRC/RTL/common
-/SRC/BENCH/common
-/SRC/RTL/convolution
-/SRC/BENCH/convolution
-/SRC/RTL/dotproduct
-/SRC/BENCH/dotproduct
+/SRC/RTL/temp
+/SRC/BENCH/temp
 modelsim.ini
 vsim.wlf
 wlft2wta98

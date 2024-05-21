@@ -79,11 +79,6 @@ begin
                         r_pipeline(stage)(i) <= r_pipeline(stage - 1)(2 * i);
                     end if;
                 end loop;
-
-                -- Carry forward remaining operands if any
-                for i in (N_OPD / (2 ** stage)) to N_OPD - 1 loop
-                    r_pipeline(stage)(i) <= r_pipeline(stage - 1)(i);
-                end loop;
             end loop;
         end if;
     end process;
