@@ -18,14 +18,14 @@ use LIB_RTL.pipelined_moa_pkg.all;
 --!        by half in each stage until the final sum is obtained.
 entity pipelined_moa is
     generic (
-        N_OPD : integer := 8; --! Number of operands
-        WIDTH : integer := 8  --! Bit width of each operand
+        N_OPD    : integer := 8; --! Number of operands (must be a power of two)
+        BITWIDTH : integer := 8  --! Bit width of each operand
     );
     port (
-        i_clk  : in std_logic;                             --! Clock signal
-        i_rst  : in std_logic;                             --! Reset signal
-        i_data : in t_vec(0 to N_OPD - 1)(0 to WIDTH - 1); --! Input data vector
-        o_data : out std_logic_vector(0 to WIDTH - 1)      --! Output data
+        i_clk  : in std_logic;                                --! Clock signal
+        i_rst  : in std_logic;                                --! Reset signal
+        i_data : in t_vec(0 to N_OPD - 1)(0 to BITWIDTH - 1); --! Input data vector
+        o_data : out std_logic_vector(0 to BITWIDTH - 1)      --! Output data
     );
 end pipelined_moa;
 
@@ -45,7 +45,7 @@ architecture pipelined_moa_arch of pipelined_moa is
 
     --! @signal r_pipeline
     --! @brief Multi-dimensional array representing the pipeline stages.
-    signal r_pipeline : t_pipeline(0 to N_STAGES)(0 to N_OPD - 1)(0 to WIDTH - 1);
+    signal r_pipeline : t_pipeline(0 to N_STAGES)(0 to N_OPD - 1)(0 to BITWIDTH - 1);
 
 begin
 
