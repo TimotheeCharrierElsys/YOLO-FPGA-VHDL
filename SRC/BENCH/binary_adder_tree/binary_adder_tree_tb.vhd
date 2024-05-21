@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------
---!     @Testbench    pipelined_moa_tb
+--!     @Testbench    binary_adder_tree_tb
 --!     @brief        This testbench verifies the functionality of the pipelined MOA.
 --!     @details      It initializes the inputs, applies test vectors, and checks the outputs.
 --!     @auth         Timothée Charrier
@@ -10,40 +10,40 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library LIB_RTL;
-use LIB_RTL.pipelined_moa_pkg.all;
+use LIB_RTL.binary_adder_tree_pkg.all;
 
-entity pipelined_moa_tb is
+entity binary_adder_tree_tb is
 end entity;
 
-architecture pipelined_moa_tb_arch of pipelined_moa_tb is
+architecture binary_adder_tree_tb_arch of binary_adder_tree_tb is
     -------------------------------------------------------------------------------------
     -- CONSTANTS
     -------------------------------------------------------------------------------------
     constant i_clk_period : time    := 10 ns; --! Clock period
-    constant N_OPD        : integer := 8;     --! Number of operands
-    constant WIDTH        : integer := 8;     --! Bit width of each operand
+    constant N_OPD        : integer := 10;    --! Number of operands
+    constant BITWIDTH     : integer := 8;     --! Bit BITWIDTH of each operand
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal i_clk  : std_logic := '0';                              --! Clock signal
-    signal i_rst  : std_logic := '1';                              --! Reset signal
-    signal i_data : t_vec(N_OPD - 1 downto 0)(WIDTH - 1 downto 0); --! Input data vector
-    signal o_data : std_logic_vector(WIDTH - 1 downto 0);          --! Output data
+    signal i_clk  : std_logic := '0';                                 --! Clock signal
+    signal i_rst  : std_logic := '1';                                 --! Reset signal
+    signal i_data : t_vec(N_OPD - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data vector
+    signal o_data : std_logic_vector(BITWIDTH - 1 downto 0);          --! Output data
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
     -------------------------------------------------------------------------------------
-    component pipelined_moa
+    component binary_adder_tree
         generic (
-            N_OPD : integer;
-            WIDTH : integer
+            N_OPD    : integer;
+            BITWIDTH : integer
         );
         port (
             i_clk  : in std_logic;
             i_rst  : in std_logic;
-            i_data : in t_vec(N_OPD - 1 downto 0)(WIDTH - 1 downto 0);
-            o_data : out std_logic_vector(WIDTH - 1 downto 0)
+            i_data : in t_vec(N_OPD - 1 downto 0)(BITWIDTH - 1 downto 0);
+            o_data : out std_logic_vector(BITWIDTH - 1 downto 0)
         );
     end component;
 
@@ -51,10 +51,10 @@ begin
     -------------------------------------------------------------------------------------
     -- UNIT UNDER TEST (UUT)
     -------------------------------------------------------------------------------------
-    UUT : pipelined_moa
+    UUT : binary_adder_tree
     generic map(
-        N_OPD => N_OPD,
-        WIDTH => WIDTH
+        N_OPD    => N_OPD,
+        BITWIDTH => BITWIDTH
     )
     port map(
         i_clk  => i_clk,
@@ -77,20 +77,22 @@ begin
         i_rst <= '0';
 
         -- Apply input vectors
-        i_data(0) <= std_logic_vector(to_unsigned(1, WIDTH));
-        i_data(1) <= std_logic_vector(to_unsigned(2, WIDTH));
-        i_data(2) <= std_logic_vector(to_unsigned(3, WIDTH));
-        i_data(3) <= std_logic_vector(to_unsigned(4, WIDTH));
-        i_data(4) <= std_logic_vector(to_unsigned(5, WIDTH));
-        i_data(5) <= std_logic_vector(to_unsigned(6, WIDTH));
-        i_data(6) <= std_logic_vector(to_unsigned(7, WIDTH));
-        i_data(7) <= std_logic_vector(to_unsigned(8, WIDTH));
+        i_data(0) <= std_logic_vector(to_unsigned(1, BITWIDTH));
+        i_data(1) <= std_logic_vector(to_unsigned(2, BITWIDTH));
+        i_data(2) <= std_logic_vector(to_unsigned(3, BITWIDTH));
+        i_data(3) <= std_logic_vector(to_unsigned(4, BITWIDTH));
+        i_data(4) <= std_logic_vector(to_unsigned(5, BITWIDTH));
+        i_data(5) <= std_logic_vector(to_unsigned(6, BITWIDTH));
+        i_data(6) <= std_logic_vector(to_unsigned(7, BITWIDTH));
+        i_data(7) <= std_logic_vector(to_unsigned(8, BITWIDTH));
+        i_data(8) <= std_logic_vector(to_unsigned(9, BITWIDTH));
+        i_data(9) <= std_logic_vector(to_unsigned(10, BITWIDTH));
 
         -- Wait for enough time to allow the pipeline to process the inputs
         wait for (N_OPD * i_clk_period);
 
         -- Check the output
-        assert o_data = std_logic_vector(to_unsigned(36, WIDTH))
+        assert o_data = std_logic_vector(to_unsigned(36, BITWIDTH))
         report "Test failed: output does not match expected sum"
             severity error;
 
@@ -99,3 +101,11 @@ begin
     end process stimulus;
 
 end architecture;
+
+configuration binary_adder_tree_tb_conf of binary_adder_tree_tb is
+    for binary_adder_tree_tb_arch
+        for UUT : binary_adder_tree
+            use entity LIB_RTL.binary_adder_tree(binary_adder_tree_arch);
+        end for;
+    end for;
+end configuration binary_adder_tree_tb_conf;

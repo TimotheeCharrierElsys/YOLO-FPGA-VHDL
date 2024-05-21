@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------
---!     @Package    pipelined_moa_pkg
+--!     @Package    binary_adder_tree_pkg
 --!     @brief      This package provides the types definitions for a pipelined adder tree.
 --!                 It defines the types necessary for creating arrays of std_logic_vectors
 --!                 and pipelines used in the pipelined MOA entity.
@@ -14,7 +14,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-package pipelined_moa_pkg is
+package binary_adder_tree_pkg is
     --! @type t_vec
     --! @brief Defines an unconstrained array of std_logic_vectors.
     --!        This type is used to represent a vector of std_logic_vectors, 
@@ -28,4 +28,4 @@ package pipelined_moa_pkg is
     --!        of one stage of the pipeline.
     type t_pipeline is array (natural range <>) of t_vec;
 
-end package pipelined_moa_pkg;
+end package binary_adder_tree_pkg;
