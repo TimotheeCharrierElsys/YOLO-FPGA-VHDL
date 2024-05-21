@@ -47,10 +47,6 @@ architecture pipelined_moa_arch of pipelined_moa is
     --! @brief Multi-dimensional array representing the pipeline stages.
     signal r_pipeline : t_pipeline(0 to N_STAGES)(0 to N_OPD - 1)(0 to WIDTH - 1);
 
-    --! @signal r_final_sum
-    --! @brief Intermediate signal to hold the final sum before assigning to the output.
-    signal r_final_sum : std_logic_vector(WIDTH - 1 downto 0);
-
 begin
 
     -------------------------------------------------------------------------------------
@@ -67,7 +63,6 @@ begin
                     r_pipeline(stage)(i) <= (others => '0');
                 end loop;
             end loop;
-            r_final_sum <= (others => '0');
         elsif rising_edge(i_clk) then
             -- Initialize the pipeline with input data
             for i in 0 to N_OPD - 1 loop
@@ -83,9 +78,6 @@ begin
                     end if;
                 end loop;
             end loop;
-
-            -- Register the final sum in the last pipeline stage
-            r_final_sum <= r_pipeline(N_STAGES)(0);
         end if;
     end process;
 
@@ -94,6 +86,6 @@ begin
     -------------------------------------------------------------------------------------
     --! @signal o_data
     --! @brief Assigns the registered final sum to the output signal.
-    o_data <= r_final_sum;
+    o_data <= r_pipeline(N_STAGES)(0);
 
 end pipelined_moa_arch;
