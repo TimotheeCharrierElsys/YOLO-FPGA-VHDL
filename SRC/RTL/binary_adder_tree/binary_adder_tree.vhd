@@ -35,18 +35,13 @@ architecture binary_adder_tree_arch of binary_adder_tree is
     -- CONSTANTS
     -------------------------------------------------------------------------------------
 
-    --! @constant N_STAGES
-    --! @brief Number of stages required to complete the addition process.
-    constant N_STAGES : integer := integer(ceil(log2(real(N_OPD))));
+    constant N_STAGES : integer := integer(ceil(log2(real(N_OPD)))); --! Number of stages required to complete the addition process.
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
 
-    --! @signal r_pipeline
-    --! @brief Multi-dimensional array representing the pipeline stages.
-    signal r_pipeline : t_mat(0 to N_STAGES)(0 to N_OPD - 1)(BITWIDTH - 1 downto 0);
-
+    signal r_pipeline : t_mat(0 to N_STAGES)(0 to N_OPD - 1)(BITWIDTH - 1 downto 0); --! Multi-dimensional array representing the pipeline stages.
 begin
 
     -------------------------------------------------------------------------------------
@@ -85,8 +80,6 @@ begin
     -------------------------------------------------------------------------------------
     -- OUTPUT ASSIGNMENT
     -------------------------------------------------------------------------------------
-    --! @signal o_data
-    --! @brief Assigns the registered final sum to the output signal.
     o_data <= r_pipeline(N_STAGES)(0);
 
 end binary_adder_tree_arch;
