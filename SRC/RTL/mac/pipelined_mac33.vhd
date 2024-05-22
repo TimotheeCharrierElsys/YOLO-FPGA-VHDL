@@ -10,7 +10,7 @@ use IEEE.NUMERIC_STD.all;
 use ieee.math_real.all;
 
 library LIB_RTL;
-use LIB_RTL.binary_adder_tree_pkg.all;
+use LIB_RTL.types_pkg.all;
 
 --! @Entity pipelined_mac33
 --! @brief This entity implements a pipelined Multiply-Accumulate (MAC) unit with a 3x3 kernel.

@@ -10,7 +10,7 @@ use IEEE.NUMERIC_STD.all;
 use ieee.math_real.all;
 
 library LIB_RTL;
-use LIB_RTL.binary_adder_tree_pkg.all;
+use LIB_RTL.types_pkg.all;
 
 --! @Entity binary_adder_tree
 --! @brief This entity implements a pipelined multi-operand adder (MOA).

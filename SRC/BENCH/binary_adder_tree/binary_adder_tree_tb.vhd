@@ -10,7 +10,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library LIB_RTL;
-use LIB_RTL.binary_adder_tree_pkg.all;
+use LIB_RTL.types_pkg.all;
 
 entity binary_adder_tree_tb is
 end entity;
