@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------------
 --!     @Package    binary_adder_tree
---!     @brief      This package provides the pipelined MOA tree entity and architecture
+--!     @brief      This file provides the binary adder tree entity and architecture
 --!     @author     Timothée Charrier
 -----------------------------------------------------------------------------------
 
@@ -22,8 +22,8 @@ entity binary_adder_tree is
         BITWIDTH : integer := 8  --! Bit width of each operand
     );
     port (
-        i_clk  : in std_logic;                                --! Clock signal
-        i_rst  : in std_logic;                                --! Reset signal
+        i_clk  : in std_logic;                                    --! Clock signal
+        i_rst  : in std_logic;                                    --! Reset signal
         i_data : in t_vec(0 to N_OPD - 1)(BITWIDTH - 1 downto 0); --! Input data vector
         o_data : out std_logic_vector(BITWIDTH - 1 downto 0)      --! Output data
     );
