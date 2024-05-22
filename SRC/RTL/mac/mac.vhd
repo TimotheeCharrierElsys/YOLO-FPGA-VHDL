@@ -32,29 +32,12 @@ architecture mac_arch of mac is
     -- SIGNALS
     -------------------------------------------------------------------------------------
 
-    --! @signal r_A
-    --! @brief Registered version of input operand A.
-    signal r_A : std_logic_vector(BITWIDTH - 1 downto 0);
-
-    --! @signal r_B
-    --! @brief Registered version of input operand B.
-    signal r_B : std_logic_vector(BITWIDTH - 1 downto 0);
-
-    --! @signal r_C
-    --! @brief Registered version of input operand C.
-    signal r_C : std_logic_vector(2 * BITWIDTH - 1 downto 0);
-
-    --! @signal r_mult
-    --! @brief Result of the multiplication of r_A and r_B.
-    signal r_mult : std_logic_vector(2 * BITWIDTH - 1 downto 0);
-
-    --! @signal mult_stage_reg
-    --! @brief Registered output of the multiplication stage.
-    signal mult_stage_reg : std_logic_vector(2 * BITWIDTH - 1 downto 0);
-
-    --! @signal add_stage_reg
-    --! @brief Registered output of the addition stage.
-    signal add_stage_reg : std_logic_vector(2 * BITWIDTH - 1 downto 0);
+    signal r_A            : std_logic_vector(BITWIDTH - 1 downto 0);     --! Registered version of input operand A.
+    signal r_B            : std_logic_vector(BITWIDTH - 1 downto 0);     --! Registered version of input operand B.
+    signal r_C            : std_logic_vector(2 * BITWIDTH - 1 downto 0); --! Registered version of input operand C.
+    signal r_mult         : std_logic_vector(2 * BITWIDTH - 1 downto 0); --! Result of the multiplication of r_A and r_B.
+    signal mult_stage_reg : std_logic_vector(2 * BITWIDTH - 1 downto 0); --! Registered output of the multiplication stage.
+    signal add_stage_reg  : std_logic_vector(2 * BITWIDTH - 1 downto 0); --! Registered output of the addition stage.
 
 begin
 
@@ -90,8 +73,6 @@ begin
     -------------------------------------------------------------------------------------
     -- OUTPUT ASSIGNMENT
     -------------------------------------------------------------------------------------
-    --! @signal o_P
-    --! @brief Assigns the registered final result to the output signal.
     o_P <= add_stage_reg;
 
 end mac_arch;
