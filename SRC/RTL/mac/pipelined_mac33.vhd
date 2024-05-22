@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------
---!     @Package    pipelined_mac33
+--!     @file       pipelined_mac33
 --!     @brief      This file provides the conv adder tree entity and architecture
 --!     @author     Timothée Charrier
 -----------------------------------------------------------------------------------
@@ -12,8 +12,8 @@ use ieee.math_real.all;
 library LIB_RTL;
 use LIB_RTL.types_pkg.all;
 
---! @Entity pipelined_mac33
---! @brief This entity implements a pipelined Multiply-Accumulate (MAC) unit with a 3x3 kernel.
+--! Entity pipelined_mac33
+--! This entity implements a pipelined Multiply-Accumulate (MAC) unit with a 3x3 kernel.
 --!        It performs convolution operations using a 3x3 kernel over the input data.
 entity pipelined_mac33 is
     generic (

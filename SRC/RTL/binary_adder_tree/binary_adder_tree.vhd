@@ -12,8 +12,8 @@ use ieee.math_real.all;
 library LIB_RTL;
 use LIB_RTL.types_pkg.all;
 
---! @Entity binary_adder_tree
---! @brief This entity implements a pipelined multi-operand adder (MOA).
+--! Entity binary_adder_tree
+--! This entity implements a pipelined multi-operand adder (MOA).
 --!        It sums multiple operands using a tree structure, reducing the number of inputs
 --!        by half in each stage until the final sum is obtained.
 entity binary_adder_tree is
@@ -47,8 +47,8 @@ begin
     -------------------------------------------------------------------------------------
     -- PROCESS ASYNC (reset high)
     -------------------------------------------------------------------------------------
-    --! @process
-    --! @brief Handles the synchronous and asynchronous operations of the pipelined adder.
+    --! Process
+    --! Handles the synchronous and asynchronous operations of the pipelined adder.
     process (i_clk, i_rst)
     begin
         if i_rst = '1' then

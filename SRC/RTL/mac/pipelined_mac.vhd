@@ -1,16 +1,17 @@
 -----------------------------------------------------------------------------------
---!     @Entity     pipelined_mac
+--!     Entity     pipelined_mac
 --!     @brief      This entity implements a pipelined Multiply-Accumulate (pipelined_mac) unit.
 --!                 It performs multiplication of two operands followed by an addition
 --!                 with a third operand. The design is pipelined to improve performance.
+--!     @author     Timothée Charrier
 -----------------------------------------------------------------------------------
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
 
---! @Entity pipelined_mac
---! @brief This entity implements a pipelined Multiply-Accumulate (pipelined_mac) unit.
+--! Entity pipelined_mac
+--! This entity implements a pipelined Multiply-Accumulate (pipelined_mac) unit.
 --!        It multiplies two operands and then adds a third operand.
 entity pipelined_mac is
     generic (
@@ -45,8 +46,8 @@ begin
     -------------------------------------------------------------------------------------
     -- PROCESS ASYNC (reset high)
     -------------------------------------------------------------------------------------
-    --! @process
-    --! @brief Handles the synchronous and asynchronous operations of the pipelined pipelined_mac unit.
+    --! process
+    --! Handles the synchronous and asynchronous operations of the pipelined pipelined_mac unit.
     process (i_clk, i_rst)
     begin
         if i_rst = '1' then

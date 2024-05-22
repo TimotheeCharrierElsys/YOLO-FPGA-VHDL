@@ -1,9 +1,24 @@
 -----------------------------------------------------------------------------------
---!     @Testbench    pipelined_mac33_tb
+--!     @file    pipelined_mac33_tb
 --!     @brief        This testbench verifies the functionality of the pipelined mac 3*3
 --!     @details      It initializes the inputs, applies test vectors, and checks the outputs.
---!     @auth         Timothée Charrier
+--!     @author       Timothée Charrier
 -----------------------------------------------------------------------------------
+
+--! Testbench:
+--! { signal: [
+--!  { name: "clk",  wave: "P.xx", period: 2 },
+--!  { name: "i_rst",  wave: "10......" },
+--!  { name: "i_enable",  wave: "01......" },
+--!  { name: "i_X", wave: "x=......", data: ["{{1 1 1} {1 1 1} {1 1 1}}"] },
+--!  { name: "i_theta", wave: "x=......", data: ["{{1 0 0} {0 1 0} {0 0 1}}"] },
+--!  { name: "o_Y", wave: "2.345...", data: ["0","1","2","3"] }
+--! ],
+--!  head:{
+--!     text:'Expected Output',
+--!     tick:0,
+--!     every:2
+--!   }}
 
 library ieee;
 use ieee.std_logic_1164.all;

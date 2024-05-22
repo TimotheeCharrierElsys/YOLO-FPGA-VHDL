@@ -1,16 +1,17 @@
 -----------------------------------------------------------------------------------
---!     @Entity     mac
+--!     Entity      mac
 --!     @brief      This entity implements a Multiply-Accumulate (mac) unit.
 --!                 It performs multiplication of two operands followed by an addition
 --!                 with a third operand.
+--!     @author     Timothée Charrier
 -----------------------------------------------------------------------------------
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
 
---! @Entity mac
---! @brief This entity implements a Multiply-Accumulate (mac) unit.
+--! Entity mac
+--! This entity implements a Multiply-Accumulate (mac) unit.
 --!        It multiplies two operands and then adds a third operand.
 entity mac is
     generic (
@@ -33,8 +34,8 @@ begin
     -------------------------------------------------------------------------------------
     -- PROCESS ASYNC (reset high)
     -------------------------------------------------------------------------------------
-    --! @process
-    --! @brief Handles the synchronous and asynchronous operations of the mac unit.
+    --! Process
+    --! Handles the synchronous and asynchronous operations of the mac unit.
     process (i_clk, i_rst)
     begin
         if i_rst = '1' then
