@@ -24,3 +24,4 @@ SRC/BENCH/common/xvhdl.pb
 transcript
 YOLO-FPGA.cr.mti
 SRC/WAVEFORM/dotproduct_pipelined_top_tb_wave.do
+YOLO-FPGA.mpf
