@@ -68,7 +68,7 @@ begin
             for stage in 1 to N_STAGES loop
                 for i in 0 to (N_OPD / (2 ** stage)) - 1 loop
                     if (2 * i + 1) < (N_OPD / (2 ** (stage - 1))) then
-                        r_pipeline(stage)(i) <= std_logic_vector(unsigned(r_pipeline(stage - 1)(2 * i)) + unsigned(r_pipeline(stage - 1)(2 * i + 1)));
+                        r_pipeline(stage)(i) <= std_logic_vector(signed(r_pipeline(stage - 1)(2 * i)) + signed(r_pipeline(stage - 1)(2 * i + 1)));
                     else
                         r_pipeline(stage)(i) <= r_pipeline(stage - 1)(2 * i);
                     end if;
