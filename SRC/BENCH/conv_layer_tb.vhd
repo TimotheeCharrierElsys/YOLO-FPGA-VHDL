@@ -5,21 +5,6 @@
 --!     @author       Timothée Charrier
 -----------------------------------------------------------------------------------
 
---! Testbench:
---! { signal: [
---!  { name: "clk",  wave: "P.xx", period: 2 },
---!  { name: "i_rst",  wave: "10......" },
---!  { name: "i_enable",  wave: "01......" },
---!  { name: "i_X", wave: "x=......", data: ["{{1 1 1} {1 1 1} {1 1 1}}"] },
---!  { name: "i_theta", wave: "x=......", data: ["{{1 0 0} {0 1 0} {0 0 1}}"] },
---!  { name: "o_Y", wave: "2.345...", data: ["0","1","2","3"] }
---! ],
---!  head:{
---!     text:'Expected Output',
---!     tick:0,
---!     every:2
---!   }}
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
@@ -108,17 +93,48 @@ begin
         i_enable <= '1';
 
         -- Apply input vectors
-        i_image      <= (others => (others => std_logic_vector(to_unsigned(1, BITWIDTH))));
-        i_kernels(0) <= (others => std_logic_vector(to_unsigned(0, BITWIDTH)));
-        i_kernels(1) <= (others => std_logic_vector(to_unsigned(1, BITWIDTH)));
-        i_kernels(2) <= (others => std_logic_vector(to_unsigned(2, BITWIDTH)));
-        i_bias       <= std_logic_vector(to_unsigned(10, BITWIDTH));
+        i_bias <= std_logic_vector(to_signed(1, BITWIDTH));
 
+        i_image(0) <= (
+        std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)),
+        std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(2, BITWIDTH)),
+        std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(2, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))
+        );
+
+        i_image(1) <= (
+        std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(2, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)),
+        std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)),
+        std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(2, BITWIDTH))
+        );
+
+        i_image(2) <= (
+        std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(2, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)),
+        std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)),
+        std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))
+        );
+
+        i_kernels(0) <= (
+        std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH)),
+        std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)),
+        std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))
+        );
+
+        i_kernels(1) <= (
+        std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH)),
+        std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)),
+        std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH))
+        );
+
+        i_kernels(2) <= (
+        std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH)),
+        std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)),
+        std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH))
+        );
         -- Wait for enough time to allow the pipeline to process the inputs
         wait for (WAIT_COUNT * i_clk_period);
 
         -- Check the output
-        assert o_Y = std_logic_vector(to_signed(37, 2 * BITWIDTH))
+        assert o_Y = std_logic_vector(to_signed(8, 2 * BITWIDTH))
         report "Test failed: output does not match expected output"
         severity error;
 
