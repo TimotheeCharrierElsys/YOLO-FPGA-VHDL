@@ -22,6 +22,14 @@ Welcome to the YOLO implementation on FPGA's documentation!
   getting_started
 
 .. toctree::
+  :caption: RTL
+
+  source/RTL/binary_adder_tree/binary_adder_tree
+  source/RTL/mac/mac
+  source/RTL/mac/pipelined_mac
+  source/RTL/mac/pipelined_mac33
+
+.. toctree::
   :caption: Modules
 
   modules/common/doc/module_common

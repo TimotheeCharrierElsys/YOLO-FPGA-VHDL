@@ -1,27 +1,18 @@
 Getting started
 ===============
 
-Project
--------
+Start by cloning the repo:
 
-.. image:: fig/general-proposed-architecture.svg
-    :alt: overall structure of hardware system$
+  git clone https://github.com/TimotheeCharrierElsys/YOLO-FPGA-VHDL/tree/dev
 
-Scoped constraints
-------------------
+Source code
+-----------
 
-Optimized inference on FPGA :cite:t:`abdelouahab2018accelerating`
+Synthesizable source code is found in the ``SRC/RTL`` folder.
+Testbench source code is found in the ``SRC/BENCH`` folder.
 
-CNN overview
-------------
+The library ``types_pkg`` is required for all modules.
 
-.. image:: fig/architecture.svg
-    :alt: Convolutional Neural Network architecture$
 
-Convolution computation
------------------------
-
-Convolution calculation process (adapted from :cite:t:`9278149`)
-
-.. image:: fig/convolution.svg
-    :alt: Convolution calculation process$
+.. warning::
+    All files must be handled as VHDL-2008.
