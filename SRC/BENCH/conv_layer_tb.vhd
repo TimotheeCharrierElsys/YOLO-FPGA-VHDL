@@ -31,7 +31,7 @@ architecture conv_layer_tb_arch of conv_layer_tb is
     signal i_clk     : std_logic := '0'; --! Clock signal
     signal i_rst     : std_logic := '1'; --! Reset signal, active at high state
     signal i_enable  : std_logic := '0'; --! Enable signal, active at high state
-    signal i_image   : t_mat(0 to CHANNEL_NUMBER - 1)(0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0);
+    signal i_data   : t_mat(0 to CHANNEL_NUMBER - 1)(0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0);
     signal i_kernels : t_mat(0 to CHANNEL_NUMBER - 1)(0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0);
     signal i_bias    : std_logic_vector(BITWIDTH - 1 downto 0);
     signal o_Y       : std_logic_vector(2 * BITWIDTH - 1 downto 0);
@@ -49,7 +49,7 @@ architecture conv_layer_tb_arch of conv_layer_tb is
             i_clk     : in std_logic;
             i_rst     : in std_logic;
             i_enable  : in std_logic;
-            i_image   : in t_mat(0 to CHANNEL_NUMBER - 1)(0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0);
+            i_data   : in t_mat(0 to CHANNEL_NUMBER - 1)(0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0);
             i_kernels : in t_mat(0 to CHANNEL_NUMBER - 1)(0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0);
             i_bias    : in std_logic_vector(BITWIDTH - 1 downto 0);
             o_Y       : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
@@ -70,7 +70,7 @@ begin
         i_clk     => i_clk,
         i_rst     => i_rst,
         i_enable  => i_enable,
-        i_image   => i_image,
+        i_data   => i_data,
         i_kernels => i_kernels,
         i_bias    => i_bias,
         o_Y       => o_Y
@@ -95,19 +95,19 @@ begin
         -- Apply input vectors
         i_bias <= std_logic_vector(to_signed(1, BITWIDTH));
 
-        i_image(0) <= (
+        i_data(0) <= (
         std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)),
         std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(2, BITWIDTH)),
         std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(2, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))
         );
 
-        i_image(1) <= (
+        i_data(1) <= (
         std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(2, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)),
         std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)),
         std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(2, BITWIDTH))
         );
 
-        i_image(2) <= (
+        i_data(2) <= (
         std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(2, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)),
         std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)),
         std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))

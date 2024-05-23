@@ -25,7 +25,7 @@ entity conv_layer is
         i_clk     : in std_logic;                                                                                 --! Clock signal
         i_rst     : in std_logic;                                                                                 --! Reset signal, active at high state
         i_enable  : in std_logic;                                                                                 --! Enable signal, active at high state
-        i_image   : in t_mat(0 to CHANNEL_NUMBER - 1)(0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0); --! Input data  (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
+        i_data    : in t_mat(0 to CHANNEL_NUMBER - 1)(0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0); --! Input data  (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
         i_kernels : in t_mat(0 to CHANNEL_NUMBER - 1)(0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0); --! Kernel data (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
         i_bias    : in std_logic_vector(BITWIDTH - 1 downto 0);                                                   --! Input bias value
         o_Y       : out std_logic_vector(2 * BITWIDTH - 1 downto 0)                                               --! Output value
@@ -75,7 +75,7 @@ begin
             i_clk    => i_clk,
             i_rst    => i_rst,
             i_enable => i_enable,
-            i_X      => i_image(i),
+            i_X      => i_data(i),
             i_theta  => i_kernels(i),
             o_Y      => mac_out(i)
         );
@@ -92,7 +92,7 @@ begin
             --! Reset output register and counter to zeros.
             o_Y     <= (others => '0');
             r_count <= 0;
-            elsif rising_edge(i_clk) then
+        elsif rising_edge(i_clk) then
             if i_enable = '1' then
                 -- Counter increment
                 r_count <= r_count + 1;
