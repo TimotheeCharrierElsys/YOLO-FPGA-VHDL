@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------------
 --!     @file    conv_layer_tb
---!     @brief        This testbench verifies the functionality of the pipelined mac 3*3
+--!     @brief        This testbench verifies the functionality of the conv layer
 --!     @details      It initializes the inputs, applies test vectors, and checks the outputs.
 --!     @author       Timothée Charrier
 -----------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ architecture conv_layer_tb_arch of conv_layer_tb is
     -- CONSTANTS
     -------------------------------------------------------------------------------------
     constant i_clk_period   : time    := 10 ns; --! Clock period
-    constant WAIT_COUNT     : integer := 15;     --! Number clock tics to wait
+    constant WAIT_COUNT     : integer := 15;    --! Number clock tics to wait
     constant BITWIDTH       : integer := 8;     --! Bit BITWIDTH of each operand
     constant CHANNEL_NUMBER : integer := 3;     --! Number of channels
     constant KERNEL_SIZE    : integer := 3;     --! Kernel Size
