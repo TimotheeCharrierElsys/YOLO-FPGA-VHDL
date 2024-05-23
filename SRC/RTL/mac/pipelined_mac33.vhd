@@ -1,13 +1,15 @@
 -----------------------------------------------------------------------------------
 --!     @file       pipelined_mac33
---!     @brief      This file provides the conv adder tree entity and architecture
+--!     @brief      This entity implements a pipelined Multiply-Accumulate (pipelined_mac) unit.
+--!                 with a KERNEL_SIZE x KERNEL_SIZE kernel.
+--!                 It performs convolution operations using a 3x3 kernel over the input data.
 --!     @author     Timothée Charrier
 -----------------------------------------------------------------------------------
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
-use ieee.math_real.all;
+use IEEE.math_real.all;
 
 library LIB_RTL;
 use LIB_RTL.types_pkg.all;
@@ -24,8 +26,8 @@ entity pipelined_mac33 is
         i_clk    : in std_logic;                                                         --! Clock signal
         i_rst    : in std_logic;                                                         --! Reset signal, active at high state
         i_enable : in std_logic;                                                         --! Enable signal, active at high state
-        i_X      : in t_vec (0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0); --! Input data (3x3xBITWIDTH bits)
-        i_theta  : in t_vec (0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0); --! Kernel data (3x3xBITWIDTH bits)
+        i_X      : in t_vec (0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0); --! Input data  (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH bits)
+        i_theta  : in t_vec (0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0); --! Kernel data (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH bits)
         o_Y      : out std_logic_vector (2 * BITWIDTH - 1 downto 0)                      --! Output result
     );
 end pipelined_mac33;
@@ -40,7 +42,6 @@ architecture pipelined_mac33_arch of pipelined_mac33 is
     -------------------------------------------------------------------------------------
     -- COMPONENTS
     -------------------------------------------------------------------------------------
-
     component mac
         generic (
             BITWIDTH : integer --! Bit width of each operand

@@ -7,7 +7,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
-use ieee.math_real.all;
+use IEEE.MATH_REAL.all;
 
 library LIB_RTL;
 use LIB_RTL.types_pkg.all;
