@@ -5,6 +5,18 @@
 --!     @auth         Timothée Charrier
 -----------------------------------------------------------------------------------
 
+--! Tesbench:
+--! {
+--!   "signal": [
+--!     {"name": "i_clk",    "wave": "N.....", "period": 1},
+--!     {"name": "i_rst",    "wave": "10...."},
+--!     {"name": "i_enable", "wave": "01...."},
+--!     {"name": "i_data",   "wave": "x3....", "data": ["{8,7,6,5,4,3,2,1}"]},
+--!     {"name": "o_data",   "wave": "x5..4.", "data": ["0","36"]}
+--!   ],
+--!   "config": { "hscale": 2 }
+--! }
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
@@ -92,7 +104,7 @@ begin
         -- Check the output
         assert o_data = std_logic_vector(to_unsigned(36, BITWIDTH))
         report "Test failed: output does not match expected sum"
-            severity error;
+        severity error;
 
         -- Finish the simulation
         wait;
