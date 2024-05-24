@@ -32,7 +32,7 @@ architecture mac_arch of mac is
 
 begin
     -------------------------------------------------------------------------------------
-    -- PROCESS ASYNC (reset high)
+    -- PROCESS ASYNC (reset negative)
     -------------------------------------------------------------------------------------
     --! Process
     --! Handles the synchronous and asynchronous operations of the mac unit.

@@ -71,7 +71,7 @@ begin
     end generate;
 
     -------------------------------------------------------------------------------------
-    -- PROCESS ASYNC (reset high)
+    -- PROCESS ASYNC (reset negative)
     -------------------------------------------------------------------------------------
     --! Process
     --! Handles the synchronous and asynchronous operations of the pipelined adder.

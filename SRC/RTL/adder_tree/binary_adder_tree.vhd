@@ -45,7 +45,7 @@ architecture binary_adder_tree_arch of binary_adder_tree is
 begin
 
     -------------------------------------------------------------------------------------
-    -- PROCESS ASYNC (reset high)
+    -- PROCESS ASYNC (reset negative)
     -------------------------------------------------------------------------------------
     --! Process
     --! Handles the synchronous and asynchronous operations of the pipelined adder.

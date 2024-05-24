@@ -44,7 +44,7 @@ architecture pipelined_mac_arch of pipelined_mac is
 begin
 
     -------------------------------------------------------------------------------------
-    -- PROCESS ASYNC (reset high)
+    -- PROCESS ASYNC (reset negative)
     -------------------------------------------------------------------------------------
     --! process
     --! Handles the synchronous and asynchronous operations of the pipelined pipelined_mac unit.

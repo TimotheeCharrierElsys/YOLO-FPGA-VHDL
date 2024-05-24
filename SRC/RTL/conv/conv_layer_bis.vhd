@@ -81,7 +81,7 @@ begin
     end generate conv_layer_bis;
 
     -------------------------------------------------------------------------------------
-    -- PROCESS ASYNC (reset high)
+    -- PROCESS ASYNC (reset negative)
     -------------------------------------------------------------------------------------
     --! Process to handle synchronous and asynchronous operations.
     process (clock, reset_n)
