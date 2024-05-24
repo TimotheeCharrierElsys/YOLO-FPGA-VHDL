@@ -8,8 +8,8 @@
 --! Tesbench:
 --! {
 --!   "signal": [
---!     {"name": "i_clk",    "wave": "N.....", "period": 1},
---!     {"name": "i_rst",    "wave": "10...."},
+--!     {"name": "clock",    "wave": "N.....", "period": 1},
+--!     {"name": "reset_n",    "wave": "10...."},
 --!     {"name": "i_enable", "wave": "01...."},
 --!     {"name": "i_data",   "wave": "x3....", "data": ["{8,7,6,5,4,3,2,1}"]},
 --!     {"name": "o_data",   "wave": "x5..4.", "data": ["0","36"]}
@@ -38,10 +38,10 @@ architecture binary_adder_tree_tb_arch of binary_adder_tree_tb is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal i_clk  : std_logic := '0';                                 --! Clock signal
-    signal i_rst  : std_logic := '1';                                 --! Reset signal
-    signal i_data : t_vec(N_OPD - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data vector
-    signal o_data : std_logic_vector(BITWIDTH - 1 downto 0);          --! Output data
+    signal clock   : std_logic := '0';                                 --! Clock signal
+    signal reset_n : std_logic := '1';                                 --! Reset signal
+    signal i_data  : t_vec(N_OPD - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data vector
+    signal o_data  : std_logic_vector(BITWIDTH - 1 downto 0);          --! Output data
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -52,10 +52,10 @@ architecture binary_adder_tree_tb_arch of binary_adder_tree_tb is
             BITWIDTH : integer
         );
         port (
-            i_clk  : in std_logic;
-            i_rst  : in std_logic;
-            i_data : in t_vec(N_OPD - 1 downto 0)(BITWIDTH - 1 downto 0);
-            o_data : out std_logic_vector(BITWIDTH - 1 downto 0)
+            clock   : in std_logic;
+            reset_n : in std_logic;
+            i_data  : in t_vec(N_OPD - 1 downto 0)(BITWIDTH - 1 downto 0);
+            o_data  : out std_logic_vector(BITWIDTH - 1 downto 0)
         );
     end component;
 
@@ -69,14 +69,14 @@ begin
         BITWIDTH => BITWIDTH
     )
     port map(
-        i_clk  => i_clk,
-        i_rst  => i_rst,
-        i_data => i_data,
-        o_data => o_data
+        clock   => clock,
+        reset_n => reset_n,
+        i_data  => i_data,
+        o_data  => o_data
     );
 
     -- Clock generation
-    i_clk <= not i_clk after i_clk_period / 2;
+    clock <= not clock after i_clk_period / 2;
 
     -------------------------------------------------------------------------------------
     -- TEST PROCESS
@@ -84,9 +84,9 @@ begin
     stimulus : process
     begin
         -- Reset the system
-        i_rst <= '1';
+        reset_n <= '0';
         wait for 2 * i_clk_period;
-        i_rst <= '0';
+        reset_n <= '1';
 
         -- Apply input vectors
         i_data(0) <= std_logic_vector(to_unsigned(1, BITWIDTH));
@@ -104,7 +104,7 @@ begin
         -- Check the output
         assert o_data = std_logic_vector(to_unsigned(36, BITWIDTH))
         report "Test failed: output does not match expected sum"
-        severity error;
+            severity error;
 
         -- Finish the simulation
         wait;

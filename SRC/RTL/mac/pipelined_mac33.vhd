@@ -22,9 +22,9 @@ entity pipelined_mac33 is
         KERNEL_SIZE : integer := 3  --! Size of the kernel (ex: 3 for a 3x3 kernel)
     );
     port (
-        i_clk    : in std_logic;                                                         --! Clock signal
-        i_rst    : in std_logic;                                                         --! Reset signal, active at high state
-        i_enable : in std_logic;                                                         --! Enable signal, active at high state
+        clock    : in std_logic;                                                         --! Clock signal
+        reset_n  : in std_logic;                                                         --! Reset signal, active at low state
+        i_enable : in std_logic;                                                         --! Enable signal, active at low state
         i_X      : in t_vec (0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0); --! Input data  (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH bits)
         i_theta  : in t_vec (0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0); --! Kernel data (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH bits)
         o_Y      : out std_logic_vector (2 * BITWIDTH - 1 downto 0)                      --! Output result
@@ -46,9 +46,9 @@ architecture pipelined_mac33_arch of pipelined_mac33 is
             BITWIDTH : integer --! Bit width of each operand
         );
         port (
-            i_clk    : in std_logic;                                   --! Clock signal
-            i_rst    : in std_logic;                                   --! Reset signal, active at high state
-            i_enable : in std_logic;                                   --! Enable signal, active at high state
+            clock    : in std_logic;                                   --! Clock signal
+            reset_n  : in std_logic;                                   --! Reset signal, active at low state
+            i_enable : in std_logic;                                   --! Enable signal, active at low state
             i_A      : in std_logic_vector(BITWIDTH - 1 downto 0);     --! First multiplication operand
             i_B      : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Second multiplication operand
             i_C      : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Accumulation operand
@@ -68,8 +68,8 @@ begin
             first_custom_mac_inst : mac --! Multiply without additions
             generic map(BITWIDTH => BITWIDTH)
             port map(
-                i_clk    => i_clk,
-                i_rst    => i_rst,
+                clock    => clock,
+                reset_n  => reset_n,
                 i_enable => i_enable,
                 i_A      => i_X(i),
                 i_B      => i_theta(i),
@@ -83,8 +83,8 @@ begin
             gen_mac_inst : mac --! Multiply then add the previous result
             generic map(BITWIDTH => BITWIDTH)
             port map(
-                i_clk    => i_clk,
-                i_rst    => i_rst,
+                clock    => clock,
+                reset_n  => reset_n,
                 i_enable => i_enable,
                 i_A      => i_X(i),
                 i_B      => i_theta(i),
@@ -98,8 +98,8 @@ begin
             last_mac_inst : mac --! Convolution output is the result of the last MAC unit
             generic map(BITWIDTH => BITWIDTH)
             port map(
-                i_clk    => i_clk,
-                i_rst    => i_rst,
+                clock    => clock,
+                reset_n  => reset_n,
                 i_enable => i_enable,
                 i_A      => i_X(i),
                 i_B      => i_theta(i),

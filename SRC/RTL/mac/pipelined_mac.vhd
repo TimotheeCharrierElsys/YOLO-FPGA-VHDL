@@ -18,9 +18,9 @@ entity pipelined_mac is
         BITWIDTH : integer := 8 --! Bit width of each operand
     );
     port (
-        i_clk    : in std_logic;                                   --! Clock signal
-        i_rst    : in std_logic;                                   --! Reset signal, active at high state
-        i_enable : in std_logic;                                   --! Enable signal, active at high state
+        clock    : in std_logic;                                   --! Clock signal
+        reset_n  : in std_logic;                                   --! Reset signal, active at low state
+        i_enable : in std_logic;                                   --! Enable signal, active at low state
         i_A      : in std_logic_vector(BITWIDTH - 1 downto 0);     --! First multiplication operand
         i_B      : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Second multiplication operand
         i_C      : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Accumulation operand
@@ -48,9 +48,9 @@ begin
     -------------------------------------------------------------------------------------
     --! process
     --! Handles the synchronous and asynchronous operations of the pipelined pipelined_mac unit.
-    process (i_clk, i_rst)
+    process (clock, reset_n)
     begin
-        if i_rst = '1' then
+        if reset_n = '0' then
             -- Reset all registers to zero
             r_A            <= (others => '0');
             r_B            <= (others => '0');
@@ -58,7 +58,7 @@ begin
             r_mult         <= (others => '0');
             mult_stage_reg <= (others => '0');
             add_stage_reg  <= (others => '0');
-        elsif rising_edge(i_clk) then
+        elsif rising_edge(clock) then
             if (i_enable = '1') then
                 -- Stage 1: Register inputs
                 r_A <= i_A;

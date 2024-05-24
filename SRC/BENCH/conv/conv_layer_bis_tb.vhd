@@ -28,9 +28,9 @@ architecture conv_layer_bis_tb_arch of conv_layer_bis_tb is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal i_clk     : std_logic := '0'; --! Clock signal
-    signal i_rst     : std_logic := '1'; --! Reset signal, active at high state
-    signal i_enable  : std_logic := '0'; --! Enable signal, active at high state
+    signal clock     : std_logic := '0'; --! Clock signal
+    signal reset_n   : std_logic := '1'; --! Reset signal, active at low state
+    signal i_enable  : std_logic := '0'; --! Enable signal, active at low state
     signal i_data    : t_mat(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE * KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
     signal i_kernels : t_mat(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE * KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
     signal i_bias    : std_logic_vector(BITWIDTH - 1 downto 0);
@@ -46,8 +46,8 @@ architecture conv_layer_bis_tb_arch of conv_layer_bis_tb is
             KERNEL_SIZE    : integer
         );
         port (
-            i_clk     : in std_logic;
-            i_rst     : in std_logic;
+            clock     : in std_logic;
+            reset_n   : in std_logic;
             i_enable  : in std_logic;
             i_data    : in t_mat(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE * KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_kernels : in t_mat(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE * KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
@@ -67,8 +67,8 @@ begin
         KERNEL_SIZE    => KERNEL_SIZE
     )
     port map(
-        i_clk     => i_clk,
-        i_rst     => i_rst,
+        clock     => clock,
+        reset_n   => reset_n,
         i_enable  => i_enable,
         i_data    => i_data,
         i_kernels => i_kernels,
@@ -77,7 +77,7 @@ begin
     );
 
     -- Clock generation
-    i_clk <= not i_clk after i_clk_period / 2;
+    clock <= not clock after i_clk_period / 2;
 
     -------------------------------------------------------------------------------------
     -- TEST PROCESS
@@ -85,9 +85,9 @@ begin
     stimulus : process
     begin
         -- Reset the system
-        i_rst <= '1';
+        reset_n <= '0';
         wait for 2 * i_clk_period;
-        i_rst <= '0';
+        reset_n <= '1';
 
         -- Enable the mac unit
         i_enable <= '1';

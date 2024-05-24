@@ -59,18 +59,18 @@ Ports
      - Direction
      - Type
      - Description
-   * - i_clk
+   * - clock
      - in
      - std_logic
      - Clock signal
-   * - i_rst
+   * - reset_n
      - in
      - std_logic
-     - Reset signal, active at high state
+     - Reset signal, active at low state
    * - i_enable
      - in
      - std_logic
-     - Enable signal, active at high state
+     - Enable signal, active at low state
    * - i_data
      - in
      - t_mat(0 to CHANNEL_NUMBER - 1)(0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0)
@@ -110,7 +110,7 @@ Processes
 ---------
 
 
-* unnamed: ( i_clk, i_rst )
+* unnamed: ( clock, reset_n )
 
   * **Description**
     Process to handle synchronous and asynchronous operations.

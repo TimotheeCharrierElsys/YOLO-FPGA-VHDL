@@ -22,10 +22,10 @@ entity adder_tree is
         BITWIDTH : integer := 8   --! Bit width of each operand
     );
     port (
-        i_clk  : in std_logic;                                        --! Clock signal
-        i_rst  : in std_logic;                                        --! Reset signal, active at high state
-        i_data : in t_vec(N_OPD - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data vector
-        o_data : out std_logic_vector(BITWIDTH - 1 downto 0)          --! Output data
+        clock   : in std_logic;                                        --! Clock signal
+        reset_n : in std_logic;                                        --! Reset signal, active at low state
+        i_data  : in t_vec(N_OPD - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data vector
+        o_data  : out std_logic_vector(BITWIDTH - 1 downto 0)          --! Output data
     );
 end adder_tree;
 
@@ -75,14 +75,14 @@ begin
     -------------------------------------------------------------------------------------
     --! Process
     --! Handles the synchronous and asynchronous operations of the pipelined adder.
-    process (i_clk, i_rst)
+    process (clock, reset_n)
     begin
-        if i_rst = '1' then
+        if reset_n = '0' then
             -- Initialize the register with zeros on reset
             for i in 0 to N_STAGES loop
                 r_reg(i) <= (others => (others => '0'));
             end loop;
-        elsif rising_edge(i_clk) then
+        elsif rising_edge(clock) then
             r_reg <= r_next; -- Transfer next state to current state on rising edge of the clock
         end if;
     end process;

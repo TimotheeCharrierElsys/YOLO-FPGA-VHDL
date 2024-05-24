@@ -52,18 +52,18 @@ Ports
      - Direction
      - Type
      - Description
-   * - i_clk
+   * - clock
      - in
      - std_logic
      - Clock signal
-   * - i_rst
+   * - reset_n
      - in
      - std_logic
-     - Reset signal, active at high state
+     - Reset signal, active at low state
    * - i_enable
      - in
      - std_logic
-     - Enable signal, active at high state
+     - Enable signal, active at low state
    * - i_A
      - in
      - std_logic_vector(BITWIDTH - 1 downto 0)
@@ -86,7 +86,7 @@ Processes
 ---------
 
 
-* unnamed: ( i_clk, i_rst )
+* unnamed: ( clock, reset_n )
 
   * **Description**
     Process

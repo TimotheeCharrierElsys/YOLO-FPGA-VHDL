@@ -22,9 +22,9 @@ entity conv_layer is
         KERNEL_SIZE    : integer := 3  --! Size of the kernel (e.g., 3 for a 3x3 kernel)
     );
     port (
-        i_clk     : in std_logic;                                                                                         --! Clock signal
-        i_rst     : in std_logic;                                                                                         --! Reset signal, active at high state
-        i_enable  : in std_logic;                                                                                         --! Enable signal, active at high state
+        clock     : in std_logic;                                                                                         --! Clock signal
+        reset_n   : in std_logic;                                                                                         --! Reset signal, active at low state
+        i_enable  : in std_logic;                                                                                         --! Enable signal, active at low state
         i_data    : in t_mat(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE * KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data  (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
         i_kernels : in t_mat(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE * KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Kernel data (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
         i_bias    : in std_logic_vector(BITWIDTH - 1 downto 0);                                                           --! Input bias value
@@ -48,9 +48,9 @@ architecture conv_layer_arch of conv_layer is
             KERNEL_SIZE : integer  --! Size of the kernel
         );
         port (
-            i_clk    : in std_logic;                                                         --! Clock signal
-            i_rst    : in std_logic;                                                         --! Reset signal, active at high state
-            i_enable : in std_logic;                                                         --! Enable signal, active at high state
+            clock    : in std_logic;                                                         --! Clock signal
+            reset_n  : in std_logic;                                                         --! Reset signal, active at low state
+            i_enable : in std_logic;                                                         --! Enable signal, active at low state
             i_X      : in t_vec (0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0); --! Input data (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH bits)
             i_theta  : in t_vec (0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0); --! Kernel data (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH bits)
             o_Y      : out std_logic_vector (2 * BITWIDTH - 1 downto 0)                      --! Output result
@@ -71,8 +71,8 @@ begin
             KERNEL_SIZE => KERNEL_SIZE
         )
         port map(
-            i_clk    => i_clk,
-            i_rst    => i_rst,
+            clock    => clock,
+            reset_n  => reset_n,
             i_enable => i_enable,
             i_X      => i_data(i),
             i_theta  => i_kernels(i),
@@ -84,13 +84,13 @@ begin
     -- PROCESS ASYNC (reset high)
     -------------------------------------------------------------------------------------
     --! Process to handle synchronous and asynchronous operations.
-    process (i_clk, i_rst)
+    process (clock, reset_n)
         variable sum : signed(2 * BITWIDTH - 1 downto 0); --! Variable to accumulate the sum of MAC outputs.
     begin
-        if i_rst = '1' then
+        if reset_n = '0' then
             --! Reset output register and counter to zeros.
             o_Y <= (others => '0');
-        elsif rising_edge(i_clk) then
+        elsif rising_edge(clock) then
             if i_enable = '1' then
                 -- Counter increment
                 sum := (others => '0');

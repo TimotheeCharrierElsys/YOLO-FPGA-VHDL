@@ -8,7 +8,7 @@
 --! Testbench:
 --! { signal: [
 --!  { name: "clk",  wave: "P.xx", period: 2 },
---!  { name: "i_rst",  wave: "10......" },
+--!  { name: "reset_n",  wave: "10......" },
 --!  { name: "i_enable",  wave: "01......" },
 --!  { name: "i_X", wave: "x=......", data: ["{{1 1 1} {1 1 1} {1 1 1}}"] },
 --!  { name: "i_theta", wave: "x=......", data: ["{{1 0 0} {0 1 0} {0 0 1}}"] },
@@ -42,9 +42,9 @@ architecture pipelined_mac33_tb_arch of pipelined_mac33_tb is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal i_clk    : std_logic := '0'; --! Clock signal
-    signal i_rst    : std_logic := '1'; --! Reset signal, active at high state
-    signal i_enable : std_logic := '0'; --! Enable signal, active at high state
+    signal clock    : std_logic := '0'; --! Clock signal
+    signal reset_n  : std_logic := '1'; --! Reset signal, active at low state
+    signal i_enable : std_logic := '0'; --! Enable signal, active at low state
     signal i_X      : t_vec (0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0);
     signal i_theta  : t_vec (0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0);
     signal o_Y      : std_logic_vector (2 * BITWIDTH - 1 downto 0);
@@ -58,8 +58,8 @@ architecture pipelined_mac33_tb_arch of pipelined_mac33_tb is
             KERNEL_SIZE : integer
         );
         port (
-            i_clk    : in std_logic;
-            i_rst    : in std_logic;
+            clock    : in std_logic;
+            reset_n  : in std_logic;
             i_enable : in std_logic;
             i_X      : in t_vec (0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0);
             i_theta  : in t_vec (0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0);
@@ -77,8 +77,8 @@ begin
         KERNEL_SIZE => KERNEL_SIZE
     )
     port map(
-        i_clk    => i_clk,
-        i_rst    => i_rst,
+        clock    => clock,
+        reset_n  => reset_n,
         i_enable => i_enable,
         i_X      => i_X,
         i_theta  => i_theta,
@@ -86,7 +86,7 @@ begin
     );
 
     -- Clock generation
-    i_clk <= not i_clk after i_clk_period / 2;
+    clock <= not clock after i_clk_period / 2;
 
     -------------------------------------------------------------------------------------
     -- TEST PROCESS
@@ -94,9 +94,9 @@ begin
     stimulus : process
     begin
         -- Reset the system
-        i_rst <= '1';
+        reset_n <= '0';
         wait for 2 * i_clk_period;
-        i_rst <= '0';
+        reset_n <= '1';
 
         -- Enable the mac unit
         i_enable <= '1';

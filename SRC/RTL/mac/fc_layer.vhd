@@ -20,9 +20,9 @@ entity fc_layer is
         VECTOR_SIZE : integer := 8  --! Input Vector Size
     );
     port (
-        i_clk    : in std_logic;                                              --! Clock signal
-        i_rst    : in std_logic;                                              --! Reset signal, active at high state
-        i_enable : in std_logic;                                              --! Enable signal, active at high state
+        clock    : in std_logic;                                              --! Clock signal
+        reset_n  : in std_logic;                                              --! Reset signal, active at low state
+        i_enable : in std_logic;                                              --! Enable signal, active at low state
         i_data   : in t_vec(VECTOR_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data
         i_weight : in t_vec(VECTOR_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input weights
         o_sum    : out std_logic_vector(2 * BITWIDTH - 1 downto 0)            --! Output value
@@ -46,10 +46,10 @@ architecture fc_layer_arch of fc_layer is
             BITWIDTH : integer
         );
         port (
-            i_clk  : in std_logic;                                    --! Clock signal
-            i_rst  : in std_logic;                                    --! Reset signal, active at high state
-            i_data : in t_vec(0 to N_OPD - 1)(BITWIDTH - 1 downto 0); --! Input data vector
-            o_data : out std_logic_vector(BITWIDTH - 1 downto 0)      --! Output data
+            clock   : in std_logic;                                    --! Clock signal
+            reset_n : in std_logic;                                    --! Reset signal, active at low state
+            i_data  : in t_vec(0 to N_OPD - 1)(BITWIDTH - 1 downto 0); --! Input data vector
+            o_data  : out std_logic_vector(BITWIDTH - 1 downto 0)      --! Output data
         );
     end component;
 
@@ -73,10 +73,10 @@ begin
         BITWIDTH => 2 * BITWIDTH
     )
     port map(
-        i_clk  => i_clk,
-        i_rst  => i_rst,
-        i_data => r_mult_to_add,
-        o_data => r_sum
+        clock   => clock,
+        reset_n => reset_n,
+        i_data  => r_mult_to_add,
+        o_data  => r_sum
     );
 
     -------------------------------------------------------------------------------------

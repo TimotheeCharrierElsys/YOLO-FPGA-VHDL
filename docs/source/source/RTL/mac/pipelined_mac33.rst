@@ -56,18 +56,18 @@ Ports
      - Direction
      - Type
      - Description
-   * - i_clk
+   * - clock
      - in
      - std_logic
      - Clock signal
-   * - i_rst
+   * - reset_n
      - in
      - std_logic
-     - Reset signal, active at high state
+     - Reset signal, active at low state
    * - i_enable
      - in
      - std_logic
-     - Enable signal, active at high state
+     - Enable signal, active at low state
    * - i_X
      - in
      - t_vec (0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0)
