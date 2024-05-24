@@ -24,10 +24,15 @@ Welcome to the YOLO implementation on FPGA's documentation!
 .. toctree::
   :caption: RTL
 
-  source/RTL/binary_adder_tree/binary_adder_tree
+  source/RTL/types_pkg
+  source/RTL/adder_tree/adder_tree
+  source/RTL/adder_tree/binary_adder_tree
   source/RTL/mac/mac
   source/RTL/mac/pipelined_mac
   source/RTL/mac/pipelined_mac33
+  source/RTL/mac/fc_layer
+  source/RTL/conv/conv_layer
+  source/RTL/conv/conv_layer_bis
 
 .. toctree::
   :caption: Modules
