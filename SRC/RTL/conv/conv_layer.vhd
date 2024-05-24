@@ -90,6 +90,7 @@ begin
         if reset_n = '0' then
             --! Reset output register and counter to zeros.
             o_Y <= (others => '0');
+            sum := (others => '0');
         elsif rising_edge(clock) then
             if i_enable = '1' then
                 -- Counter increment
