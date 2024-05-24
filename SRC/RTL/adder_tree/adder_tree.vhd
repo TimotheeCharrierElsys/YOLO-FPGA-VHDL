@@ -19,7 +19,7 @@ use LIB_RTL.types_pkg.all;
 entity adder_tree is
     generic (
         N_OPD    : integer := 12; --! Number of operands
-        BITWIDTH : integer := 8  --! Bit width of each operand
+        BITWIDTH : integer := 8   --! Bit width of each operand
     );
     port (
         i_clk  : in std_logic;                                    --! Clock signal
