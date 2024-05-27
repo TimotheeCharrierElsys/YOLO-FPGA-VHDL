@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" /><link rel="next" title="Module common" href="../../../modules/common/doc/module_common.html" /><link rel="prev" title="Entity: conv_layer" href="conv_layer.html" />
 
     <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
-        <title>Entity: conv_layer_bis - YOLO implementation on FPGA documentation</title>
+        <title>Entity: conv_layer_fc_tb - YOLO implementation on FPGA documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=83e35b93" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=eafc0fe6" />
@@ -170,7 +170,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../mac/pipelined_mac33.html">Entity: pipelined_mac33</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mac/fc_layer.html">Entity: fc_layer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="conv_layer.html">Entity: conv_layer</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Entity: conv_layer_bis</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Entity: conv_layer_fc_tb</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
 <ul>
@@ -214,22 +214,22 @@
         </div>
         <article role="main">
           <section id="entity-conv-layer-bis">
-<h1>Entity: conv_layer_bis<a class="headerlink" href="#entity-conv-layer-bis" title="Link to this heading">#</a></h1>
+<h1>Entity: conv_layer_fc_tb<a class="headerlink" href="#entity-conv-layer-bis" title="Link to this heading">#</a></h1>
 <ul class="simple">
-<li><p><strong>File</strong>: conv_layer_bis.vhd</p></li>
-<li><p><strong>File:</strong>        conv_layer_bis</p></li>
+<li><p><strong>File</strong>: conv_layer_fc_tb.vhd</p></li>
+<li><p><strong>File:</strong>        conv_layer_fc_tb</p></li>
 <li><p><strong>Brief:</strong>       This entity implements a pipelined Multiply-Accumulate (pipelined_mac) unit.</p></li>
 <li><p><strong>Author:</strong>      Timothée Charrier</p></li>
 </ul>
 <section id="diagram">
 <h2>Diagram<a class="headerlink" href="#diagram" title="Link to this heading">#</a></h2>
-<a class="reference external image-reference" href="conv_layer_bis.svg"><img alt="Diagram" src="../../../_images/conv_layer_bis.svg" /></a>
+<a class="reference external image-reference" href="conv_layer_fc_tb.svg"><img alt="Diagram" src="../../../_images/conv_layer_fc_tb.svg" /></a>
 </section>
 <section id="description">
 <h2>Description<a class="headerlink" href="#description" title="Link to this heading">#</a></h2>
 <p>with a 3x3 kernel.
-It performs conv_layer_bis operations using a 3x3 kernel over the input data.
-Entity conv_layer_bis
+It performs conv_layer_fc_tb operations using a 3x3 kernel over the input data.
+Entity conv_layer_fc_tb
 This entity implements a convolution layer using a pipelined MAC unit with a 3x3 kernel.</p>
 </section>
 <section id="generics">
@@ -401,7 +401,7 @@ Process to handle synchronous and asynchronous operations.</p></li>
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">Entity: conv_layer_bis</a><ul>
+<li><a class="reference internal" href="#">Entity: conv_layer_fc_tb</a><ul>
 <li><a class="reference internal" href="#diagram">Diagram</a></li>
 <li><a class="reference internal" href="#description">Description</a></li>
 <li><a class="reference internal" href="#generics">Generics</a></li>

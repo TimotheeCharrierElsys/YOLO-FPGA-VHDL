@@ -32,7 +32,7 @@ Welcome to the YOLO implementation on FPGA's documentation!
   source/RTL/mac/pipelined_mac33
   source/RTL/mac/fc_layer
   source/RTL/conv/conv_layer
-  source/RTL/conv/conv_layer_bis
+  source/RTL/conv/conv_layer_fc_tb
 
 .. toctree::
   :caption: Modules

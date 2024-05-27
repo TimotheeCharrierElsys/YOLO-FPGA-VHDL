@@ -1,10 +1,10 @@
 
-Entity: conv_layer_bis
+Entity: conv_layer_fc_tb
 ======================
 
 
-* **File**\ : conv_layer_bis.vhd
-* **File:**        conv_layer_bis
+* **File**\ : conv_layer_fc_tb.vhd
+* **File:**        conv_layer_fc_tb
 * **Brief:**       This entity implements a pipelined Multiply-Accumulate (pipelined_mac) unit.
 * **Author:**      Timothée Charrier
 
@@ -12,8 +12,8 @@ Diagram
 -------
 
 
-.. image:: conv_layer_bis.svg
-   :target: conv_layer_bis.svg
+.. image:: conv_layer_fc_tb.svg
+   :target: conv_layer_fc_tb.svg
    :alt: Diagram
 
 
@@ -21,8 +21,8 @@ Description
 -----------
 
 with a 3x3 kernel.
-It performs conv_layer_bis operations using a 3x3 kernel over the input data.
-Entity conv_layer_bis
+It performs conv_layer_fc_tb operations using a 3x3 kernel over the input data.
+Entity conv_layer_fc_tb
 This entity implements a convolution layer using a pipelined MAC unit with a 3x3 kernel.
 
 Generics

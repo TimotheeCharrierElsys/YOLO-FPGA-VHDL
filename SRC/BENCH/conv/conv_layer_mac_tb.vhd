@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------
---!     @file    conv_layer_bis_tb
+--!     @file    conv_layer_mac_tb
 --!     @brief        This testbench verifies the functionality of the conv layer
 --!     @details      It initializes the inputs, applies test vectors, and checks the outputs.
 --!     @author       Timothée Charrier
@@ -12,10 +12,10 @@ use IEEE.NUMERIC_STD.all;
 library LIB_RTL;
 use LIB_RTL.types_pkg.all;
 
-entity conv_layer_bis_tb is
+entity conv_layer_mac_tb is
 end entity;
 
-architecture conv_layer_bis_tb_arch of conv_layer_bis_tb is
+architecture conv_layer_tb_arch of conv_layer_mac_tb is
     -------------------------------------------------------------------------------------
     -- CONSTANTS
     -------------------------------------------------------------------------------------
@@ -39,7 +39,7 @@ architecture conv_layer_bis_tb_arch of conv_layer_bis_tb is
     -------------------------------------------------------------------------------------
     -- COMPONENTS
     -------------------------------------------------------------------------------------
-    component conv_layer_bis
+    component conv_layer
         generic (
             BITWIDTH       : integer;
             CHANNEL_NUMBER : integer;
@@ -60,7 +60,7 @@ begin
     -------------------------------------------------------------------------------------
     -- UNIT UNDER TEST (UUT)
     -------------------------------------------------------------------------------------
-    UUT : conv_layer_bis
+    UUT : conv_layer
     generic map(
         BITWIDTH       => BITWIDTH,
         CHANNEL_NUMBER => CHANNEL_NUMBER,
@@ -144,10 +144,10 @@ begin
 
 end architecture;
 
-configuration conv_layer_bis_tb_conf of conv_layer_bis_tb is
-    for conv_layer_bis_tb_arch
-        for UUT : conv_layer_bis
-            use configuration LIB_RTL.conv_layer_bis_conf;
+configuration conv_layer_tb_conf of conv_layer_mac_tb is
+    for conv_layer_tb_arch
+        for UUT : conv_layer
+            use configuration LIB_RTL.conv_layer_mac_conf;
         end for;
     end for;
-end configuration conv_layer_bis_tb_conf;
+end configuration conv_layer_tb_conf;
