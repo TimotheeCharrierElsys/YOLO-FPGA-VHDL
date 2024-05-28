@@ -34,7 +34,7 @@ architecture mac_w_mux_arch of mac_w_mux is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal mux_out : std_logic_vector(2 * BITWIDTH - 1 downto 0); --! MUX output value
+    signal mac_out : std_logic_vector(2 * BITWIDTH - 1 downto 0); --! MUX output value
 
 begin
 
@@ -44,21 +44,25 @@ begin
     --! Process
     --! Handles the synchronous and asynchronous operations of the MAC unit.
     process (clock, reset_n)
+        variable v_mux : std_logic_vector(2 * BITWIDTH - 1 downto 0);
     begin
         if reset_n = '0' then
             -- Reset output register to zeros
-            mux_out <= (others => '0');
+            mac_out <= (others => '0');
         elsif rising_edge(clock) then
             if (i_enable = '1') then
 
                 -- MUX update based on i_sel signal
-                --      If i_sel is '0', mux_out takes the value of intermediate mac result + multiplication result             
-                --      If i_sel is '1', mux_out takes the resized value of i_bias + multiplication result
+                --      If i_sel is '0', mux_out takes the output value          
+                --      If i_sel is '1', mux_out takes the resized value of i_bias
                 if i_sel = '0' then
-                    mux_out <= std_logic_vector(signed(mux_out) + signed(i_multiplier1) * signed(i_multiplier2)); --! Add the output value with the multiplciation
+                    v_mux := mac_out; --! Select Output value
                 else
-                    mux_out <= std_logic_vector(signed(i_bias) + signed(i_multiplier1) * signed(i_multiplier2)); --! Add Bias with the multitplication
+                    v_mux := std_logic_vector(resize(signed(i_bias), mac_out'length)); --! Select Bias
                 end if;
+
+                -- Multiplication and addition
+                mac_out <= std_logic_vector(signed(v_mux) + signed(i_multiplier1) * signed(i_multiplier2));
             end if;
         end if;
     end process;
@@ -66,6 +70,6 @@ begin
     -------------------------------------------------------------------------------------
     -- OUTPUT ASSIGNMENT
     -------------------------------------------------------------------------------------
-    o_result <= mux_out;
+    o_result <= mac_out;
 
 end mac_w_mux_arch;
