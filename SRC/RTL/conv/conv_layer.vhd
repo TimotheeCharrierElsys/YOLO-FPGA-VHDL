@@ -8,6 +8,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
+use IEEE.MATH_REAL.all;
 
 library LIB_RTL;
 use LIB_RTL.types_pkg.all;
@@ -27,7 +28,8 @@ entity conv_layer is
         i_data    : in t_mat(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE * KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data  (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
         i_kernels : in t_mat(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE * KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Kernel data (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
         i_bias    : in std_logic_vector(BITWIDTH - 1 downto 0);                                                           --! Input bias value
-        o_Y       : out std_logic_vector(2 * BITWIDTH - 1 downto 0)                                                       --! Output value
+        o_Y       : out std_logic_vector(2 * BITWIDTH - 1 downto 0);                                                      --! Output value
+        o_valid   : out std_logic                                                                                         --! Output valid signal
     );
 end conv_layer;
 
@@ -42,6 +44,7 @@ architecture conv_layer_mac_arch of conv_layer is
     -- SIGNALS
     -------------------------------------------------------------------------------------
     signal mac_out : t_vec(0 to CHANNEL_NUMBER - 1)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel.
+    signal r_count : integer range 0 to KERNEL_SIZE * KERNEL_SIZE - 1;          --! Counter for o_valid data
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -92,7 +95,9 @@ begin
     begin
         if reset_n = '0' then
             --! Reset output register and sum to zeros.
-            o_Y <= (others => '0');
+            o_Y     <= (others => '0');
+            o_valid <= '0';
+            r_count <= 0;
             sum := (others => '0');
 
         elsif rising_edge(clock) then
@@ -104,6 +109,15 @@ begin
                 for i in 0 to CHANNEL_NUMBER - 1 loop
                     sum := sum + signed(mac_out(i));
                 end loop;
+
+                -- Counter increment
+                if (r_count >= KERNEL_SIZE * KERNEL_SIZE - 1) then
+                    r_count <= 0;
+                    o_valid <= '1';
+                else
+                    r_count <= r_count + 1;
+                    o_valid <= '0';
+                end if;
 
                 -- Output update
                 o_Y <= std_logic_vector(sum + signed(i_bias));
@@ -134,7 +148,10 @@ architecture conv_layer_fc_arch of conv_layer is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
+    constant DFF_DELAY : integer := (integer(ceil(log2(real(KERNEL_SIZE * KERNEL_SIZE)))) + 1) + 1; --! Number of stages required to complete the addition process + MULT REG
+
     signal mac_out : t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel.
+    signal r_count : integer range 0 to DFF_DELAY - 1;                              --! Counter for o_valid data
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -184,8 +201,10 @@ begin
         variable sum : signed(2 * BITWIDTH - 1 downto 0); --! Variable to accumulate the sum of MAC outputs.
     begin
         if reset_n = '0' then
-            --! Reset output register and sum to zeros.
-            o_Y <= (others => '0');
+            --! Reset output register and counter to zeros.
+            o_Y     <= (others => '0');
+            o_valid <= '0';
+            r_count <= 0;
 
         elsif rising_edge(clock) then
             if i_enable = '1' then
@@ -196,6 +215,15 @@ begin
                 for i in 0 to CHANNEL_NUMBER - 1 loop
                     sum := sum + signed(mac_out(i));
                 end loop;
+
+                -- Counter increment
+                if (r_count >= DFF_DELAY - 1) then
+                    r_count <= 0;
+                    o_valid <= '1';
+                else
+                    r_count <= r_count + 1;
+                    o_valid <= '0';
+                end if;
 
                 -- Output update
                 o_Y <= std_logic_vector(sum + signed(i_bias));
@@ -227,7 +255,6 @@ architecture conv_layer_one_mac_arch of conv_layer is
     signal mac_out : t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel.
     signal r_count : integer range 0 to KERNEL_SIZE * KERNEL_SIZE - 1;              --! Counter to track the current position within the kernel.
     signal r_sel   : std_logic;                                                     --! Selector signal for mac_w_mux control.
-    signal o_valid : std_logic;                                                     --! Output valid signal.
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -302,8 +329,10 @@ begin
         if reset_n = '0' then
             -- Reset output register, counter, and selector to initial states.
             o_Y     <= (others => '0');
+            o_valid <= '0';
             r_count <= 0;
             r_sel   <= '0';
+
         elsif rising_edge(clock) then
             if i_enable = '1' then
                 -- Initialize sum for this cycle.
@@ -329,7 +358,7 @@ begin
                     o_valid <= '0';
                 end if;
 
-                -- Assign the computed sum (including bias) to the output.
+                -- Assign the computed sum to the output.
                 o_Y <= std_logic_vector(sum);
             end if;
         end if;

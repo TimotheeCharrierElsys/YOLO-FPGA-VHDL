@@ -12,10 +12,10 @@ use IEEE.NUMERIC_STD.all;
 library LIB_RTL;
 use LIB_RTL.types_pkg.all;
 
-entity conv_layer_fc_tb_tb is
+entity conv_layer_fc_tb is
 end entity;
 
-architecture conv_layer_fc_tb_tb_arch of conv_layer_fc_tb_tb is
+architecture conv_layer_fc_tb_arch of conv_layer_fc_tb is
     -------------------------------------------------------------------------------------
     -- CONSTANTS
     -------------------------------------------------------------------------------------
@@ -35,6 +35,7 @@ architecture conv_layer_fc_tb_tb_arch of conv_layer_fc_tb_tb is
     signal i_kernels : t_mat(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE * KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
     signal i_bias    : std_logic_vector(BITWIDTH - 1 downto 0);
     signal o_Y       : std_logic_vector(2 * BITWIDTH - 1 downto 0);
+    signal o_valid   : std_logic;
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -52,7 +53,8 @@ architecture conv_layer_fc_tb_tb_arch of conv_layer_fc_tb_tb is
             i_data    : in t_mat(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE * KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_kernels : in t_mat(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE * KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_bias    : in std_logic_vector(BITWIDTH - 1 downto 0);
-            o_Y       : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
+            o_Y       : out std_logic_vector(2 * BITWIDTH - 1 downto 0);
+            o_valid   : out std_logic
         );
     end component;
 
@@ -73,7 +75,8 @@ begin
         i_data    => i_data,
         i_kernels => i_kernels,
         i_bias    => i_bias,
-        o_Y       => o_Y
+        o_Y       => o_Y,
+        o_valid   => o_valid
     );
 
     -- Clock generation
@@ -144,10 +147,10 @@ begin
 
 end architecture;
 
-configuration conv_layer_fc_tb_tb_conf of conv_layer_fc_tb_tb is
-    for conv_layer_fc_tb_tb_arch
+configuration conv_layer_fc_tb_conf of conv_layer_fc_tb is
+    for conv_layer_fc_tb_arch
         for UUT : conv_layer_fc_tb
             use configuration LIB_RTL.conv_layer_fc_conf;
         end for;
     end for;
-end configuration conv_layer_fc_tb_tb_conf;
+end configuration conv_layer_fc_tb_conf;
