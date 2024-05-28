@@ -206,3 +206,90 @@ configuration conv_layer_fc_conf of conv_layer is
         end for;
     end for;
 end configuration conv_layer_fc_conf;
+
+-------------------------------------------------------------------------------------
+-- CONV LAYER USING ONE MAC PER LAYER
+-------------------------------------------------------------------------------------
+
+architecture conv_layer_one_mac_arch of conv_layer is
+
+    -------------------------------------------------------------------------------------
+    -- SIGNALS
+    -------------------------------------------------------------------------------------
+    signal mac_out : t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel.
+
+    -------------------------------------------------------------------------------------
+    -- COMPONENTS
+    -------------------------------------------------------------------------------------
+    component mac_w_mux
+        generic (
+            BITWIDTH : integer
+        );
+        port (
+            clock         : in std_logic;
+            reset_n       : in std_logic;
+            i_enable      : in std_logic;
+            i_sel         : in std_logic;
+            i_multiplier1 : in std_logic_vector(BITWIDTH - 1 downto 0);
+            i_multiplier2 : in std_logic_vector(BITWIDTH - 1 downto 0);
+            i_bias        : in std_logic_vector(BITWIDTH - 1 downto 0);
+            o_result      : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
+        );
+    end component;
+
+begin
+
+    -------------------------------------------------------------------------------------
+    -- GENERATE BLOCK
+    -------------------------------------------------------------------------------------
+    gen_fc : for i in 0 to CHANNEL_NUMBER - 1 generate
+
+        --! Instantiate the fc_layer units for each channel.
+        gen_fc_layer : fc_layer
+        generic map(
+            BITWIDTH    => BITWIDTH,
+            VECTOR_SIZE => KERNEL_SIZE * KERNEL_SIZE
+        )
+        port map(
+            clock    => clock,
+            reset_n  => reset_n,
+            i_enable => i_enable,
+            i_data   => i_data(i),
+            i_weight => i_kernels(i),
+            o_sum    => mac_out(i)
+        );
+    end generate gen_fc;
+
+    -------------------------------------------------------------------------------------
+    -- PROCESS ASYNC (reset negative)
+    -------------------------------------------------------------------------------------
+    --! Process to handle synchronous and asynchronous operations.
+    process (clock, reset_n)
+        variable sum : signed(2 * BITWIDTH - 1 downto 0); --! Variable to accumulate the sum of MAC outputs.
+    begin
+        if reset_n = '0' then
+            --! Reset output register and counter to zeros.
+            o_Y <= (others => '0');
+        elsif rising_edge(clock) then
+            if i_enable = '1' then
+                -- Counter increment
+                sum := (others => '0');
+                --! Sum the MAC outputs for each channel and add bias.
+                for i in 0 to CHANNEL_NUMBER - 1 loop
+                    sum := sum + signed(mac_out(i));
+                end loop;
+                o_Y <= std_logic_vector(sum + signed(i_bias));
+            end if;
+        end if;
+    end process;
+end conv_layer_one_mac_arch;
+
+configuration conv_layer_fc_conf of conv_layer is
+    for conv_layer_one_mac_arch
+        for gen_fc
+            for all : fc_layer
+                use configuration LIB_RTL.fc_layer_conf;
+            end for;
+        end for;
+    end for;
+end configuration conv_layer_fc_conf;
