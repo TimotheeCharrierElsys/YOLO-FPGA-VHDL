@@ -64,19 +64,19 @@ Ports
      - in
      - std_logic
      - Enable signal, active at low state
-   * - i_A
+   * - i_multiplier1
      - in
      - std_logic_vector(BITWIDTH - 1 downto 0)
      - First multiplication operand
-   * - i_B
+   * - i_multiplier2
      - in
      - std_logic_vector(BITWIDTH - 1 downto 0)
      - Second multiplication operand
-   * - i_C
+   * - i_add
      - in
      - std_logic_vector(BITWIDTH - 1 downto 0)
      - Accumulation operand
-   * - o_P
+   * - o_result
      - out
      - std_logic_vector(2 * BITWIDTH - 1 downto 0)
      - Output result

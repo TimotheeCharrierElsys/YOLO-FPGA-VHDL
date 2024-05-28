@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" /><link rel="next" title="Entity: pipelined_mac" href="pipelined_mac.html" /><link rel="prev" title="Entity: binary_adder_tree" href="../adder_tree/binary_adder_tree.html" />
+<link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" /><link rel="next" title="Entity: mac_w_mux" href="mac_w_mux.html" /><link rel="prev" title="Entity: binary_adder_tree" href="../adder_tree/binary_adder_tree.html" />
 
     <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
         <title>Entity: mac - YOLO implementation on FPGA documentation</title>
@@ -159,6 +159,7 @@
   <p class="caption" role="heading"><span class="caption-text">User guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html#convolution-layer-architectures">Convolution Layer Architectures</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">RTL</span></p>
 <ul class="current">
@@ -166,11 +167,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../adder_tree/adder_tree.html">Entity: adder_tree</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adder_tree/binary_adder_tree.html">Entity: binary_adder_tree</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Entity: mac</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pipelined_mac.html">Entity: pipelined_mac</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mac_w_mux.html">Entity: mac_w_mux</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mac_layer.html">Entity: mac_layer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fc_layer.html">Entity: fc_layer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../conv/conv_layer.html">Entity: conv_layer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../conv/conv_layer_fc_tb.html">Entity: conv_layer_fc_tb</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
 <ul>
@@ -281,22 +281,22 @@ It multiplies two operands and then adds a third operand.</p>
 <td><p>std_logic</p></td>
 <td><p>Enable signal, active at low state</p></td>
 </tr>
-<tr class="row-odd"><td><p>i_A</p></td>
+<tr class="row-odd"><td><p>i_multiplier1</p></td>
 <td><p>in</p></td>
 <td><p>std_logic_vector(BITWIDTH - 1 downto 0)</p></td>
 <td><p>First multiplication operand</p></td>
 </tr>
-<tr class="row-even"><td><p>i_B</p></td>
+<tr class="row-even"><td><p>i_multiplier2</p></td>
 <td><p>in</p></td>
 <td><p>std_logic_vector(BITWIDTH - 1 downto 0)</p></td>
 <td><p>Second multiplication operand</p></td>
 </tr>
-<tr class="row-odd"><td><p>i_C</p></td>
+<tr class="row-odd"><td><p>i_add</p></td>
 <td><p>in</p></td>
 <td><p>std_logic_vector(BITWIDTH - 1 downto 0)</p></td>
 <td><p>Accumulation operand</p></td>
 </tr>
-<tr class="row-even"><td><p>o_P</p></td>
+<tr class="row-even"><td><p>o_result</p></td>
 <td><p>out</p></td>
 <td><p>std_logic_vector(2 * BITWIDTH - 1 downto 0)</p></td>
 <td><p>Output result</p></td>
@@ -324,12 +324,12 @@ Handles the synchronous and asynchronous operations of the mac unit.</p></li>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="pipelined_mac.html">
+          <a class="next-page" href="mac_w_mux.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Entity: pipelined_mac</div>
+                <div class="title">Entity: mac_w_mux</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>

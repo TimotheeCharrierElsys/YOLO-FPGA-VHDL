@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" /><link rel="next" title="Entity: conv_layer_fc_tb" href="conv_layer_fc_tb.html" /><link rel="prev" title="Entity: fc_layer" href="../mac/fc_layer.html" />
+<link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" /><link rel="next" title="Module common" href="../../../modules/common/doc/module_common.html" /><link rel="prev" title="Entity: fc_layer" href="../mac/fc_layer.html" />
 
     <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
         <title>Entity: conv_layer - YOLO implementation on FPGA documentation</title>
@@ -159,6 +159,7 @@
   <p class="caption" role="heading"><span class="caption-text">User guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html#convolution-layer-architectures">Convolution Layer Architectures</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">RTL</span></p>
 <ul class="current">
@@ -166,11 +167,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../adder_tree/adder_tree.html">Entity: adder_tree</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adder_tree/binary_adder_tree.html">Entity: binary_adder_tree</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mac/mac.html">Entity: mac</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../mac/pipelined_mac.html">Entity: pipelined_mac</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mac/mac_w_mux.html">Entity: mac_w_mux</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mac/mac_layer.html">Entity: mac_layer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mac/fc_layer.html">Entity: fc_layer</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Entity: conv_layer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="conv_layer_fc_tb.html">Entity: conv_layer_fc_tb</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
 <ul>
@@ -218,7 +218,7 @@
 <ul class="simple">
 <li><p><strong>File</strong>: conv_layer.vhd</p></li>
 <li><p><strong>File:</strong>        conv_layer</p></li>
-<li><p><strong>Brief:</strong>       This entity implements a pipelined Multiply-Accumulate (pipelined_mac) unit.</p></li>
+<li><p><strong>Brief:</strong>       This entity implements a convolution layer using three different architectures.</p></li>
 <li><p><strong>Author:</strong>      Timothée Charrier</p></li>
 </ul>
 <section id="diagram">
@@ -227,8 +227,7 @@
 </section>
 <section id="description">
 <h2>Description<a class="headerlink" href="#description" title="Link to this heading">#</a></h2>
-<p>with a 3x3 kernel.
-It performs conv_layer operations using a 3x3 kernel over the input data.
+<p>It performs conv_layer operations.
 Entity conv_layer
 This entity implements a convolution layer using a pipelined MAC unit with a 3x3 kernel.</p>
 </section>
@@ -292,12 +291,12 @@ This entity implements a convolution layer using a pipelined MAC unit with a 3x3
 </tr>
 <tr class="row-odd"><td><p>i_data</p></td>
 <td><p>in</p></td>
-<td><p>t_mat(0 to CHANNEL_NUMBER - 1)(0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0)</p></td>
+<td><p>t_mat(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE * KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)</p></td>
 <td><p>Input data  (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)</p></td>
 </tr>
 <tr class="row-even"><td><p>i_kernels</p></td>
 <td><p>in</p></td>
-<td><p>t_mat(0 to CHANNEL_NUMBER - 1)(0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0)</p></td>
+<td><p>t_mat(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE * KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)</p></td>
 <td><p>Kernel data (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)</p></td>
 </tr>
 <tr class="row-odd"><td><p>i_bias</p></td>
@@ -309,6 +308,11 @@ This entity implements a convolution layer using a pipelined MAC unit with a 3x3
 <td><p>out</p></td>
 <td><p>std_logic_vector(2 * BITWIDTH - 1 downto 0)</p></td>
 <td><p>Output value</p></td>
+</tr>
+<tr class="row-odd"><td><p>o_valid</p></td>
+<td><p>out</p></td>
+<td><p>std_logic</p></td>
+<td><p>Output valid signal</p></td>
 </tr>
 </tbody>
 </table>
@@ -330,8 +334,8 @@ This entity implements a convolution layer using a pipelined MAC unit with a 3x3
 <td><p>Intermediate signal to hold the output of each MAC unit for each channel.</p></td>
 </tr>
 <tr class="row-odd"><td><p>r_count</p></td>
-<td><p>integer</p></td>
-<td><p>Counter for the MAC operations.</p></td>
+<td><p>integer range 0 to KERNEL_SIZE * KERNEL_SIZE - 1</p></td>
+<td><p>Counter for o_valid data</p></td>
 </tr>
 </tbody>
 </table>
@@ -340,12 +344,7 @@ This entity implements a convolution layer using a pipelined MAC unit with a 3x3
 <section id="processes">
 <h2>Processes<a class="headerlink" href="#processes" title="Link to this heading">#</a></h2>
 <ul class="simple">
-<li><p>unnamed: ( clock, reset_n )</p>
-<ul>
-<li><p><strong>Description</strong>
-Process to handle synchronous and asynchronous operations.</p></li>
-</ul>
-</li>
+<li><p>unnamed: ( clock, reset_n )</p></li>
 </ul>
 </section>
 </section>
@@ -355,12 +354,12 @@ Process to handle synchronous and asynchronous operations.</p></li>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="conv_layer_fc_tb.html">
+          <a class="next-page" href="../../../modules/common/doc/module_common.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Entity: conv_layer_fc_tb</div>
+                <div class="title">Module common</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>

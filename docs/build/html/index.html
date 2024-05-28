@@ -159,6 +159,7 @@
   <p class="caption" role="heading"><span class="caption-text">User guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#convolution-layer-architectures">Convolution Layer Architectures</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">RTL</span></p>
 <ul>
@@ -166,11 +167,10 @@
 <li class="toctree-l1"><a class="reference internal" href="source/RTL/adder_tree/adder_tree.html">Entity: adder_tree</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source/RTL/adder_tree/binary_adder_tree.html">Entity: binary_adder_tree</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source/RTL/mac/mac.html">Entity: mac</a></li>
-<li class="toctree-l1"><a class="reference internal" href="source/RTL/mac/pipelined_mac.html">Entity: pipelined_mac</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/RTL/mac/mac_w_mux.html">Entity: mac_w_mux</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source/RTL/mac/mac_layer.html">Entity: mac_layer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source/RTL/mac/fc_layer.html">Entity: fc_layer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source/RTL/conv/conv_layer.html">Entity: conv_layer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="source/RTL/conv/conv_layer_fc_tb.html">Entity: conv_layer_fc_tb</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
 <ul>
@@ -234,87 +234,25 @@ real level.</p>
 <li class="toctree-l2"><a class="reference internal" href="getting_started.html#source-code">Source code</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#convolution-layer-architectures">Convolution Layer Architectures</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#pipelined-mac-architecture">1. <strong>Pipelined MAC Architecture</strong></a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#fully-connected-architecture">2. <strong>Fully Connected Architecture</strong></a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#one-mac-per-channel-architecture">3. <strong>One MAC per Channel Architecture</strong></a></li>
+</ul>
+</li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">RTL</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="source/RTL/types_pkg.html">Package: types_pkg</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/types_pkg.html#types">Types</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="source/RTL/adder_tree/adder_tree.html">Entity: adder_tree</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/adder_tree/adder_tree.html#diagram">Diagram</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/adder_tree/adder_tree.html#description">Description</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/adder_tree/adder_tree.html#generics">Generics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/adder_tree/adder_tree.html#ports">Ports</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/adder_tree/adder_tree.html#signals">Signals</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/adder_tree/adder_tree.html#constants">Constants</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/adder_tree/adder_tree.html#processes">Processes</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="source/RTL/adder_tree/binary_adder_tree.html">Entity: binary_adder_tree</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/adder_tree/binary_adder_tree.html#diagram">Diagram</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/adder_tree/binary_adder_tree.html#description">Description</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/adder_tree/binary_adder_tree.html#generics">Generics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/adder_tree/binary_adder_tree.html#ports">Ports</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/adder_tree/binary_adder_tree.html#signals">Signals</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/adder_tree/binary_adder_tree.html#constants">Constants</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/adder_tree/binary_adder_tree.html#processes">Processes</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="source/RTL/mac/mac.html">Entity: mac</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/mac/mac.html#diagram">Diagram</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/mac/mac.html#description">Description</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/mac/mac.html#generics">Generics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/mac/mac.html#ports">Ports</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/mac/mac.html#processes">Processes</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="source/RTL/mac/pipelined_mac.html">Entity: pipelined_mac</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/mac/pipelined_mac.html#diagram">Diagram</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/mac/pipelined_mac.html#description">Description</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/mac/pipelined_mac.html#generics">Generics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/mac/pipelined_mac.html#ports">Ports</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/mac/pipelined_mac.html#signals">Signals</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/mac/pipelined_mac.html#processes">Processes</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="source/RTL/mac/mac_layer.html">Entity: mac_layer</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/mac/mac_layer.html#diagram">Diagram</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/mac/mac_layer.html#description">Description</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/mac/mac_layer.html#generics">Generics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/mac/mac_layer.html#ports">Ports</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/mac/mac_layer.html#signals">Signals</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="source/RTL/mac/fc_layer.html">Entity: fc_layer</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/mac/fc_layer.html#diagram">Diagram</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/mac/fc_layer.html#description">Description</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/mac/fc_layer.html#generics">Generics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/mac/fc_layer.html#ports">Ports</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/mac/fc_layer.html#signals">Signals</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/mac/fc_layer.html#instantiations">Instantiations</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="source/RTL/conv/conv_layer.html">Entity: conv_layer</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/conv/conv_layer.html#diagram">Diagram</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/conv/conv_layer.html#description">Description</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/conv/conv_layer.html#generics">Generics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/conv/conv_layer.html#ports">Ports</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/conv/conv_layer.html#signals">Signals</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/conv/conv_layer.html#processes">Processes</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="source/RTL/conv/conv_layer_fc_tb.html">Entity: conv_layer_fc_tb</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/conv/conv_layer_fc_tb.html#diagram">Diagram</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/conv/conv_layer_fc_tb.html#description">Description</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/conv/conv_layer_fc_tb.html#generics">Generics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/conv/conv_layer_fc_tb.html#ports">Ports</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/conv/conv_layer_fc_tb.html#signals">Signals</a></li>
-<li class="toctree-l2"><a class="reference internal" href="source/RTL/conv/conv_layer_fc_tb.html#processes">Processes</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="source/RTL/types_pkg.html">Package: types_pkg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/RTL/adder_tree/adder_tree.html">Entity: adder_tree</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/RTL/adder_tree/binary_adder_tree.html">Entity: binary_adder_tree</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/RTL/mac/mac.html">Entity: mac</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/RTL/mac/mac_w_mux.html">Entity: mac_w_mux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/RTL/mac/mac_layer.html">Entity: mac_layer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/RTL/mac/fc_layer.html">Entity: fc_layer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/RTL/conv/conv_layer.html">Entity: conv_layer</a></li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">

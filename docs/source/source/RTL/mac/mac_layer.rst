@@ -1,6 +1,6 @@
 
 Entity: mac_layer
-=======================
+=================
 
 
 * **File**\ : mac_layer.vhd

@@ -5,7 +5,7 @@ Entity: conv_layer
 
 * **File**\ : conv_layer.vhd
 * **File:**        conv_layer
-* **Brief:**       This entity implements a pipelined Multiply-Accumulate (pipelined_mac) unit.
+* **Brief:**       This entity implements a convolution layer using three different architectures.
 * **Author:**      Timothée Charrier
 
 Diagram
@@ -20,8 +20,7 @@ Diagram
 Description
 -----------
 
-with a 3x3 kernel.
-It performs conv_layer operations using a 3x3 kernel over the input data.
+It performs conv_layer operations.
 Entity conv_layer
 This entity implements a convolution layer using a pipelined MAC unit with a 3x3 kernel.
 
@@ -73,11 +72,11 @@ Ports
      - Enable signal, active at low state
    * - i_data
      - in
-     - t_mat(0 to CHANNEL_NUMBER - 1)(0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0)
+     - t_mat(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE * KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)
      - Input data  (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
    * - i_kernels
      - in
-     - t_mat(0 to CHANNEL_NUMBER - 1)(0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0)
+     - t_mat(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE * KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)
      - Kernel data (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
    * - i_bias
      - in
@@ -87,6 +86,10 @@ Ports
      - out
      - std_logic_vector(2 * BITWIDTH - 1 downto 0)
      - Output value
+   * - o_valid
+     - out
+     - std_logic
+     - Output valid signal
 
 
 Signals
@@ -102,8 +105,8 @@ Signals
      - t_vec(0 to CHANNEL_NUMBER - 1)(2 * BITWIDTH - 1 downto 0)
      - Intermediate signal to hold the output of each MAC unit for each channel.
    * - r_count
-     - integer
-     - Counter for the MAC operations.
+     - integer range 0 to KERNEL_SIZE * KERNEL_SIZE - 1
+     - Counter for o_valid data
 
 
 Processes
@@ -111,6 +114,3 @@ Processes
 
 
 * unnamed: ( clock, reset_n )
-
-  * **Description**
-    Process to handle synchronous and asynchronous operations.

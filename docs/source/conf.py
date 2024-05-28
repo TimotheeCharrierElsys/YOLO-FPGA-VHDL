@@ -21,7 +21,11 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
     "sphinxcontrib.bibtex",
+    "sphinx.ext.autosectionlabel",
 ]
+
+# Make sure the target is unique
+autosectionlabel_prefix_document = True
 
 templates_path = ['_templates']
 exclude_patterns = []
@@ -33,11 +37,10 @@ bibtex_encoding = 'latin'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'furo'
-html_static_path = ['_static']
 
 html_theme_options = {
     "navigation_with_keys": True,
-     "top_of_page_button": "edit",
+    "top_of_page_button": "edit",
 }
 
 pygments_style = "emacs"

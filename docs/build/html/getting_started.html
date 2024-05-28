@@ -159,6 +159,7 @@
   <p class="caption" role="heading"><span class="caption-text">User guide</span></p>
 <ul class="current">
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#convolution-layer-architectures">Convolution Layer Architectures</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">RTL</span></p>
 <ul>
@@ -166,11 +167,10 @@
 <li class="toctree-l1"><a class="reference internal" href="source/RTL/adder_tree/adder_tree.html">Entity: adder_tree</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source/RTL/adder_tree/binary_adder_tree.html">Entity: binary_adder_tree</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source/RTL/mac/mac.html">Entity: mac</a></li>
-<li class="toctree-l1"><a class="reference internal" href="source/RTL/mac/pipelined_mac.html">Entity: pipelined_mac</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/RTL/mac/mac_w_mux.html">Entity: mac_w_mux</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source/RTL/mac/mac_layer.html">Entity: mac_layer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source/RTL/mac/fc_layer.html">Entity: fc_layer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source/RTL/conv/conv_layer.html">Entity: conv_layer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="source/RTL/conv/conv_layer_fc_tb.html">Entity: conv_layer_fc_tb</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
 <ul>
@@ -228,6 +228,48 @@ Testbench source code is found in the <code class="docutils literal notranslate"
 <p class="admonition-title">Warning</p>
 <p>All files must be handled as VHDL-2008.</p>
 </div>
+</section>
+</section>
+<section id="convolution-layer-architectures">
+<h1>Convolution Layer Architectures<a class="headerlink" href="#convolution-layer-architectures" title="Link to this heading">#</a></h1>
+<p>This document describes the three different architectures available for the <cite>conv_layer</cite> entity, which implements a convolution layer using various methods. Each architecture has unique characteristics and dependencies.</p>
+<section id="pipelined-mac-architecture">
+<h2>1. <strong>Pipelined MAC Architecture</strong><a class="headerlink" href="#pipelined-mac-architecture" title="Link to this heading">#</a></h2>
+<p><strong>Overview:</strong>
+This architecture uses a pipelined Multiply-Accumulate (MAC) unit with a 3x3 kernel. The MAC units are instantiated for each channel, and their outputs are summed together.</p>
+<p><strong>Dependencies:</strong>
+- <cite>mac.vhd</cite>
+- <cite>mac_layer.vhd</cite></p>
+<p><strong>Details:</strong>
+- Each MAC unit processes one channel of the input data.
+- The MAC outputs are accumulated and added to a bias value.
+- A counter keeps track of the output validity.</p>
+<a class="reference external image-reference" href="fig/architecture-conv_layer_mac_arch.drawio.svg"><img alt="Diagram" src="_images/architecture-conv_layer_mac_arch.drawio.svg" /></a>
+</section>
+<section id="fully-connected-architecture">
+<h2>2. <strong>Fully Connected Architecture</strong><a class="headerlink" href="#fully-connected-architecture" title="Link to this heading">#</a></h2>
+<p><strong>Overview:</strong>
+This architecture uses a fully connected layer approach to perform the convolution operation. It involves an adder tree to sum the results.</p>
+<p><strong>Dependencies:</strong>
+- <cite>adder_tree.vhd</cite>
+- <cite>fc_layer.vhd</cite></p>
+<p><strong>Details:</strong>
+- Each channel’s input data is processed by a fully connected layer.
+- The outputs of the fully connected layers are summed and added to the bias.
+- The design ensures proper delay handling using a constant <cite>DFF_DELAY</cite>.</p>
+<a class="reference external image-reference" href="fig/architecture-conv_layer_fc_arch.drawio.svg"><img alt="Diagram" src="_images/architecture-conv_layer_fc_arch.drawio.svg" /></a>
+</section>
+<section id="one-mac-per-channel-architecture">
+<h2>3. <strong>One MAC per Channel Architecture</strong><a class="headerlink" href="#one-mac-per-channel-architecture" title="Link to this heading">#</a></h2>
+<p><strong>Overview:</strong>
+This architecture uses one MAC unit per channel. The MAC units are controlled using a multiplexer that handles the selection of operands and inclusion of bias.</p>
+<p><strong>Dependencies:</strong>
+- <cite>mac_w_mux.vhd</cite></p>
+<p><strong>Details:</strong>
+- Each channel has a dedicated MAC unit controlled by a multiplexer.
+- The MAC outputs are summed together, and the result is updated based on a selector signal.
+- The architecture includes handling of synchronous and asynchronous operations with proper reset logic.</p>
+<a class="reference external image-reference" href="fig/architecture-conv_layer_one_mac_arch.drawio.svg"><img alt="Diagram" src="_images/architecture-conv_layer_one_mac_arch.drawio.svg" /></a>
 </section>
 </section>
 
@@ -288,6 +330,12 @@ Testbench source code is found in the <code class="docutils literal notranslate"
             <ul>
 <li><a class="reference internal" href="#">Getting started</a><ul>
 <li><a class="reference internal" href="#source-code">Source code</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#convolution-layer-architectures">Convolution Layer Architectures</a><ul>
+<li><a class="reference internal" href="#pipelined-mac-architecture">1. <strong>Pipelined MAC Architecture</strong></a></li>
+<li><a class="reference internal" href="#fully-connected-architecture">2. <strong>Fully Connected Architecture</strong></a></li>
+<li><a class="reference internal" href="#one-mac-per-channel-architecture">3. <strong>One MAC per Channel Architecture</strong></a></li>
 </ul>
 </li>
 </ul>

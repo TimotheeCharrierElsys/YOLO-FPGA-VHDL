@@ -1,29 +1,29 @@
 
-Entity: pipelined_mac
-=====================
+Entity: mac_w_mux
+=================
 
 
-* **File**\ : pipelined_mac.vhd
-* **Brief:**       This entity implements a pipelined Multiply-Accumulate (pipelined_mac) unit.
+* **File**\ : mac_w_mux.vhd
+* **Brief:**       This entity implements a Multiply-Accumulate (MAC) unit.
 * **Author:**      Timothée Charrier
 
 Diagram
 -------
 
 
-.. image:: pipelined_mac.svg
-   :target: pipelined_mac.svg
+.. image:: mac_w_mux.svg
+   :target: mac_w_mux.svg
    :alt: Diagram
 
 
 Description
 -----------
 
-Entity     pipelined_mac
+Entity      mac_w_mux
 It performs multiplication of two operands followed by an addition
-with a third operand. The design is pipelined to improve performance.
-Entity pipelined_mac
-This entity implements a pipelined Multiply-Accumulate (pipelined_mac) unit.
+with a third operand.
+Entity mac_w_mux
+This entity implements a Multiply-Accumulate (MAC) unit.
 It multiplies two operands and then adds a third operand.
 
 Generics
@@ -63,23 +63,27 @@ Ports
    * - i_enable
      - in
      - std_logic
-     - Enable signal, active at low state
-   * - i_A
+     - Enable signal, active at high state
+   * - i_sel
+     - in
+     - std_logic
+     - Select signal for the MUX (1 for (bias + mult), 0 for (output + mult))
+   * - i_multiplier1
      - in
      - std_logic_vector(BITWIDTH - 1 downto 0)
      - First multiplication operand
-   * - i_B
+   * - i_multiplier2
      - in
      - std_logic_vector(BITWIDTH - 1 downto 0)
      - Second multiplication operand
-   * - i_C
+   * - i_bias
      - in
      - std_logic_vector(BITWIDTH - 1 downto 0)
-     - Accumulation operand
-   * - o_P
+     - Input bias value
+   * - o_result
      - out
      - std_logic_vector(2 * BITWIDTH - 1 downto 0)
-     - Output result
+     - Output result value
 
 
 Signals
@@ -91,22 +95,7 @@ Signals
    * - Name
      - Type
      - Description
-   * - r_A
-     - std_logic_vector(BITWIDTH - 1 downto 0)
-     - Registered version of input operand A.
-   * - r_B
-     - std_logic_vector(BITWIDTH - 1 downto 0)
-     - Registered version of input operand B.
-   * - r_C
-     - std_logic_vector(BITWIDTH - 1 downto 0)
-     - Registered version of input operand C.
-   * - r_mult
-     - std_logic_vector(2 * BITWIDTH - 1 downto 0)
-     - Result of the multiplication of r_A and r_B.
-   * - mult_stage_reg
-     - std_logic_vector(2 * BITWIDTH - 1 downto 0)
-     - Registered output of the multiplication stage.
-   * - add_stage_reg
+   * - mac_out
      - std_logic_vector(2 * BITWIDTH - 1 downto 0)
 
 
@@ -117,5 +106,5 @@ Processes
 * unnamed: ( clock, reset_n )
 
   * **Description**
-    process
-    Handles the synchronous and asynchronous operations of the pipelined pipelined_mac unit.
+    Process
+    Handles the synchronous and asynchronous operations of the MAC unit.

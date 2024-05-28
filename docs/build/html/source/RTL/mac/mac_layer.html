@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" /><link rel="next" title="Entity: mac_layer" href="mac_layer.html" /><link rel="prev" title="Entity: mac" href="mac.html" />
+<link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" /><link rel="next" title="Entity: fc_layer" href="fc_layer.html" /><link rel="prev" title="Entity: mac_w_mux" href="mac_w_mux.html" />
 
     <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
-        <title>Entity: pipelined_mac - YOLO implementation on FPGA documentation</title>
+        <title>Entity: mac_layer - YOLO implementation on FPGA documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=83e35b93" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=eafc0fe6" />
@@ -159,6 +159,7 @@
   <p class="caption" role="heading"><span class="caption-text">User guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html#convolution-layer-architectures">Convolution Layer Architectures</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">RTL</span></p>
 <ul class="current">
@@ -166,11 +167,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../adder_tree/adder_tree.html">Entity: adder_tree</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adder_tree/binary_adder_tree.html">Entity: binary_adder_tree</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mac.html">Entity: mac</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Entity: pipelined_mac</a></li>
-<li class="toctree-l1"><a class="reference internal" href="mac_layer.html">Entity: mac_layer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mac_w_mux.html">Entity: mac_w_mux</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Entity: mac_layer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fc_layer.html">Entity: fc_layer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../conv/conv_layer.html">Entity: conv_layer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../conv/conv_layer_fc_tb.html">Entity: conv_layer_fc_tb</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
 <ul>
@@ -213,25 +213,25 @@
           </label>
         </div>
         <article role="main">
-          <section id="entity-pipelined-mac">
-<h1>Entity: pipelined_mac<a class="headerlink" href="#entity-pipelined-mac" title="Link to this heading">#</a></h1>
+          <section id="entity-mac-layer">
+<h1>Entity: mac_layer<a class="headerlink" href="#entity-mac-layer" title="Link to this heading">#</a></h1>
 <ul class="simple">
-<li><p><strong>File</strong>: pipelined_mac.vhd</p></li>
+<li><p><strong>File</strong>: mac_layer.vhd</p></li>
+<li><p><strong>File:</strong>        mac_layer</p></li>
 <li><p><strong>Brief:</strong>       This entity implements a pipelined Multiply-Accumulate (pipelined_mac) unit.</p></li>
 <li><p><strong>Author:</strong>      Timothée Charrier</p></li>
 </ul>
 <section id="diagram">
 <h2>Diagram<a class="headerlink" href="#diagram" title="Link to this heading">#</a></h2>
-<a class="reference external image-reference" href="pipelined_mac.svg"><img alt="Diagram" src="../../../_images/pipelined_mac.svg" /></a>
+<a class="reference external image-reference" href="mac_layer.svg"><img alt="Diagram" src="../../../_images/mac_layer.svg" /></a>
 </section>
 <section id="description">
 <h2>Description<a class="headerlink" href="#description" title="Link to this heading">#</a></h2>
-<p>Entity     pipelined_mac
-It performs multiplication of two operands followed by an addition
-with a third operand. The design is pipelined to improve performance.
-Entity pipelined_mac
-This entity implements a pipelined Multiply-Accumulate (pipelined_mac) unit.
-It multiplies two operands and then adds a third operand.</p>
+<p>with a KERNEL_SIZE x KERNEL_SIZE kernel.
+It performs convolution operations using a 3x3 kernel over the input data.
+Entity mac_layer
+This entity implements a pipelined Multiply-Accumulate (MAC) unit with a 3x3 kernel.
+It performs convolution operations using a 3x3 kernel over the input data.</p>
 </section>
 <section id="generics">
 <h2>Generics<a class="headerlink" href="#generics" title="Link to this heading">#</a></h2>
@@ -249,6 +249,11 @@ It multiplies two operands and then adds a third operand.</p>
 <td><p>integer</p></td>
 <td><p>8</p></td>
 <td><p>Bit width of each operand</p></td>
+</tr>
+<tr class="row-odd"><td><p>KERNEL_SIZE</p></td>
+<td><p>integer</p></td>
+<td><p>3</p></td>
+<td><p>Size of the kernel (ex: 3 for a 3x3 kernel)</p></td>
 </tr>
 </tbody>
 </table>
@@ -281,24 +286,19 @@ It multiplies two operands and then adds a third operand.</p>
 <td><p>std_logic</p></td>
 <td><p>Enable signal, active at low state</p></td>
 </tr>
-<tr class="row-odd"><td><p>i_A</p></td>
+<tr class="row-odd"><td><p>i_X</p></td>
 <td><p>in</p></td>
-<td><p>std_logic_vector(BITWIDTH - 1 downto 0)</p></td>
-<td><p>First multiplication operand</p></td>
+<td><p>t_vec (0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0)</p></td>
+<td><p>Input data  (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH bits)</p></td>
 </tr>
-<tr class="row-even"><td><p>i_B</p></td>
+<tr class="row-even"><td><p>i_theta</p></td>
 <td><p>in</p></td>
-<td><p>std_logic_vector(BITWIDTH - 1 downto 0)</p></td>
-<td><p>Second multiplication operand</p></td>
+<td><p>t_vec (0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0)</p></td>
+<td><p>Kernel data (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH bits)</p></td>
 </tr>
-<tr class="row-odd"><td><p>i_C</p></td>
-<td><p>in</p></td>
-<td><p>std_logic_vector(BITWIDTH - 1 downto 0)</p></td>
-<td><p>Accumulation operand</p></td>
-</tr>
-<tr class="row-even"><td><p>o_P</p></td>
+<tr class="row-odd"><td><p>o_Y</p></td>
 <td><p>out</p></td>
-<td><p>std_logic_vector(2 * BITWIDTH - 1 downto 0)</p></td>
+<td><p>std_logic_vector (2 * BITWIDTH - 1 downto 0)</p></td>
 <td><p>Output result</p></td>
 </tr>
 </tbody>
@@ -307,18 +307,22 @@ It multiplies two operands and then adds a third operand.</p>
 </section>
 <section id="signals">
 <h2>Signals<a class="headerlink" href="#signals" title="Link to this heading">#</a></h2>
-</section>
-<section id="processes">
-<h2>Processes<a class="headerlink" href="#processes" title="Link to this heading">#</a></h2>
-<ul class="simple">
-<li><p>unnamed: ( clock, reset_n )</p>
-<ul>
-<li><p><strong>Description</strong>
-process
-Handles the synchronous and asynchronous operations of the pipelined pipelined_mac unit.</p></li>
-</ul>
-</li>
-</ul>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>mac_out</p></td>
+<td><p>t_vec(0 to KERNEL_SIZE * KERNEL_SIZE - 1)(2 * BITWIDTH - 1 downto 0)</p></td>
+<td><p>Intermediate signal to hold the output of each MAC unit in the pipeline.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </section>
 </section>
 
@@ -327,23 +331,23 @@ Handles the synchronous and asynchronous operations of the pipelined pipelined_m
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="mac_layer.html">
+          <a class="next-page" href="fc_layer.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Entity: mac_layer</div>
+                <div class="title">Entity: fc_layer</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="mac.html">
+          <a class="prev-page" href="mac_w_mux.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Entity: mac</div>
+                <div class="title">Entity: mac_w_mux</div>
                 
               </div>
             </a>
@@ -377,13 +381,12 @@ Handles the synchronous and asynchronous operations of the pipelined pipelined_m
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">Entity: pipelined_mac</a><ul>
+<li><a class="reference internal" href="#">Entity: mac_layer</a><ul>
 <li><a class="reference internal" href="#diagram">Diagram</a></li>
 <li><a class="reference internal" href="#description">Description</a></li>
 <li><a class="reference internal" href="#generics">Generics</a></li>
 <li><a class="reference internal" href="#ports">Ports</a></li>
 <li><a class="reference internal" href="#signals">Signals</a></li>
-<li><a class="reference internal" href="#processes">Processes</a></li>
 </ul>
 </li>
 </ul>
