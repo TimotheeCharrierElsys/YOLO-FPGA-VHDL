@@ -20,11 +20,11 @@ entity mac_w_mux is
     port (
         clock         : in std_logic;                                   --! Clock signal
         reset_n       : in std_logic;                                   --! Reset signal, active at low state
-        i_enable      : in std_logic;                                   --! Enable signal, active at low state
+        i_enable      : in std_logic;                                   --! Enable signal, active at high state
         i_sel         : in std_logic;                                   --! Select signal for the MUX (1 for (bias + mult), 0 for (output + mult))
         i_multiplier1 : in std_logic_vector(BITWIDTH - 1 downto 0);     --! First multiplication operand
         i_multiplier2 : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Second multiplication operand
-        i_bias        : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Input addend value
+        i_bias        : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Input bias value
         o_result      : out std_logic_vector(2 * BITWIDTH - 1 downto 0) --! Output result value
     );
 end mac_w_mux;
