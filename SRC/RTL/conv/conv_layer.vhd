@@ -46,7 +46,7 @@ architecture conv_layer_mac_arch of conv_layer is
     -------------------------------------------------------------------------------------
     -- COMPONENTS
     -------------------------------------------------------------------------------------
-    component pipelined_mac33
+    component mac_layer
         generic (
             BITWIDTH    : integer; --! Bit width of each operand
             KERNEL_SIZE : integer  --! Size of the kernel
@@ -68,8 +68,8 @@ begin
     -------------------------------------------------------------------------------------
     conv_layer : for i in 0 to CHANNEL_NUMBER - 1 generate
 
-        --! Instantiate the pipelined_mac33 units for each channel.
-        gen_pipelined_mac33 : pipelined_mac33
+        --! Instantiate the mac_layer units for each channel.
+        gen_mac_layer : mac_layer
         generic map(
             BITWIDTH    => BITWIDTH,
             KERNEL_SIZE => KERNEL_SIZE
@@ -113,8 +113,8 @@ configuration conv_layer_mac_conf of conv_layer is
     for conv_layer_mac_arch
         for conv_layer
 
-            for all : pipelined_mac33
-                use configuration LIB_RTL.pipelined_mac33_conf;
+            for all : mac_layer
+                use configuration LIB_RTL.mac_layer_conf;
             end for;
 
         end for;

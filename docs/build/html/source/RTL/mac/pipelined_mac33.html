@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" /><link rel="next" title="Entity: fc_layer" href="fc_layer.html" /><link rel="prev" title="Entity: pipelined_mac" href="pipelined_mac.html" />
 
     <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
-        <title>Entity: pipelined_mac33 - YOLO implementation on FPGA documentation</title>
+        <title>Entity: mac_layer - YOLO implementation on FPGA documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=83e35b93" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=eafc0fe6" />
@@ -167,7 +167,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../adder_tree/binary_adder_tree.html">Entity: binary_adder_tree</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mac.html">Entity: mac</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pipelined_mac.html">Entity: pipelined_mac</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Entity: pipelined_mac33</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Entity: mac_layer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fc_layer.html">Entity: fc_layer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../conv/conv_layer.html">Entity: conv_layer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../conv/conv_layer_fc_tb.html">Entity: conv_layer_fc_tb</a></li>
@@ -214,22 +214,22 @@
         </div>
         <article role="main">
           <section id="entity-pipelined-mac33">
-<h1>Entity: pipelined_mac33<a class="headerlink" href="#entity-pipelined-mac33" title="Link to this heading">#</a></h1>
+<h1>Entity: mac_layer<a class="headerlink" href="#entity-pipelined-mac33" title="Link to this heading">#</a></h1>
 <ul class="simple">
-<li><p><strong>File</strong>: pipelined_mac33.vhd</p></li>
-<li><p><strong>File:</strong>        pipelined_mac33</p></li>
+<li><p><strong>File</strong>: mac_layer.vhd</p></li>
+<li><p><strong>File:</strong>        mac_layer</p></li>
 <li><p><strong>Brief:</strong>       This entity implements a pipelined Multiply-Accumulate (pipelined_mac) unit.</p></li>
 <li><p><strong>Author:</strong>      Timothée Charrier</p></li>
 </ul>
 <section id="diagram">
 <h2>Diagram<a class="headerlink" href="#diagram" title="Link to this heading">#</a></h2>
-<a class="reference external image-reference" href="pipelined_mac33.svg"><img alt="Diagram" src="../../../_images/pipelined_mac33.svg" /></a>
+<a class="reference external image-reference" href="mac_layer.svg"><img alt="Diagram" src="../../../_images/mac_layer.svg" /></a>
 </section>
 <section id="description">
 <h2>Description<a class="headerlink" href="#description" title="Link to this heading">#</a></h2>
 <p>with a KERNEL_SIZE x KERNEL_SIZE kernel.
 It performs convolution operations using a 3x3 kernel over the input data.
-Entity pipelined_mac33
+Entity mac_layer
 This entity implements a pipelined Multiply-Accumulate (MAC) unit with a 3x3 kernel.
 It performs convolution operations using a 3x3 kernel over the input data.</p>
 </section>
@@ -381,7 +381,7 @@ It performs convolution operations using a 3x3 kernel over the input data.</p>
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">Entity: pipelined_mac33</a><ul>
+<li><a class="reference internal" href="#">Entity: mac_layer</a><ul>
 <li><a class="reference internal" href="#diagram">Diagram</a></li>
 <li><a class="reference internal" href="#description">Description</a></li>
 <li><a class="reference internal" href="#generics">Generics</a></li>

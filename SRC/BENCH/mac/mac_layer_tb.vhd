@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------
---!     @file    pipelined_mac33_tb
+--!     @file    mac_layer_tb
 --!     @brief        This testbench verifies the functionality of the pipelined mac 3*3
 --!     @details      It initializes the inputs, applies test vectors, and checks the outputs.
 --!     @author       Timothée Charrier
@@ -27,10 +27,10 @@ use IEEE.NUMERIC_STD.all;
 library LIB_RTL;
 use LIB_RTL.types_pkg.all;
 
-entity pipelined_mac33_tb is
+entity mac_layer_tb is
 end entity;
 
-architecture pipelined_mac33_tb_arch of pipelined_mac33_tb is
+architecture mac_layer_tb_arch of mac_layer_tb is
     -------------------------------------------------------------------------------------
     -- CONSTANTS
     -------------------------------------------------------------------------------------
@@ -52,7 +52,7 @@ architecture pipelined_mac33_tb_arch of pipelined_mac33_tb is
     -------------------------------------------------------------------------------------
     -- COMPONENTS
     -------------------------------------------------------------------------------------
-    component pipelined_mac33
+    component mac_layer
         generic (
             BITWIDTH    : integer;
             KERNEL_SIZE : integer
@@ -71,7 +71,7 @@ begin
     -------------------------------------------------------------------------------------
     -- UNIT UNDER TEST (UUT)
     -------------------------------------------------------------------------------------
-    UUT : pipelined_mac33
+    UUT : mac_layer
     generic map(
         BITWIDTH    => BITWIDTH,
         KERNEL_SIZE => KERNEL_SIZE
@@ -127,10 +127,10 @@ begin
 
 end architecture;
 
-configuration pipelined_mac33_tb_conf of pipelined_mac33_tb is
-    for pipelined_mac33_tb_arch
-        for UUT : pipelined_mac33
-            use configuration LIB_RTL.pipelined_mac33_conf;
+configuration mac_layer_tb_conf of mac_layer_tb is
+    for mac_layer_tb_arch
+        for UUT : mac_layer
+            use configuration LIB_RTL.mac_layer_conf;
         end for;
     end for;
-end configuration pipelined_mac33_tb_conf;
+end configuration mac_layer_tb_conf;

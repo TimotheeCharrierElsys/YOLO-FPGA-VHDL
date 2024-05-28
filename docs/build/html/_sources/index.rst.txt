@@ -29,7 +29,7 @@ Welcome to the YOLO implementation on FPGA's documentation!
   source/RTL/adder_tree/binary_adder_tree
   source/RTL/mac/mac
   source/RTL/mac/pipelined_mac
-  source/RTL/mac/pipelined_mac33
+  source/RTL/mac/mac_layer
   source/RTL/mac/fc_layer
   source/RTL/conv/conv_layer
   source/RTL/conv/conv_layer_fc_tb

@@ -1,10 +1,10 @@
 
-Entity: pipelined_mac33
+Entity: mac_layer
 =======================
 
 
-* **File**\ : pipelined_mac33.vhd
-* **File:**        pipelined_mac33
+* **File**\ : mac_layer.vhd
+* **File:**        mac_layer
 * **Brief:**       This entity implements a pipelined Multiply-Accumulate (pipelined_mac) unit.
 * **Author:**      Timothée Charrier
 
@@ -12,8 +12,8 @@ Diagram
 -------
 
 
-.. image:: pipelined_mac33.svg
-   :target: pipelined_mac33.svg
+.. image:: mac_layer.svg
+   :target: mac_layer.svg
    :alt: Diagram
 
 
@@ -22,7 +22,7 @@ Description
 
 with a KERNEL_SIZE x KERNEL_SIZE kernel.
 It performs convolution operations using a 3x3 kernel over the input data.
-Entity pipelined_mac33
+Entity mac_layer
 This entity implements a pipelined Multiply-Accumulate (MAC) unit with a 3x3 kernel.
 It performs convolution operations using a 3x3 kernel over the input data.
 

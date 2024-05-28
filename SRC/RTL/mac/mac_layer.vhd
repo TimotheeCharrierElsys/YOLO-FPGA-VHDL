@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------
---!     @file       pipelined_mac33
+--!     @file       mac_layer
 --!     @brief      This entity implements a pipelined Multiply-Accumulate (pipelined_mac) unit.
 --!                 with a KERNEL_SIZE x KERNEL_SIZE kernel.
 --!                 It performs convolution operations using a 3x3 kernel over the input data.
@@ -13,10 +13,10 @@ use IEEE.NUMERIC_STD.all;
 library LIB_RTL;
 use LIB_RTL.types_pkg.all;
 
---! Entity pipelined_mac33
+--! Entity mac_layer
 --! This entity implements a pipelined Multiply-Accumulate (MAC) unit with a 3x3 kernel.
 --!        It performs convolution operations using a 3x3 kernel over the input data.
-entity pipelined_mac33 is
+entity mac_layer is
     generic (
         BITWIDTH    : integer := 8; --! Bit width of each operand
         KERNEL_SIZE : integer := 3  --! Size of the kernel (ex: 3 for a 3x3 kernel)
@@ -29,9 +29,9 @@ entity pipelined_mac33 is
         i_theta  : in t_vec (0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0); --! Kernel data (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH bits)
         o_Y      : out std_logic_vector (2 * BITWIDTH - 1 downto 0)                      --! Output result
     );
-end pipelined_mac33;
+end mac_layer;
 
-architecture pipelined_mac33_arch of pipelined_mac33 is
+architecture mac_layer_arch of mac_layer is
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
@@ -46,13 +46,13 @@ architecture pipelined_mac33_arch of pipelined_mac33 is
             BITWIDTH : integer --! Bit width of each operand
         );
         port (
-            clock    : in std_logic;                                   --! Clock signal
-            reset_n  : in std_logic;                                   --! Reset signal, active at low state
-            i_enable : in std_logic;                                   --! Enable signal, active at low state
-            i_A      : in std_logic_vector(BITWIDTH - 1 downto 0);     --! First multiplication operand
-            i_B      : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Second multiplication operand
-            i_C      : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Accumulation operand
-            o_P      : out std_logic_vector(2 * BITWIDTH - 1 downto 0) --! Output result
+            clock         : in std_logic;                                   --! Clock signal
+            reset_n       : in std_logic;                                   --! Reset signal, active at low state
+            i_enable      : in std_logic;                                   --! Enable signal, active at low state
+            i_multiplier1 : in std_logic_vector(BITWIDTH - 1 downto 0);     --! First multiplication operand
+            i_multiplier2 : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Second multiplication operand
+            i_add         : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Accumulation operand
+            o_result      : out std_logic_vector(2 * BITWIDTH - 1 downto 0) --! Output result
         );
     end component;
 
@@ -68,13 +68,13 @@ begin
             first_custom_mac_inst : mac --! Multiply without additions
             generic map(BITWIDTH => BITWIDTH)
             port map(
-                clock    => clock,
-                reset_n  => reset_n,
-                i_enable => i_enable,
-                i_A      => i_X(i),
-                i_B      => i_theta(i),
-                i_C => (others => '0'),
-                o_P      => mac_out(i)
+                clock         => clock,
+                reset_n       => reset_n,
+                i_enable      => i_enable,
+                i_multiplier1 => i_X(i),
+                i_multiplier2 => i_theta(i),
+                i_add => (others => '0'),
+                o_result      => mac_out(i)
             );
         end generate first_mac;
 
@@ -83,13 +83,13 @@ begin
             gen_mac_inst : mac --! Multiply then add the previous result
             generic map(BITWIDTH => BITWIDTH)
             port map(
-                clock    => clock,
-                reset_n  => reset_n,
-                i_enable => i_enable,
-                i_A      => i_X(i),
-                i_B      => i_theta(i),
-                i_C      => mac_out(i - 1)(BITWIDTH - 1 downto 0),
-                o_P      => mac_out(i)
+                clock         => clock,
+                reset_n       => reset_n,
+                i_enable      => i_enable,
+                i_multiplier1 => i_X(i),
+                i_multiplier2 => i_theta(i),
+                i_add         => mac_out(i - 1)(BITWIDTH - 1 downto 0),
+                o_result      => mac_out(i)
             );
         end generate gen_mac;
 
@@ -98,40 +98,25 @@ begin
             last_mac_inst : mac --! Convolution output is the result of the last MAC unit
             generic map(BITWIDTH => BITWIDTH)
             port map(
-                clock    => clock,
-                reset_n  => reset_n,
-                i_enable => i_enable,
-                i_A      => i_X(i),
-                i_B      => i_theta(i),
-                i_C      => mac_out(i - 1)(BITWIDTH - 1 downto 0),
-                o_P      => o_Y
+                clock         => clock,
+                reset_n       => reset_n,
+                i_enable      => i_enable,
+                i_multiplier1 => i_X(i),
+                i_multiplier2 => i_theta(i),
+                i_add         => mac_out(i - 1)(BITWIDTH - 1 downto 0),
+                o_result      => o_Y
             );
         end generate last_mac;
     end generate pipelined_mac;
 
-end pipelined_mac33_arch;
+end mac_layer_arch;
 
-configuration pipelined_mac33_conf of pipelined_mac33 is
-    for pipelined_mac33_arch
+configuration mac_layer_conf of mac_layer is
+    for mac_layer_arch
         for pipelined_mac
-
-            for first_mac
-                for all : mac
-                    use entity LIB_RTL.mac(mac_arch);
-                end for;
-            end for;
-
-            for gen_mac
-                for all : mac
-                    use entity LIB_RTL.mac(mac_arch);
-                end for;
-            end for;
-
-            for last_mac
-                for all : mac
-                    use entity LIB_RTL.mac(mac_arch);
-                end for;
+            for all : mac
+                use entity LIB_RTL.mac(mac_arch);
             end for;
         end for;
     end for;
-end configuration pipelined_mac33_conf;
+end configuration mac_layer_conf;

@@ -26,13 +26,13 @@ architecture mac_tb_arch of mac_tb is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal clock    : std_logic := '0';                            --! Clock signal
-    signal reset_n  : std_logic := '1';                            --! Reset signal, active at low state
-    signal i_enable : std_logic := '0';                            --! Enable signal, active at low state
-    signal i_A      : std_logic_vector(BITWIDTH - 1 downto 0);     --! First mult operand
-    signal i_B      : std_logic_vector(BITWIDTH - 1 downto 0);     --! Second mult operand
-    signal i_C      : std_logic_vector(BITWIDTH - 1 downto 0);     --! Third operand
-    signal o_P      : std_logic_vector(2 * BITWIDTH - 1 downto 0); --! Output data
+    signal clock         : std_logic := '0';                            --! Clock signal
+    signal reset_n       : std_logic := '1';                            --! Reset signal, active at low state
+    signal i_enable      : std_logic := '0';                            --! Enable signal, active at low state
+    signal i_multiplier1 : std_logic_vector(BITWIDTH - 1 downto 0);     --! First mult operand
+    signal i_multiplier2 : std_logic_vector(BITWIDTH - 1 downto 0);     --! Second mult operand
+    signal i_add         : std_logic_vector(BITWIDTH - 1 downto 0);     --! Third operand
+    signal o_result      : std_logic_vector(2 * BITWIDTH - 1 downto 0); --! Output data
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -42,13 +42,13 @@ architecture mac_tb_arch of mac_tb is
             BITWIDTH : integer
         );
         port (
-            clock    : in std_logic;
-            reset_n  : in std_logic;
-            i_enable : in std_logic;
-            i_A      : in std_logic_vector(BITWIDTH - 1 downto 0);
-            i_B      : in std_logic_vector(BITWIDTH - 1 downto 0);
-            i_C      : in std_logic_vector(BITWIDTH - 1 downto 0);
-            o_P      : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
+            clock         : in std_logic;
+            reset_n       : in std_logic;
+            i_enable      : in std_logic;
+            i_multiplier1 : in std_logic_vector(BITWIDTH - 1 downto 0);
+            i_multiplier2 : in std_logic_vector(BITWIDTH - 1 downto 0);
+            i_add         : in std_logic_vector(BITWIDTH - 1 downto 0);
+            o_result      : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
         );
     end component;
 
@@ -61,13 +61,13 @@ begin
         BITWIDTH => BITWIDTH
     )
     port map(
-        clock    => clock,
-        reset_n  => reset_n,
-        i_enable => i_enable,
-        i_A      => i_A,
-        i_B      => i_B,
-        i_C      => i_C,
-        o_P      => o_P
+        clock         => clock,
+        reset_n       => reset_n,
+        i_enable      => i_enable,
+        i_multiplier1 => i_multiplier1,
+        i_multiplier2 => i_multiplier2,
+        i_add         => i_add,
+        o_result      => o_result
     );
 
     -- Clock generation
@@ -87,15 +87,15 @@ begin
         i_enable <= '1';
 
         -- Apply input vectors
-        i_A <= std_logic_vector(to_signed(5, BITWIDTH));
-        i_B <= std_logic_vector(to_signed(7, BITWIDTH));
-        i_C <= std_logic_vector(to_signed(10, BITWIDTH));
+        i_multiplier1 <= std_logic_vector(to_signed(5, BITWIDTH));
+        i_multiplier2 <= std_logic_vector(to_signed(7, BITWIDTH));
+        i_add         <= std_logic_vector(to_signed(10, BITWIDTH));
 
         -- Wait for enough time to allow the pipeline to process the inputs
         wait for (WAIT_COUNT * i_clk_period);
 
         -- Check the output
-        assert o_P = std_logic_vector(to_signed(45, 2 * BITWIDTH))
+        assert o_result = std_logic_vector(to_signed(45, 2 * BITWIDTH))
         report "Test failed: output does not match expected output"
             severity error;
 
