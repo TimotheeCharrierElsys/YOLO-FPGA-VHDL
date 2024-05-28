@@ -1,8 +1,7 @@
 -----------------------------------------------------------------------------------
 --!     @file       conv_layer
---!     @brief      This entity implements a pipelined Multiply-Accumulate (pipelined_mac) unit.
---!                 with a 3x3 kernel.
---!                 It performs conv_layer operations using a 3x3 kernel over the input data.
+--!     @brief      This entity implements a convolution layer using three different architectures.
+--!                 It performs conv_layer operations.
 --!     @author     Timothée Charrier
 -----------------------------------------------------------------------------------
 
@@ -32,10 +31,11 @@ entity conv_layer is
     );
 end conv_layer;
 
--------------------------------------------------------------------------------------
--- CONV LAYER USING PIPELINED MAC
--------------------------------------------------------------------------------------
-
+-----------------------------------------------------------------------------------
+--!     @brief          This entity implements a convolution layer using pipelined mac
+--!                     architecture.
+--!     @Dependencies:  mac.vhd, mac_layer.vhd
+-----------------------------------------------------------------------------------
 architecture conv_layer_mac_arch of conv_layer is
 
     -------------------------------------------------------------------------------------
@@ -85,24 +85,27 @@ begin
     end generate conv_layer;
 
     -------------------------------------------------------------------------------------
-    -- PROCESS ASYNC (reset negative)
+    -- PROCESS TO HANDLE SYNCHRONOUS AND ASYNCHRONOUS OPERATIONS
     -------------------------------------------------------------------------------------
-    --! Process to handle synchronous and asynchronous operations.
     process (clock, reset_n)
         variable sum : signed(2 * BITWIDTH - 1 downto 0); --! Variable to accumulate the sum of MAC outputs.
     begin
         if reset_n = '0' then
-            --! Reset output register and counter to zeros.
+            --! Reset output register and sum to zeros.
             o_Y <= (others => '0');
             sum := (others => '0');
+
         elsif rising_edge(clock) then
             if i_enable = '1' then
-                -- Counter increment
+                -- Reset output sum
                 sum := (others => '0');
+
                 --! Sum the MAC outputs for each channel and add bias.
                 for i in 0 to CHANNEL_NUMBER - 1 loop
                     sum := sum + signed(mac_out(i));
                 end loop;
+
+                -- Output update
                 o_Y <= std_logic_vector(sum + signed(i_bias));
             end if;
         end if;
@@ -121,10 +124,11 @@ configuration conv_layer_mac_conf of conv_layer is
     end for;
 end configuration conv_layer_mac_conf;
 
--------------------------------------------------------------------------------------
--- CONV LAYER USING FULLY CONNECTED LAYERS (FC)
--------------------------------------------------------------------------------------
-
+-----------------------------------------------------------------------------------
+--!     @brief          This entity implements a convolution layer using fully
+--!                     connected architecture.
+--!     @Dependencies:  adder_tree.vhd, fc_layer.vhd
+-----------------------------------------------------------------------------------
 architecture conv_layer_fc_arch of conv_layer is
 
     -------------------------------------------------------------------------------------
@@ -174,23 +178,26 @@ begin
     end generate gen_fc;
 
     -------------------------------------------------------------------------------------
-    -- PROCESS ASYNC (reset negative)
+    -- PROCESS TO HANDLE SYNCHRONOUS AND ASYNCHRONOUS OPERATIONS
     -------------------------------------------------------------------------------------
-    --! Process to handle synchronous and asynchronous operations.
     process (clock, reset_n)
         variable sum : signed(2 * BITWIDTH - 1 downto 0); --! Variable to accumulate the sum of MAC outputs.
     begin
         if reset_n = '0' then
-            --! Reset output register and counter to zeros.
+            --! Reset output register and sum to zeros.
             o_Y <= (others => '0');
+
         elsif rising_edge(clock) then
             if i_enable = '1' then
-                -- Counter increment
+                -- Reset output sum
                 sum := (others => '0');
+
                 --! Sum the MAC outputs for each channel and add bias.
                 for i in 0 to CHANNEL_NUMBER - 1 loop
                     sum := sum + signed(mac_out(i));
                 end loop;
+
+                -- Output update
                 o_Y <= std_logic_vector(sum + signed(i_bias));
             end if;
         end if;
@@ -207,89 +214,135 @@ configuration conv_layer_fc_conf of conv_layer is
     end for;
 end configuration conv_layer_fc_conf;
 
--------------------------------------------------------------------------------------
--- CONV LAYER USING ONE MAC PER LAYER
--------------------------------------------------------------------------------------
-
+-----------------------------------------------------------------------------------
+--!     @brief          This entity implements a convolution layer using one
+--!                     mac per channel architecture.
+--!     @Dependencies:  mac_w_mux.vhd
+-----------------------------------------------------------------------------------
 architecture conv_layer_one_mac_arch of conv_layer is
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
     signal mac_out : t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel.
+    signal r_count : integer range 0 to KERNEL_SIZE * KERNEL_SIZE - 1;              --! Counter to track the current position within the kernel.
+    signal r_sel   : std_logic;                                                     --! Selector signal for mac_w_mux control.
+    signal o_valid : std_logic;                                                     --! Output valid signal.
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
     -------------------------------------------------------------------------------------
     component mac_w_mux
         generic (
-            BITWIDTH : integer
+            BITWIDTH : integer --! Bit width of each operand
         );
         port (
-            clock         : in std_logic;
-            reset_n       : in std_logic;
-            i_enable      : in std_logic;
-            i_sel         : in std_logic;
-            i_multiplier1 : in std_logic_vector(BITWIDTH - 1 downto 0);
-            i_multiplier2 : in std_logic_vector(BITWIDTH - 1 downto 0);
-            i_bias        : in std_logic_vector(BITWIDTH - 1 downto 0);
-            o_result      : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
+            clock         : in std_logic;                                   --! Clock signal
+            reset_n       : in std_logic;                                   --! Reset signal, active at low state
+            i_enable      : in std_logic;                                   --! Enable signal, active at high state
+            i_sel         : in std_logic;                                   --! Select signal for the MUX (1 for (bias + mult), 0 for (output + mult))
+            i_multiplier1 : in std_logic_vector(BITWIDTH - 1 downto 0);     --! First multiplication operand
+            i_multiplier2 : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Second multiplication operand
+            i_bias        : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Input bias value
+            o_result      : out std_logic_vector(2 * BITWIDTH - 1 downto 0) --! Output result value
         );
     end component;
 
 begin
 
     -------------------------------------------------------------------------------------
-    -- GENERATE BLOCK
+    -- GENERATE BLOCK FOR MAC UNITS
     -------------------------------------------------------------------------------------
-    gen_fc : for i in 0 to CHANNEL_NUMBER - 1 generate
+    gen_mac_channel : for i in 0 to CHANNEL_NUMBER - 1 generate
 
-        --! Instantiate the fc_layer units for each channel.
-        gen_fc_layer : fc_layer
-        generic map(
-            BITWIDTH    => BITWIDTH,
-            VECTOR_SIZE => KERNEL_SIZE * KERNEL_SIZE
-        )
-        port map(
-            clock    => clock,
-            reset_n  => reset_n,
-            i_enable => i_enable,
-            i_data   => i_data(i),
-            i_weight => i_kernels(i),
-            o_sum    => mac_out(i)
-        );
-    end generate gen_fc;
+        --! Instantiate one mac_w_mux unit for each channel except the last one.
+        gen_mac_w_mux : if i < CHANNEL_NUMBER - 1 generate
+            gen_mac_w_mux_inst : mac_w_mux
+            generic map(
+                BITWIDTH => BITWIDTH
+            )
+            port map(
+                clock         => clock,
+                reset_n       => reset_n,
+                i_enable      => i_enable,
+                i_sel         => r_sel,
+                i_multiplier1 => i_data(i)(r_count),
+                i_multiplier2 => i_kernels(i)(r_count),
+                i_bias => (others => '0'),
+                o_result      => mac_out(i)
+            );
+        end generate gen_mac_w_mux;
+
+        --! Instantiate the last MAC unit and include bias in the calculation.
+        last_mac : if i = CHANNEL_NUMBER - 1 generate
+            last_mac_w_mux_inst : mac_w_mux
+            generic map(
+                BITWIDTH => BITWIDTH
+            )
+            port map(
+                clock         => clock,
+                reset_n       => reset_n,
+                i_enable      => i_enable,
+                i_sel         => r_sel,
+                i_multiplier1 => i_data(i)(r_count),
+                i_multiplier2 => i_kernels(i)(r_count),
+                i_bias        => i_bias,
+                o_result      => mac_out(i)
+            );
+        end generate last_mac;
+
+    end generate gen_mac_channel;
 
     -------------------------------------------------------------------------------------
-    -- PROCESS ASYNC (reset negative)
+    -- PROCESS TO HANDLE SYNCHRONOUS AND ASYNCHRONOUS OPERATIONS
     -------------------------------------------------------------------------------------
-    --! Process to handle synchronous and asynchronous operations.
     process (clock, reset_n)
         variable sum : signed(2 * BITWIDTH - 1 downto 0); --! Variable to accumulate the sum of MAC outputs.
     begin
         if reset_n = '0' then
-            --! Reset output register and counter to zeros.
-            o_Y <= (others => '0');
+            -- Reset output register, counter, and selector to initial states.
+            o_Y     <= (others => '0');
+            r_count <= 0;
+            r_sel   <= '0';
         elsif rising_edge(clock) then
             if i_enable = '1' then
-                -- Counter increment
+                -- Initialize sum for this cycle.
                 sum := (others => '0');
-                --! Sum the MAC outputs for each channel and add bias.
+
+                -- Sum the MAC outputs for each channel.
                 for i in 0 to CHANNEL_NUMBER - 1 loop
                     sum := sum + signed(mac_out(i));
                 end loop;
-                o_Y <= std_logic_vector(sum + signed(i_bias));
+
+                -- Update counter and selector signals.
+                if (r_count >= KERNEL_SIZE * KERNEL_SIZE - 1) then
+                    r_count <= 0;
+                    r_sel   <= '0';
+                    o_valid <= '1';
+                elsif (r_count = 0) then
+                    r_count <= r_count + 1;
+                    r_sel   <= '1';
+                    o_valid <= '0';
+                else
+                    r_count <= r_count + 1;
+                    r_sel   <= '0';
+                    o_valid <= '0';
+                end if;
+
+                -- Assign the computed sum (including bias) to the output.
+                o_Y <= std_logic_vector(sum);
             end if;
         end if;
     end process;
+
 end conv_layer_one_mac_arch;
 
-configuration conv_layer_fc_conf of conv_layer is
+configuration conv_layer_one_mac_conf of conv_layer is
     for conv_layer_one_mac_arch
-        for gen_fc
-            for all : fc_layer
-                use configuration LIB_RTL.fc_layer_conf;
+        for gen_mac_channel
+            for all : mac_w_mux
+                use entity LIB_RTL.mac_w_mux(mac_w_mux_arch);
             end for;
         end for;
     end for;
-end configuration conv_layer_fc_conf;
+end configuration conv_layer_one_mac_conf;
