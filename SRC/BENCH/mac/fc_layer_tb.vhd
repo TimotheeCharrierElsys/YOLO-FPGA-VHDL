@@ -27,12 +27,12 @@ architecture fc_layer_tb_arch of fc_layer_tb is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal clock    : std_logic := '0'; --! Clock signal
-    signal reset_n  : std_logic := '1'; --! Reset signal, active at low state
-    signal i_enable : std_logic := '0'; --! Enable signal, active at low state
-    signal i_data   : t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-    signal i_weight : t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-    signal o_sum    : std_logic_vector (2 * BITWIDTH - 1 downto 0);
+    signal clock     : std_logic := '0';                                                                 --! Clock signal
+    signal reset_n   : std_logic := '1';                                                                 --! Reset signal, active at low state
+    signal i_enable  : std_logic := '0';                                                                 --! Enable signal, active at high state
+    signal i_matrix1 : t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! First input matrix
+    signal i_matrix2 : t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Second input matrix
+    signal o_result  : std_logic_vector (2 * BITWIDTH - 1 downto 0);                                     --! Output result
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -43,12 +43,12 @@ architecture fc_layer_tb_arch of fc_layer_tb is
             MATRIX_SIZE : integer
         );
         port (
-            clock    : in std_logic;
-            reset_n  : in std_logic;
-            i_enable : in std_logic;
-            i_data   : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_weight : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            o_sum    : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
+            clock     : in std_logic;
+            reset_n   : in std_logic;
+            i_enable  : in std_logic;
+            i_matrix1 : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_matrix2 : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            o_result  : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
         );
     end component;
 
@@ -62,12 +62,12 @@ begin
         MATRIX_SIZE => MATRIX_SIZE
     )
     port map(
-        clock    => clock,
-        reset_n  => reset_n,
-        i_enable => i_enable,
-        i_data   => i_data,
-        i_weight => i_weight,
-        o_sum    => o_sum
+        clock     => clock,
+        reset_n   => reset_n,
+        i_enable  => i_enable,
+        i_matrix1 => i_matrix1,
+        i_matrix2 => i_matrix2,
+        o_result  => o_result
     );
 
     -- Clock generation
@@ -87,22 +87,22 @@ begin
         i_enable <= '1';
 
         -- Apply input vectors
-        i_data         <= (others => (others => std_logic_vector(to_unsigned(1, BITWIDTH))));
-        i_weight(0)(0) <= std_logic_vector(to_unsigned(1, BITWIDTH));
-        i_weight(0)(1) <= std_logic_vector(to_unsigned(2, BITWIDTH));
-        i_weight(0)(2) <= std_logic_vector(to_unsigned(3, BITWIDTH));
-        i_weight(1)(0) <= std_logic_vector(to_unsigned(4, BITWIDTH));
-        i_weight(1)(1) <= std_logic_vector(to_unsigned(5, BITWIDTH));
-        i_weight(1)(2) <= std_logic_vector(to_unsigned(6, BITWIDTH));
-        i_weight(2)(0) <= std_logic_vector(to_unsigned(7, BITWIDTH));
-        i_weight(2)(1) <= std_logic_vector(to_unsigned(8, BITWIDTH));
-        i_weight(2)(2) <= std_logic_vector(to_unsigned(8, BITWIDTH));
+        i_matrix1       <= (others => (others => std_logic_vector(to_unsigned(1, BITWIDTH))));
+        i_matrix2(0)(0) <= std_logic_vector(to_unsigned(1, BITWIDTH));
+        i_matrix2(0)(1) <= std_logic_vector(to_unsigned(2, BITWIDTH));
+        i_matrix2(0)(2) <= std_logic_vector(to_unsigned(3, BITWIDTH));
+        i_matrix2(1)(0) <= std_logic_vector(to_unsigned(4, BITWIDTH));
+        i_matrix2(1)(1) <= std_logic_vector(to_unsigned(5, BITWIDTH));
+        i_matrix2(1)(2) <= std_logic_vector(to_unsigned(6, BITWIDTH));
+        i_matrix2(2)(0) <= std_logic_vector(to_unsigned(7, BITWIDTH));
+        i_matrix2(2)(1) <= std_logic_vector(to_unsigned(8, BITWIDTH));
+        i_matrix2(2)(2) <= std_logic_vector(to_unsigned(8, BITWIDTH));
 
         -- Wait for enough time to allow the pipeline to process the inputs
         wait for (WAIT_COUNT * i_clk_period);
 
         -- Check the output
-        assert o_sum = std_logic_vector(to_signed(36, 2 * BITWIDTH))
+        assert o_result = std_logic_vector(to_signed(36, 2 * BITWIDTH))
         report "Test failed: output does not match expected output"
             severity error;
 
