@@ -6,7 +6,7 @@
 --!                 of std_logic_vectors with an unconstrained range, and t_mat is an
 --!                 array of t_vec with an unconstrained range. These types are used to
 --!                 represent the multi-dimensional arrays.
---!     @auth       Timothée Charrier
+--!     @auth       TimothÃ©e Charrier
 -----------------------------------------------------------------------------------
 
 library IEEE;
