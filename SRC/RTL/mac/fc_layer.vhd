@@ -48,10 +48,11 @@ architecture fc_layer_arch of fc_layer is
             BITWIDTH : integer
         );
         port (
-            clock   : in std_logic;                                    --! Clock signal
-            reset_n : in std_logic;                                    --! Reset signal, active at low state
-            i_data  : in t_vec(0 to N_OPD - 1)(BITWIDTH - 1 downto 0); --! Input data vector
-            o_data  : out std_logic_vector(BITWIDTH - 1 downto 0)      --! Output data
+            clock    : in std_logic;                                    --! Clock signal
+            reset_n  : in std_logic;                                    --! Reset signal, active at low state
+            i_enable : in std_logic;                                    --! Reset signal, active at low state
+            i_data   : in t_vec(0 to N_OPD - 1)(BITWIDTH - 1 downto 0); --! Input data vector
+            o_data   : out std_logic_vector(BITWIDTH - 1 downto 0)      --! Output data
         );
     end component;
 
@@ -88,10 +89,11 @@ begin
         BITWIDTH => 2 * BITWIDTH
     )
     port map(
-        clock   => clock,
-        reset_n => reset_n,
-        i_data  => r_mult_to_add,
-        o_data  => r_sum
+        clock    => clock,
+        reset_n  => reset_n,
+        i_enable => i_enable,
+        i_data   => r_mult_to_add,
+        o_data   => r_sum
     );
 
     -------------------------------------------------------------------------------------

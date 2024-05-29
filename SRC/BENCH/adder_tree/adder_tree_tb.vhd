@@ -38,10 +38,11 @@ architecture adder_tree_tb_arch of adder_tree_tb is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal clock   : std_logic := '0';                                 --! Clock signal
-    signal reset_n : std_logic := '1';                                 --! Reset signal
-    signal i_data  : t_vec(N_OPD - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data vector
-    signal o_data  : std_logic_vector(BITWIDTH - 1 downto 0);          --! Output data
+    signal clock    : std_logic := '0';                                 --! Clock signal
+    signal reset_n  : std_logic := '1';                                 --! Reset signal
+    signal i_enable : std_logic := '0';                                 --! Reset signal, active at low state
+    signal i_data   : t_vec(N_OPD - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data vector
+    signal o_data   : std_logic_vector(BITWIDTH - 1 downto 0);          --! Output data
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -52,10 +53,11 @@ architecture adder_tree_tb_arch of adder_tree_tb is
             BITWIDTH : integer
         );
         port (
-            clock   : in std_logic;
-            reset_n : in std_logic;
-            i_data  : in t_vec(N_OPD - 1 downto 0)(BITWIDTH - 1 downto 0);
-            o_data  : out std_logic_vector(BITWIDTH - 1 downto 0)
+            clock    : in std_logic;
+            reset_n  : in std_logic;
+            i_enable : in std_logic;
+            i_data   : in t_vec(N_OPD - 1 downto 0)(BITWIDTH - 1 downto 0);
+            o_data   : out std_logic_vector(BITWIDTH - 1 downto 0)
         );
     end component;
 
@@ -69,10 +71,11 @@ begin
         BITWIDTH => BITWIDTH
     )
     port map(
-        clock   => clock,
-        reset_n => reset_n,
-        i_data  => i_data,
-        o_data  => o_data
+        clock    => clock,
+        reset_n  => reset_n,
+        i_enable => i_enable,
+        i_data   => i_data,
+        o_data   => o_data
     );
 
     -- Clock generation
@@ -87,6 +90,9 @@ begin
         reset_n <= '0';
         wait for 2 * i_clk_period;
         reset_n <= '1';
+
+        -- Enable
+        i_enable <= '1';
 
         -- Apply input vectors
         i_data(0) <= std_logic_vector(to_unsigned(1, BITWIDTH));
