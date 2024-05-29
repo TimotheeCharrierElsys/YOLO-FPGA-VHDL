@@ -22,20 +22,20 @@ entity conv_layer is
         KERNEL_SIZE    : integer := 3  --! Size of the kernel (e.g., 3 for a 3x3 kernel)
     );
     port (
-        clock     : in std_logic;                                                                                         --! Clock signal
-        reset_n   : in std_logic;                                                                                         --! Reset signal, active at low state
-        i_enable  : in std_logic;                                                                                         --! Enable signal, active at low state
-        i_data    : in t_mat(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE * KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data  (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
-        i_kernels : in t_mat(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE * KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Kernel data (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
-        i_bias    : in std_logic_vector(BITWIDTH - 1 downto 0);                                                           --! Input bias value
-        o_Y       : out std_logic_vector(2 * BITWIDTH - 1 downto 0);                                                      --! Output value
-        o_valid   : out std_logic                                                                                         --! Output valid signal
+        clock     : in std_logic;                                                                                                        --! Clock signal
+        reset_n   : in std_logic;                                                                                                        --! Reset signal, active at low state
+        i_enable  : in std_logic;                                                                                                        --! Enable signal, active at low state
+        i_data    : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data  (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
+        i_kernels : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Kernel data (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
+        i_bias    : in std_logic_vector(BITWIDTH - 1 downto 0);                                                                          --! Input bias value
+        o_result  : out std_logic_vector(2 * BITWIDTH - 1 downto 0);                                                                     --! Output value
+        o_valid   : out std_logic                                                                                                        --! Output valid signal
     );
 end conv_layer;
 
 -----------------------------------------------------------------------------------
---!     @brief          This entity implements a convolution layer using pipelined mac
---!                     architecture.
+--!     @brief          This architecture implements a convolution layer using pipelined mac
+--!                      unit.
 --!     @Dependencies:  mac.vhd, mac_layer.vhd
 -----------------------------------------------------------------------------------
 architecture conv_layer_mac_arch of conv_layer is
@@ -51,16 +51,16 @@ architecture conv_layer_mac_arch of conv_layer is
     -------------------------------------------------------------------------------------
     component mac_layer
         generic (
-            BITWIDTH    : integer; --! Bit width of each operand
-            KERNEL_SIZE : integer  --! Size of the kernel
+            BITWIDTH    : integer;
+            MATRIX_SIZE : integer
         );
         port (
-            clock    : in std_logic;                                                         --! Clock signal
-            reset_n  : in std_logic;                                                         --! Reset signal, active at low state
-            i_enable : in std_logic;                                                         --! Enable signal, active at low state
-            i_X      : in t_vec (0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0); --! Input data (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH bits)
-            i_theta  : in t_vec (0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0); --! Kernel data (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH bits)
-            o_Y      : out std_logic_vector (2 * BITWIDTH - 1 downto 0)                      --! Output result
+            clock     : in std_logic;                                                                        --! Clock signal
+            reset_n   : in std_logic;                                                                        --! Reset signal, active at low state
+            i_enable  : in std_logic;                                                                        --! Enable signal, active at high state
+            i_matrix1 : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! First input matrix
+            i_matrix2 : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Second input matrix
+            o_result  : out std_logic_vector (2 * BITWIDTH - 1 downto 0)                                     --! Output result
         );
     end component;
 
@@ -75,15 +75,15 @@ begin
         gen_mac_layer : mac_layer
         generic map(
             BITWIDTH    => BITWIDTH,
-            KERNEL_SIZE => KERNEL_SIZE
+            MATRIX_SIZE => KERNEL_SIZE
         )
         port map(
-            clock    => clock,
-            reset_n  => reset_n,
-            i_enable => i_enable,
-            i_X      => i_data(i),
-            i_theta  => i_kernels(i),
-            o_Y      => mac_out(i)
+            clock     => clock,
+            reset_n   => reset_n,
+            i_enable  => i_enable,
+            i_matrix1 => i_data(i),
+            i_matrix2 => i_kernels(i),
+            o_result  => mac_out(i)
         );
     end generate conv_layer;
 
@@ -95,9 +95,9 @@ begin
     begin
         if reset_n = '0' then
             --! Reset output register and sum to zeros.
-            o_Y     <= (others => '0');
-            o_valid <= '0';
-            r_count <= 0;
+            o_result <= (others => '0');
+            o_valid  <= '0';
+            r_count  <= 0;
             sum := (others => '0');
 
         elsif rising_edge(clock) then
@@ -120,7 +120,7 @@ begin
                 end if;
 
                 -- Output update
-                o_Y <= std_logic_vector(sum + signed(i_bias));
+                o_result <= std_logic_vector(sum + signed(i_bias));
             end if;
         end if;
     end process;
@@ -139,8 +139,8 @@ configuration conv_layer_mac_conf of conv_layer is
 end configuration conv_layer_mac_conf;
 
 -----------------------------------------------------------------------------------
---!     @brief          This entity implements a convolution layer using fully
---!                     connected architecture.
+--!     @brief          This architecture implements a convolution layer using fully
+--!                     connected layer.
 --!     @Dependencies:  adder_tree.vhd, fc_layer.vhd
 -----------------------------------------------------------------------------------
 architecture conv_layer_fc_arch of conv_layer is
@@ -159,20 +159,19 @@ architecture conv_layer_fc_arch of conv_layer is
     component fc_layer
         generic (
             BITWIDTH    : integer;
-            VECTOR_SIZE : integer
+            MATRIX_SIZE : integer
         );
         port (
-            clock    : in std_logic;
-            reset_n  : in std_logic;
-            i_enable : in std_logic;
-            i_data   : in t_vec(VECTOR_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_weight : in t_vec(VECTOR_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            o_sum    : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
+            clock     : in std_logic;                                                                        --! Clock signal
+            reset_n   : in std_logic;                                                                        --! Reset signal, active at low state
+            i_enable  : in std_logic;                                                                        --! Enable signal, active at high state
+            i_matrix1 : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! First input matrix
+            i_matrix2 : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Second input matrix
+            o_result  : out std_logic_vector(2 * BITWIDTH - 1 downto 0)                                      --! Output matrix dot product
         );
     end component;
 
 begin
-
     -------------------------------------------------------------------------------------
     -- GENERATE BLOCK
     -------------------------------------------------------------------------------------
@@ -182,15 +181,15 @@ begin
         gen_fc_layer : fc_layer
         generic map(
             BITWIDTH    => BITWIDTH,
-            VECTOR_SIZE => KERNEL_SIZE * KERNEL_SIZE
+            MATRIX_SIZE => KERNEL_SIZE
         )
         port map(
-            clock    => clock,
-            reset_n  => reset_n,
-            i_enable => i_enable,
-            i_data   => i_data(i),
-            i_weight => i_kernels(i),
-            o_sum    => mac_out(i)
+            clock     => clock,
+            reset_n   => reset_n,
+            i_enable  => i_enable,
+            i_matrix1 => i_data(i),
+            i_matrix2 => i_kernels(i),
+            o_result  => mac_out(i)
         );
     end generate gen_fc;
 
@@ -202,9 +201,9 @@ begin
     begin
         if reset_n = '0' then
             --! Reset output register and counter to zeros.
-            o_Y     <= (others => '0');
-            o_valid <= '0';
-            r_count <= 0;
+            o_result <= (others => '0');
+            o_valid  <= '0';
+            r_count  <= 0;
 
         elsif rising_edge(clock) then
             if i_enable = '1' then
@@ -226,7 +225,7 @@ begin
                 end if;
 
                 -- Output update
-                o_Y <= std_logic_vector(sum + signed(i_bias));
+                o_result <= std_logic_vector(sum + signed(i_bias));
             end if;
         end if;
     end process;
@@ -243,8 +242,8 @@ configuration conv_layer_fc_conf of conv_layer is
 end configuration conv_layer_fc_conf;
 
 -----------------------------------------------------------------------------------
---!     @brief          This entity implements a convolution layer using one
---!                     mac per channel architecture.
+--!     @brief          This architecture implements a convolution layer using one
+--!                     mac per channel.
 --!     @Dependencies:  mac_w_mux.vhd
 -----------------------------------------------------------------------------------
 architecture conv_layer_one_mac_arch of conv_layer is
@@ -252,9 +251,10 @@ architecture conv_layer_one_mac_arch of conv_layer is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal mac_out : t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel.
-    signal r_count : integer range 0 to KERNEL_SIZE * KERNEL_SIZE - 1;              --! Counter to track the current position within the kernel.
-    signal r_sel   : std_logic;                                                     --! Selector signal for mac_w_mux control.
+    signal mac_out     : t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel.
+    signal r_count_row : integer range 0 to KERNEL_SIZE - 1;                            --! Counter to track the current position within the kernel.
+    signal r_count_col : integer range 0 to KERNEL_SIZE - 1;                            --! Counter to track the current position within the kernel.
+    signal r_sel       : std_logic;                                                     --! Selector signal for mac_w_mux control.
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -293,8 +293,8 @@ begin
                 reset_n       => reset_n,
                 i_enable      => i_enable,
                 i_sel         => r_sel,
-                i_multiplier1 => i_data(i)(r_count),
-                i_multiplier2 => i_kernels(i)(r_count),
+                i_multiplier1 => i_data(i)(r_count_row)(r_count_col),
+                i_multiplier2 => i_kernels(i)(r_count_row)(r_count_col),
                 i_bias => (others => '0'),
                 o_result      => mac_out(i)
             );
@@ -311,8 +311,8 @@ begin
                 reset_n       => reset_n,
                 i_enable      => i_enable,
                 i_sel         => r_sel,
-                i_multiplier1 => i_data(i)(r_count),
-                i_multiplier2 => i_kernels(i)(r_count),
+                i_multiplier1 => i_data(i)(r_count_row)(r_count_col),
+                i_multiplier2 => i_kernels(i)(r_count_row)(r_count_col),
                 i_bias        => i_bias,
                 o_result      => mac_out(i)
             );
@@ -327,11 +327,12 @@ begin
         variable sum : signed(2 * BITWIDTH - 1 downto 0); --! Variable to accumulate the sum of MAC outputs.
     begin
         if reset_n = '0' then
-            -- Reset output register, counter, and selector to initial states.
-            o_Y     <= (others => '0');
-            o_valid <= '0';
-            r_count <= 0;
-            r_sel   <= '0';
+            -- Reset output register, counters, and selector to initial states.
+            o_result    <= (others => '0');
+            o_valid     <= '0';
+            r_count_row <= 0;
+            r_count_col <= 0;
+            r_sel       <= '1';
 
         elsif rising_edge(clock) then
             if i_enable = '1' then
@@ -344,33 +345,46 @@ begin
                 end loop;
 
                 -- Update counter and selector signals.
-                if (r_count >= KERNEL_SIZE * KERNEL_SIZE - 1) then
-                    r_count <= 0;
-                    r_sel   <= '0';
-                    o_valid <= '1';
-                elsif (r_count = 0) then
-                    r_count <= r_count + 1;
-                    r_sel   <= '1';
-                    o_valid <= '0';
+                if r_count_col = KERNEL_SIZE - 1 then
+                    r_count_col <= 0;
+                    if r_count_row = KERNEL_SIZE - 1 then
+                        r_count_row <= 0;
+                        o_valid     <= '1';
+                    else
+                        r_count_row <= r_count_row + 1;
+                        o_valid     <= '0';
+                    end if;
                 else
-                    r_count <= r_count + 1;
-                    r_sel   <= '0';
-                    o_valid <= '0';
+                    r_count_col <= r_count_col + 1;
+                    o_valid     <= '0';
                 end if;
 
                 -- Assign the computed sum to the output.
-                o_Y <= std_logic_vector(sum);
+                o_result <= std_logic_vector(sum);
+
+                -- Toggle r_sel at the start of a new kernel
+                if r_count_row = 0 and r_count_col = 0 then
+                    r_sel <= not r_sel;
+                end if;
             end if;
         end if;
     end process;
-
 end conv_layer_one_mac_arch;
 
 configuration conv_layer_one_mac_conf of conv_layer is
     for conv_layer_one_mac_arch
         for gen_mac_channel
-            for all : mac_w_mux
-                use entity LIB_RTL.mac_w_mux(mac_w_mux_arch);
+
+            for gen_mac_w_mux
+                for all : mac_w_mux
+                    use entity LIB_RTL.mac_w_mux(mac_w_mux_arch);
+                end for;
+            end for;
+
+            for last_mac
+                for all : mac_w_mux
+                    use entity LIB_RTL.mac_w_mux(mac_w_mux_arch);
+                end for;
             end for;
         end for;
     end for;
