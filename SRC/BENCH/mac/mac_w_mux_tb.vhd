@@ -21,14 +21,14 @@ architecture mac_w_mux_arch of mac_w_mux is
     constant BITWIDTH     : integer := 8;     -- Bit width of each operand
 
     -- SIGNALS
-    signal clock         : std_logic := '0';                        -- Clock signal
-    signal reset_n       : std_logic := '1';                        -- Reset signal, active low
-    signal i_enable      : std_logic := '0';                        -- Enable signal, active low
-    signal i_sel         : std_logic := '1';                        -- Select signal
-    signal i_multiplier1 : std_logic_vector(BITWIDTH - 1 downto 0); -- First multiplier operand
-    signal i_multiplier2 : std_logic_vector(BITWIDTH - 1 downto 0); -- Second multiplier operand
-    signal i_bias        : std_logic_vector(BITWIDTH - 1 downto 0); -- Third operand
-    signal o_result      : std_logic_vector(2 * BITWIDTH - 1 downto 0);-- Output data
+    signal clock         : std_logic := '0';                            --! Clock signal
+    signal reset_n       : std_logic := '1';                            --! Reset signal, active low
+    signal i_enable      : std_logic := '0';                            --! Enable signal, active high
+    signal i_sel         : std_logic := '1';                            --! Select signal
+    signal i_multiplier1 : std_logic_vector(BITWIDTH - 1 downto 0);     --! First multiplier operand
+    signal i_multiplier2 : std_logic_vector(BITWIDTH - 1 downto 0);     --! Second multiplier operand
+    signal i_bias        : std_logic_vector(BITWIDTH - 1 downto 0);     --! Third operand
+    signal o_result      : std_logic_vector(2 * BITWIDTH - 1 downto 0); --! Output data
 
     -- COMPONENTS
     component mac_w_mux
