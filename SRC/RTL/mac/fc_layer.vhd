@@ -17,15 +17,15 @@ use LIB_RTL.types_pkg.all;
 entity fc_layer is
     generic (
         BITWIDTH    : integer := 8; --! Bit width of each operand
-        VECTOR_SIZE : integer := 8  --! Input Vector Size
+        MATRIX_SIZE : integer := 3  --! Input Maxtrix Size (squared)
     );
     port (
-        clock    : in std_logic;                                              --! Clock signal
-        reset_n  : in std_logic;                                              --! Reset signal, active at low state
-        i_enable : in std_logic;                                              --! Enable signal, active at low state
-        i_data   : in t_vec(VECTOR_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data
-        i_weight : in t_vec(VECTOR_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input weights
-        o_sum    : out std_logic_vector(2 * BITWIDTH - 1 downto 0)            --! Output value
+        clock    : in std_logic; --! Clock signal
+        reset_n  : in std_logic; --! Reset signal, active at low state
+        i_enable : in std_logic; --! Enable signal, active at low state
+        i_data   : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+        i_weight : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+        o_sum    : out std_logic_vector(2 * BITWIDTH - 1 downto 0) --! Output value
     );
 end fc_layer;
 
@@ -34,8 +34,10 @@ architecture fc_layer_arch of fc_layer is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal r_mult_to_add : t_vec(VECTOR_SIZE - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Signal between the multiplications and the additions
-    signal r_sum         : std_logic_vector(2 * BITWIDTH - 1 downto 0);                --! Output signal register
+    signal r_mult_to_add    : t_vec(MATRIX_SIZE * MATRIX_SIZE - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Signal between the multiplications and the additions
+    signal r_sum            : std_logic_vector(2 * BITWIDTH - 1 downto 0);                              --! Output signal register
+    signal flatten_i_data   : t_vec(MATRIX_SIZE * MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+    signal flatten_i_weight : t_vec(MATRIX_SIZE * MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -56,11 +58,24 @@ architecture fc_layer_arch of fc_layer is
 begin
 
     -------------------------------------------------------------------------------------
+    -- COMBINATIONAL PROCESS TO FLATTEN THE DATAS
+    -------------------------------------------------------------------------------------
+    process (i_data, i_weight)
+    begin
+        for i in 0 to MATRIX_SIZE - 1 loop
+            for j in 0 to MATRIX_SIZE - 1 loop
+                flatten_i_data(i * MATRIX_SIZE + j)   <= i_data(i)(j);
+                flatten_i_weight(i * MATRIX_SIZE + j) <= i_weight(i)(j);
+            end loop;
+        end loop;
+    end process;
+
+    -------------------------------------------------------------------------------------
     -- MULTIPLICATION GENERATION
     -------------------------------------------------------------------------------------
     -- Multiply the two inputs together
-    mult_gen : for i in 0 to VECTOR_SIZE - 1 generate
-        r_mult_to_add(i) <= std_logic_vector(signed(i_data(i)) * signed(i_weight(i)));
+    mult_gen : for i in 0 to MATRIX_SIZE * MATRIX_SIZE - 1 generate
+        r_mult_to_add(i) <= std_logic_vector(signed(flatten_i_data(i)) * signed(flatten_i_weight(i)));
     end generate;
 
     -------------------------------------------------------------------------------------
@@ -69,7 +84,7 @@ begin
     -- Instantiate the adder tree
     adder_tree_inst : adder_tree
     generic map(
-        N_OPD    => VECTOR_SIZE,
+        N_OPD    => MATRIX_SIZE * MATRIX_SIZE,
         BITWIDTH => 2 * BITWIDTH
     )
     port map(

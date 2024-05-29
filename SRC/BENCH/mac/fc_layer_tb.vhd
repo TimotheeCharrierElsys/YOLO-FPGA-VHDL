@@ -22,7 +22,7 @@ architecture fc_layer_tb_arch of fc_layer_tb is
     constant i_clk_period : time    := 10 ns; --! Clock period
     constant WAIT_COUNT   : integer := 8;     --! Number clock tics to wait
     constant BITWIDTH     : integer := 8;     --! Bit BITWIDTH of each operand
-    constant VECTOR_SIZE  : integer := 8;     --! Kernel Size
+    constant MATRIX_SIZE  : integer := 3;     --! Kernel Size
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
@@ -30,8 +30,8 @@ architecture fc_layer_tb_arch of fc_layer_tb is
     signal clock    : std_logic := '0'; --! Clock signal
     signal reset_n  : std_logic := '1'; --! Reset signal, active at low state
     signal i_enable : std_logic := '0'; --! Enable signal, active at low state
-    signal i_data   : t_vec (VECTOR_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-    signal i_weight : t_vec (VECTOR_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+    signal i_data   : t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+    signal i_weight : t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
     signal o_sum    : std_logic_vector (2 * BITWIDTH - 1 downto 0);
 
     -------------------------------------------------------------------------------------
@@ -40,14 +40,14 @@ architecture fc_layer_tb_arch of fc_layer_tb is
     component fc_layer
         generic (
             BITWIDTH    : integer;
-            VECTOR_SIZE : integer
+            MATRIX_SIZE : integer
         );
         port (
             clock    : in std_logic;
             reset_n  : in std_logic;
             i_enable : in std_logic;
-            i_data   : in t_vec(VECTOR_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_weight : in t_vec(VECTOR_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_data   : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_weight : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             o_sum    : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
         );
     end component;
@@ -59,7 +59,7 @@ begin
     UUT : fc_layer
     generic map(
         BITWIDTH    => BITWIDTH,
-        VECTOR_SIZE => VECTOR_SIZE
+        MATRIX_SIZE => MATRIX_SIZE
     )
     port map(
         clock    => clock,
@@ -87,15 +87,16 @@ begin
         i_enable <= '1';
 
         -- Apply input vectors
-        i_data      <= (others => std_logic_vector(to_unsigned(1, BITWIDTH)));
-        i_weight(0) <= std_logic_vector(to_unsigned(1, BITWIDTH));
-        i_weight(1) <= std_logic_vector(to_unsigned(2, BITWIDTH));
-        i_weight(2) <= std_logic_vector(to_unsigned(3, BITWIDTH));
-        i_weight(3) <= std_logic_vector(to_unsigned(4, BITWIDTH));
-        i_weight(4) <= std_logic_vector(to_unsigned(5, BITWIDTH));
-        i_weight(5) <= std_logic_vector(to_unsigned(6, BITWIDTH));
-        i_weight(6) <= std_logic_vector(to_unsigned(7, BITWIDTH));
-        i_weight(7) <= std_logic_vector(to_unsigned(8, BITWIDTH));
+        i_data         <= (others => (others => std_logic_vector(to_unsigned(1, BITWIDTH))));
+        i_weight(0)(0) <= std_logic_vector(to_unsigned(1, BITWIDTH));
+        i_weight(0)(1) <= std_logic_vector(to_unsigned(2, BITWIDTH));
+        i_weight(0)(2) <= std_logic_vector(to_unsigned(3, BITWIDTH));
+        i_weight(1)(0) <= std_logic_vector(to_unsigned(4, BITWIDTH));
+        i_weight(1)(1) <= std_logic_vector(to_unsigned(5, BITWIDTH));
+        i_weight(1)(2) <= std_logic_vector(to_unsigned(6, BITWIDTH));
+        i_weight(2)(0) <= std_logic_vector(to_unsigned(7, BITWIDTH));
+        i_weight(2)(1) <= std_logic_vector(to_unsigned(8, BITWIDTH));
+        i_weight(2)(2) <= std_logic_vector(to_unsigned(8, BITWIDTH));
 
         -- Wait for enough time to allow the pipeline to process the inputs
         wait for (WAIT_COUNT * i_clk_period);
