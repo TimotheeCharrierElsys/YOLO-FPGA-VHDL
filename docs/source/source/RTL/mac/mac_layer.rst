@@ -68,11 +68,11 @@ Ports
      - in
      - std_logic
      - Enable signal, active at low state
-   * - i_X
+   * - i_matrix1
      - in
      - t_vec (0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0)
      - Input data  (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH bits)
-   * - i_theta
+   * - i_matrix2
      - in
      - t_vec (0 to KERNEL_SIZE * KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0)
      - Kernel data (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH bits)
