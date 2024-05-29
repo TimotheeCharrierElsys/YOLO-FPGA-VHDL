@@ -6,12 +6,11 @@
 --!                 of std_logic_vectors with an unconstrained range, and t_mat is an
 --!                 array of t_vec with an unconstrained range. These types are used to
 --!                 represent the multi-dimensional arrays.
---!     @auth       TimothÃ©e Charrier
+--!     @auth       Timothée Charrier
 -----------------------------------------------------------------------------------
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
-use IEEE.NUMERIC_STD.all;
 
 package types_pkg is
     --! @type t_vec
@@ -22,5 +21,9 @@ package types_pkg is
     --! @type t_mat
     --! @brief Defines an unconstrained array of t_vec.
     type t_mat is array (natural range <>) of t_vec;
+
+    --! @type t_volume
+    --! @brief Defines an unconstrained array of t_mat.
+    type t_volume is array (natural range <>) of t_mat;
 
 end package types_pkg;
