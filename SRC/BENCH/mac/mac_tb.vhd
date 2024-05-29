@@ -28,7 +28,7 @@ architecture mac_tb_arch of mac_tb is
     -------------------------------------------------------------------------------------
     signal clock         : std_logic := '0';                            --! Clock signal
     signal reset_n       : std_logic := '1';                            --! Reset signal, active at low state
-    signal i_enable      : std_logic := '0';                            --! Enable signal, active at low state
+    signal i_enable      : std_logic := '0';                            --! Enable signal, active at high state
     signal i_multiplier1 : std_logic_vector(BITWIDTH - 1 downto 0);     --! First mult operand
     signal i_multiplier2 : std_logic_vector(BITWIDTH - 1 downto 0);     --! Second mult operand
     signal i_add         : std_logic_vector(BITWIDTH - 1 downto 0);     --! Third operand
