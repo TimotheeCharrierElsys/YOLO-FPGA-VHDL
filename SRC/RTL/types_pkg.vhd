@@ -11,6 +11,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
+use IEEE.NUMERIC_STD.all;
 
 package types_pkg is
     --! @type t_vec
@@ -26,4 +27,39 @@ package types_pkg is
     --! @brief Defines an unconstrained array of t_mat.
     type t_volume is array (natural range <>) of t_mat;
 
+    --! @type function
+    --! @brief Defines a function returning a padded input volume
+    function pad_input(
+        i_data        : t_volume;
+        input_width   : integer;
+        input_channel : integer;
+        padding       : integer;
+        bitwidth      : integer
+    ) return t_volume;
+
 end package types_pkg;
+
+package body types_pkg is
+    function pad_input(
+        i_data        : t_volume;
+        input_width   : integer;
+        input_channel : integer;
+        padding       : integer;
+        bitwidth      : integer
+    ) return t_volume is
+        variable padded : t_volume(input_channel - 1 downto 0)(2 * padding + input_width - 1 downto 0)(2 * padding + input_width - 1 downto 0)(bitwidth - 1 downto 0);
+    begin
+        for ch in 0 to input_channel - 1 loop
+            for row in 0 to 2 * padding + input_width - 1 loop
+                for col in 0 to 2 * padding + input_width - 1 loop
+                    if row < padding or row >= padding + input_width or col < padding or col >= padding + input_width then
+                        padded(ch)(row)(col) := (others => '0');
+                    else
+                        padded(ch)(row)(col) := i_data(ch)(row - padding)(col - padding);
+                    end if;
+                end loop;
+            end loop;
+        end loop;
+        return padded;
+    end pad_input;
+end package body types_pkg;
