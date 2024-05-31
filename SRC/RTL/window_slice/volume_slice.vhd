@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------------
 --!     @file       volume_slice
---!     @brief      This file provides a window slicing entity
+--!     @brief      This file provides a volume slicing entity
 --!     @author     Timothée Charrier
 -----------------------------------------------------------------------------------
 
@@ -22,12 +22,12 @@ entity volume_slice is
         OUTPUT_SIZE    : integer := 3  --! Output size
     );
     port (
-        i_data            : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);   --! Input matrix
+        i_data            : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);   --! Input matrix volume
         i_row_index_start : in std_logic_vector(INPUT_SIZE - 1 downto 0);                                                                        --! First dimension (row) starting index
         i_row_index_end   : in std_logic_vector(INPUT_SIZE - 1 downto 0);                                                                        --! First dimension (row) ending index
         i_col_index_start : in std_logic_vector(INPUT_SIZE - 1 downto 0);                                                                        --! Second dimension (col) starting index
         i_col_index_end   : in std_logic_vector(INPUT_SIZE - 1 downto 0);                                                                        --! Second dimension (col) ending index
-        o_data            : out t_volume(CHANNEL_NUMBER - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0) --! Output sliced matrix
+        o_data            : out t_volume(CHANNEL_NUMBER - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0) --! Output sliced matrix volume
     );
 end volume_slice;
 
