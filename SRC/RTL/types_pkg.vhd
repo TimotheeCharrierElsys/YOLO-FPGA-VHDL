@@ -27,6 +27,10 @@ package types_pkg is
     --! @brief Defines an unconstrained array of t_mat.
     type t_volume is array (natural range <>) of t_mat;
 
+    --! @type t_input_feature
+    --! @brief Defines an unconstrained array of t_mat.
+    type t_input_feature is array (natural range <>) of t_volume;
+
     --! @type function
     --! @brief Defines a function returning a padded input volume
     function pad_input(
