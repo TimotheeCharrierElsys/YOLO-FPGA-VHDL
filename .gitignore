@@ -9,5 +9,3 @@ modelsim.ini
 vsim.wlf
 YOLO-FPGA.cr.mti
 YOLO-FPGA.mpf
-SRC/RTL/conv/conv.vhd
-SRC/BENCH/conv/conv_tb.vhd
