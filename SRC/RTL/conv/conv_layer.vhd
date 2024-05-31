@@ -148,10 +148,10 @@ architecture conv_layer_fc_arch of conv_layer is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    constant DFF_DELAY : integer := (integer(ceil(log2(real(KERNEL_SIZE * KERNEL_SIZE)))) + 1) + 1; --! Number of stages required to complete the addition process + MULT REG
+    constant DFF_DELAY : integer := (integer(ceil(log2(real(KERNEL_SIZE * KERNEL_SIZE)))) + 1) + 1; --! Number of stages required to complete the addition process
 
     signal mac_out : t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel.
-    signal r_count : integer range 0 to DFF_DELAY - 1;                              --! Counter for o_valid data
+    signal r_valid : std_logic_vector(DFF_DELAY - 1 downto 0);
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -203,26 +203,27 @@ begin
             --! Reset output register and counter to zeros.
             o_result <= (others => '0');
             o_valid  <= '0';
-            r_count  <= 0;
+            r_valid  <= std_logic_vector(to_unsigned(1, DFF_DELAY));
 
         elsif rising_edge(clock) then
             if i_enable = '1' then
                 -- Reset output sum
                 sum := (others => '0');
 
-                --! Sum the MAC outputs for each channel and add bias.
+                -- Sum the MAC outputs for each channel and add bias.
                 for i in 0 to CHANNEL_NUMBER - 1 loop
                     sum := sum + signed(mac_out(i));
                 end loop;
 
-                -- Counter increment
-                if (r_count >= DFF_DELAY - 1) then
-                    r_count <= 0;
-                    o_valid <= '1';
+                -- Shift the valid register
+                if r_valid(DFF_DELAY - 1) = '1' then
+                    r_valid <= (others => '0');
                 else
-                    r_count <= r_count + 1;
-                    o_valid <= '0';
+                    r_valid <= r_valid(DFF_DELAY - 2 downto 0) & '1';
                 end if;
+
+                -- Update o_valid from the last bit of the shift register
+                o_valid <= r_valid(DFF_DELAY - 1);
 
                 -- Output update
                 o_result <= std_logic_vector(sum + signed(i_bias));
@@ -241,151 +242,151 @@ configuration conv_layer_fc_conf of conv_layer is
     end for;
 end configuration conv_layer_fc_conf;
 
------------------------------------------------------------------------------------
---!     @brief          This architecture implements a convolution layer using one
---!                     mac per channel.
---!     @Dependencies:  mac_w_mux.vhd
------------------------------------------------------------------------------------
-architecture conv_layer_one_mac_arch of conv_layer is
+-- -----------------------------------------------------------------------------------
+-- --!     @brief          This architecture implements a convolution layer using one
+-- --!                     mac per channel.
+-- --!     @Dependencies:  mac_w_mux.vhd
+-- -----------------------------------------------------------------------------------
+-- architecture conv_layer_one_mac_arch of conv_layer is
 
-    -------------------------------------------------------------------------------------
-    -- SIGNALS
-    -------------------------------------------------------------------------------------
-    signal mac_out     : t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel.
-    signal r_count_row : integer range 0 to KERNEL_SIZE - 1;                            --! Counter to track the current position within the kernel.
-    signal r_count_col : integer range 0 to KERNEL_SIZE - 1;                            --! Counter to track the current position within the kernel.
-    signal r_sel       : std_logic;                                                     --! Selector signal for mac_w_mux control.
+--     -------------------------------------------------------------------------------------
+--     -- SIGNALS
+--     -------------------------------------------------------------------------------------
+--     signal mac_out     : t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel.
+--     signal r_count_row : integer range 0 to KERNEL_SIZE - 1;                            --! Counter to track the current position within the kernel.
+--     signal r_count_col : integer range 0 to KERNEL_SIZE - 1;                            --! Counter to track the current position within the kernel.
+--     signal r_sel       : std_logic;                                                     --! Selector signal for mac_w_mux control.
 
-    -------------------------------------------------------------------------------------
-    -- COMPONENTS
-    -------------------------------------------------------------------------------------
-    component mac_w_mux
-        generic (
-            BITWIDTH : integer --! Bit width of each operand
-        );
-        port (
-            clock         : in std_logic;                                   --! Clock signal
-            reset_n       : in std_logic;                                   --! Reset signal, active at low state
-            i_enable      : in std_logic;                                   --! Enable signal, active at high state
-            i_sel         : in std_logic;                                   --! Select signal for the MUX (1 for (bias + mult), 0 for (output + mult))
-            i_multiplier1 : in std_logic_vector(BITWIDTH - 1 downto 0);     --! First multiplication operand
-            i_multiplier2 : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Second multiplication operand
-            i_bias        : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Input bias value
-            o_result      : out std_logic_vector(2 * BITWIDTH - 1 downto 0) --! Output result value
-        );
-    end component;
+--     -------------------------------------------------------------------------------------
+--     -- COMPONENTS
+--     -------------------------------------------------------------------------------------
+--     component mac_w_mux
+--         generic (
+--             BITWIDTH : integer --! Bit width of each operand
+--         );
+--         port (
+--             clock         : in std_logic;                                   --! Clock signal
+--             reset_n       : in std_logic;                                   --! Reset signal, active at low state
+--             i_enable      : in std_logic;                                   --! Enable signal, active at high state
+--             i_sel         : in std_logic;                                   --! Select signal for the MUX (1 for (bias + mult), 0 for (output + mult))
+--             i_multiplier1 : in std_logic_vector(BITWIDTH - 1 downto 0);     --! First multiplication operand
+--             i_multiplier2 : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Second multiplication operand
+--             i_bias        : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Input bias value
+--             o_result      : out std_logic_vector(2 * BITWIDTH - 1 downto 0) --! Output result value
+--         );
+--     end component;
 
-begin
+-- begin
 
-    -------------------------------------------------------------------------------------
-    -- GENERATE BLOCK FOR MAC UNITS
-    -------------------------------------------------------------------------------------
-    gen_mac_channel : for i in 0 to CHANNEL_NUMBER - 1 generate
+--     -------------------------------------------------------------------------------------
+--     -- GENERATE BLOCK FOR MAC UNITS
+--     -------------------------------------------------------------------------------------
+--     gen_mac_channel : for i in 0 to CHANNEL_NUMBER - 1 generate
 
-        --! Instantiate one mac_w_mux unit for each channel except the last one.
-        gen_mac_w_mux : if i < CHANNEL_NUMBER - 1 generate
-            gen_mac_w_mux_inst : mac_w_mux
-            generic map(
-                BITWIDTH => BITWIDTH
-            )
-            port map(
-                clock         => clock,
-                reset_n       => reset_n,
-                i_enable      => i_enable,
-                i_sel         => r_sel,
-                i_multiplier1 => i_data(i)(r_count_row)(r_count_col),
-                i_multiplier2 => i_kernels(i)(r_count_row)(r_count_col),
-                i_bias => (others => '0'),
-                o_result      => mac_out(i)
-            );
-        end generate gen_mac_w_mux;
+--         --! Instantiate one mac_w_mux unit for each channel except the last one.
+--         gen_mac_w_mux : if i < CHANNEL_NUMBER - 1 generate
+--             gen_mac_w_mux_inst : mac_w_mux
+--             generic map(
+--                 BITWIDTH => BITWIDTH
+--             )
+--             port map(
+--                 clock         => clock,
+--                 reset_n       => reset_n,
+--                 i_enable      => i_enable,
+--                 i_sel         => r_sel,
+--                 i_multiplier1 => i_data(i)(r_count_row)(r_count_col),
+--                 i_multiplier2 => i_kernels(i)(r_count_row)(r_count_col),
+--                 i_bias => (others => '0'),
+--                 o_result      => mac_out(i)
+--             );
+--         end generate gen_mac_w_mux;
 
-        --! Instantiate the last MAC unit and include bias in the calculation.
-        last_mac : if i = CHANNEL_NUMBER - 1 generate
-            last_mac_w_mux_inst : mac_w_mux
-            generic map(
-                BITWIDTH => BITWIDTH
-            )
-            port map(
-                clock         => clock,
-                reset_n       => reset_n,
-                i_enable      => i_enable,
-                i_sel         => r_sel,
-                i_multiplier1 => i_data(i)(r_count_row)(r_count_col),
-                i_multiplier2 => i_kernels(i)(r_count_row)(r_count_col),
-                i_bias        => i_bias,
-                o_result      => mac_out(i)
-            );
-        end generate last_mac;
+--         --! Instantiate the last MAC unit and include bias in the calculation.
+--         last_mac : if i = CHANNEL_NUMBER - 1 generate
+--             last_mac_w_mux_inst : mac_w_mux
+--             generic map(
+--                 BITWIDTH => BITWIDTH
+--             )
+--             port map(
+--                 clock         => clock,
+--                 reset_n       => reset_n,
+--                 i_enable      => i_enable,
+--                 i_sel         => r_sel,
+--                 i_multiplier1 => i_data(i)(r_count_row)(r_count_col),
+--                 i_multiplier2 => i_kernels(i)(r_count_row)(r_count_col),
+--                 i_bias        => i_bias,
+--                 o_result      => mac_out(i)
+--             );
+--         end generate last_mac;
 
-    end generate gen_mac_channel;
+--     end generate gen_mac_channel;
 
-    -------------------------------------------------------------------------------------
-    -- PROCESS TO HANDLE SYNCHRONOUS AND ASYNCHRONOUS OPERATIONS
-    -------------------------------------------------------------------------------------
-    process (clock, reset_n)
-        variable sum : signed(2 * BITWIDTH - 1 downto 0); --! Variable to accumulate the sum of MAC outputs.
-    begin
-        if reset_n = '0' then
-            -- Reset output register, counters, and selector to initial states.
-            o_result    <= (others => '0');
-            o_valid     <= '0';
-            r_count_row <= 0;
-            r_count_col <= 0;
-            r_sel       <= '1';
+--     -------------------------------------------------------------------------------------
+--     -- PROCESS TO HANDLE SYNCHRONOUS AND ASYNCHRONOUS OPERATIONS
+--     -------------------------------------------------------------------------------------
+--     process (clock, reset_n)
+--         variable sum : signed(2 * BITWIDTH - 1 downto 0); --! Variable to accumulate the sum of MAC outputs.
+--     begin
+--         if reset_n = '0' then
+--             -- Reset output register, counters, and selector to initial states.
+--             o_result    <= (others => '0');
+--             o_valid     <= '0';
+--             r_count_row <= 0;
+--             r_count_col <= 0;
+--             r_sel       <= '1';
 
-        elsif rising_edge(clock) then
-            if i_enable = '1' then
-                -- Initialize sum for this cycle.
-                sum := (others => '0');
+--         elsif rising_edge(clock) then
+--             if i_enable = '1' then
+--                 -- Initialize sum for this cycle.
+--                 sum := (others => '0');
 
-                -- Sum the MAC outputs for each channel.
-                for i in 0 to CHANNEL_NUMBER - 1 loop
-                    sum := sum + signed(mac_out(i));
-                end loop;
+--                 -- Sum the MAC outputs for each channel.
+--                 for i in 0 to CHANNEL_NUMBER - 1 loop
+--                     sum := sum + signed(mac_out(i));
+--                 end loop;
 
-                -- Update counter and selector signals.
-                if r_count_col = KERNEL_SIZE - 1 then
-                    r_count_col <= 0;
-                    if r_count_row = KERNEL_SIZE - 1 then
-                        r_count_row <= 0;
-                        o_valid     <= '1';
-                    else
-                        r_count_row <= r_count_row + 1;
-                        o_valid     <= '0';
-                    end if;
-                else
-                    r_count_col <= r_count_col + 1;
-                    o_valid     <= '0';
-                end if;
+--                 -- Update counter and selector signals.
+--                 if r_count_col = KERNEL_SIZE - 1 then
+--                     r_count_col <= 0;
+--                     if r_count_row = KERNEL_SIZE - 1 then
+--                         r_count_row <= 0;
+--                         o_valid     <= '1';
+--                     else
+--                         r_count_row <= r_count_row + 1;
+--                         o_valid     <= '0';
+--                     end if;
+--                 else
+--                     r_count_col <= r_count_col + 1;
+--                     o_valid     <= '0';
+--                 end if;
 
-                -- Assign the computed sum to the output.
-                o_result <= std_logic_vector(sum);
+--                 -- Assign the computed sum to the output.
+--                 o_result <= std_logic_vector(sum);
 
-                -- Toggle r_sel at the start of a new kernel
-                if r_count_row = 0 and r_count_col = 0 then
-                    r_sel <= not r_sel;
-                end if;
-            end if;
-        end if;
-    end process;
-end conv_layer_one_mac_arch;
+--                 -- Toggle r_sel at the start of a new kernel
+--                 if r_count_row = 0 and r_count_col = 0 then
+--                     r_sel <= not r_sel;
+--                 end if;
+--             end if;
+--         end if;
+--     end process;
+-- end conv_layer_one_mac_arch;
 
-configuration conv_layer_one_mac_conf of conv_layer is
-    for conv_layer_one_mac_arch
-        for gen_mac_channel
+-- configuration conv_layer_one_mac_conf of conv_layer is
+--     for conv_layer_one_mac_arch
+--         for gen_mac_channel
 
-            for gen_mac_w_mux
-                for all : mac_w_mux
-                    use entity LIB_RTL.mac_w_mux(mac_w_mux_arch);
-                end for;
-            end for;
+--             for gen_mac_w_mux
+--                 for all : mac_w_mux
+--                     use entity LIB_RTL.mac_w_mux(mac_w_mux_arch);
+--                 end for;
+--             end for;
 
-            for last_mac
-                for all : mac_w_mux
-                    use entity LIB_RTL.mac_w_mux(mac_w_mux_arch);
-                end for;
-            end for;
-        end for;
-    end for;
-end configuration conv_layer_one_mac_conf;
+--             for last_mac
+--                 for all : mac_w_mux
+--                     use entity LIB_RTL.mac_w_mux(mac_w_mux_arch);
+--                 end for;
+--             end for;
+--         end for;
+--     end for;
+-- end configuration conv_layer_one_mac_conf;
