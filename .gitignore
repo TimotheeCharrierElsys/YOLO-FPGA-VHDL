@@ -7,5 +7,5 @@ SRC/BENCH/common/xvhdl.pb
 transcript
 modelsim.ini
 vsim.wlf
-YOLO-FPGA.cr.mti
-YOLO-FPGA.mpf
+YOLO.cr.mti
+YOLO.mpf
