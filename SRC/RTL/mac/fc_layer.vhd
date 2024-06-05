@@ -107,7 +107,15 @@ end fc_layer_arch;
 configuration fc_layer_conf of fc_layer is
     for fc_layer_arch
         for all : adder_tree
-            use entity LIB_RTL.adder_tree(adder_tree_pipelined_arch);
+            use entity LIB_RTL.adder_tree(adder_tree_arch);
         end for;
     end for;
 end configuration fc_layer_conf;
+
+configuration fc_layer_pipelined_conf of fc_layer is
+    for fc_layer_arch
+        for all : adder_tree
+            use entity LIB_RTL.adder_tree(adder_tree_pipelined_arch);
+        end for;
+    end for;
+end configuration fc_layer_pipelined_conf;
