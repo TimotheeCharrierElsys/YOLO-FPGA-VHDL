@@ -20,7 +20,7 @@ entity mac_w_mux is
     port (
         clock         : in std_logic;                                   --! Clock signal
         reset_n       : in std_logic;                                   --! Reset signal, active at low state
-        i_enable      : in std_logic;                                   --! Enable signal, active at high state
+        i_sys_enable  : in std_logic;                                   --! Enable signal, active at high state
         i_sel         : in std_logic;                                   --! Select signal for the MUX (1 for (bias + mult), 0 for (output + mult))
         i_multiplier1 : in std_logic_vector(BITWIDTH - 1 downto 0);     --! First multiplication operand
         i_multiplier2 : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Second multiplication operand
@@ -50,7 +50,7 @@ begin
             -- Reset output register to zeros
             mac_out <= (others => '0');
         elsif rising_edge(clock) then
-            if (i_enable = '1') then
+            if (i_sys_enable = '1') then
 
                 -- MUX update based on i_sel signal
                 --      If i_sel is '0', mux_out takes the output value          

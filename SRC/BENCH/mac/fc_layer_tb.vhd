@@ -27,12 +27,12 @@ architecture fc_layer_tb_arch of fc_layer_tb is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal clock     : std_logic := '0';                                                                 --! Clock signal
-    signal reset_n   : std_logic := '1';                                                                 --! Reset signal, active at low state
-    signal i_enable  : std_logic := '0';                                                                 --! Enable signal, active at high state
-    signal i_matrix1 : t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! First input matrix
-    signal i_matrix2 : t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Second input matrix
-    signal o_result  : std_logic_vector (2 * BITWIDTH - 1 downto 0);                                     --! Output result
+    signal clock        : std_logic := '0';                                                                 --! Clock signal
+    signal reset_n      : std_logic := '1';                                                                 --! Reset signal, active at low state
+    signal i_sys_enable : std_logic := '0';                                                                 --! Enable signal, active at high state
+    signal i_matrix1    : t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! First input matrix
+    signal i_matrix2    : t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Second input matrix
+    signal o_result     : std_logic_vector (2 * BITWIDTH - 1 downto 0);                                     --! Output result
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -43,12 +43,12 @@ architecture fc_layer_tb_arch of fc_layer_tb is
             MATRIX_SIZE : integer
         );
         port (
-            clock     : in std_logic;
-            reset_n   : in std_logic;
-            i_enable  : in std_logic;
-            i_matrix1 : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_matrix2 : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            o_result  : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
+            clock        : in std_logic;
+            reset_n      : in std_logic;
+            i_sys_enable : in std_logic;
+            i_matrix1    : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_matrix2    : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
         );
     end component;
 
@@ -62,12 +62,12 @@ begin
         MATRIX_SIZE => MATRIX_SIZE
     )
     port map(
-        clock     => clock,
-        reset_n   => reset_n,
-        i_enable  => i_enable,
-        i_matrix1 => i_matrix1,
-        i_matrix2 => i_matrix2,
-        o_result  => o_result
+        clock        => clock,
+        reset_n      => reset_n,
+        i_sys_enable => i_sys_enable,
+        i_matrix1    => i_matrix1,
+        i_matrix2    => i_matrix2,
+        o_result     => o_result
     );
 
     -- Clock generation
@@ -84,7 +84,7 @@ begin
         reset_n <= '1';
 
         -- Enable the mac unit
-        i_enable <= '1';
+        i_sys_enable <= '1';
 
         -- Apply input vectors
         i_matrix1       <= (others => (others => std_logic_vector(to_unsigned(1, BITWIDTH))));

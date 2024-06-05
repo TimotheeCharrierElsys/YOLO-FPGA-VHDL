@@ -23,7 +23,7 @@ architecture mac_w_mux_arch of mac_w_mux is
     -- SIGNALS
     signal clock         : std_logic := '0';                            --! Clock signal
     signal reset_n       : std_logic := '1';                            --! Reset signal, active low
-    signal i_enable      : std_logic := '0';                            --! Enable signal, active high
+    signal i_sys_enable  : std_logic := '0';                            --! Enable signal, active high
     signal i_sel         : std_logic := '1';                            --! Select signal
     signal i_multiplier1 : std_logic_vector(BITWIDTH - 1 downto 0);     --! First multiplier operand
     signal i_multiplier2 : std_logic_vector(BITWIDTH - 1 downto 0);     --! Second multiplier operand
@@ -38,7 +38,7 @@ architecture mac_w_mux_arch of mac_w_mux is
         port (
             clock         : in std_logic;
             reset_n       : in std_logic;
-            i_enable      : in std_logic;
+            i_sys_enable  : in std_logic;
             i_sel         : in std_logic;
             i_multiplier1 : in std_logic_vector(BITWIDTH - 1 downto 0);
             i_multiplier2 : in std_logic_vector(BITWIDTH - 1 downto 0);
@@ -56,7 +56,7 @@ begin
     port map(
         clock         => clock,
         reset_n       => reset_n,
-        i_enable      => i_enable,
+        i_sys_enable  => i_sys_enable,
         i_sel         => i_sel,
         i_multiplier1 => i_multiplier1,
         i_multiplier2 => i_multiplier2,
@@ -84,7 +84,7 @@ begin
         i_sel <= '0';
 
         -- Enable the MAC
-        i_enable <= '1';
+        i_sys_enable <= '1';
 
         -- Check the output with sel = 0
         wait for (clock_period);
@@ -100,7 +100,7 @@ begin
         report "Test failed: output does not match expected output"
             severity error;
 
-        i_enable <= '0';
+        i_sys_enable <= '0';
         -- Finish the simulation
         wait;
     end process stimulus;

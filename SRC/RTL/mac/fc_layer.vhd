@@ -20,12 +20,12 @@ entity fc_layer is
         MATRIX_SIZE : integer := 3  --! Input Maxtrix Size (squared)
     );
     port (
-        clock     : in std_logic;                                                                        --! Clock signal
-        reset_n   : in std_logic;                                                                        --! Reset signal, active at low state
-        i_enable  : in std_logic;                                                                        --! Enable signal, active at high state
-        i_matrix1 : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! First input matrix
-        i_matrix2 : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Second input matrix
-        o_result  : out std_logic_vector(2 * BITWIDTH - 1 downto 0)                                      --! Output matrix dot product
+        clock        : in std_logic;                                                                        --! Clock signal
+        reset_n      : in std_logic;                                                                        --! Reset signal, active at low state
+        i_sys_enable : in std_logic;                                                                        --! Enable signal, active at high state
+        i_matrix1    : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! First input matrix
+        i_matrix2    : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Second input matrix
+        o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0)                                      --! Output matrix dot product
     );
 end fc_layer;
 
@@ -48,11 +48,11 @@ architecture fc_layer_arch of fc_layer is
             BITWIDTH : integer
         );
         port (
-            clock    : in std_logic;                                    --! Clock signal
-            reset_n  : in std_logic;                                    --! Reset signal, active at low state
-            i_enable : in std_logic;                                    --! Reset signal, active at low state
-            i_data   : in t_vec(0 to N_OPD - 1)(BITWIDTH - 1 downto 0); --! Input data vector
-            o_data   : out std_logic_vector(BITWIDTH - 1 downto 0)      --! Output data
+            clock        : in std_logic;                                    --! Clock signal
+            reset_n      : in std_logic;                                    --! Reset signal, active at low state
+            i_sys_enable : in std_logic;                                    --! Reset signal, active at low state
+            i_data       : in t_vec(0 to N_OPD - 1)(BITWIDTH - 1 downto 0); --! Input data vector
+            o_data       : out std_logic_vector(BITWIDTH - 1 downto 0)      --! Output data
         );
     end component;
 
@@ -89,11 +89,11 @@ begin
         BITWIDTH => 2 * BITWIDTH
     )
     port map(
-        clock    => clock,
-        reset_n  => reset_n,
-        i_enable => i_enable,
-        i_data   => r_mult_to_add,
-        o_data   => r_sum
+        clock        => clock,
+        reset_n      => reset_n,
+        i_sys_enable => i_sys_enable,
+        i_data       => r_mult_to_add,
+        o_data       => r_sum
     );
 
     -------------------------------------------------------------------------------------
@@ -107,7 +107,7 @@ end fc_layer_arch;
 configuration fc_layer_conf of fc_layer is
     for fc_layer_arch
         for all : adder_tree
-            use entity LIB_RTL.adder_tree(adder_tree_arch);
+            use entity LIB_RTL.adder_tree(adder_tree_pipelined_arch);
         end for;
     end for;
 end configuration fc_layer_conf;

@@ -28,7 +28,7 @@ architecture mac_tb_arch of mac_tb is
     -------------------------------------------------------------------------------------
     signal clock         : std_logic := '0';                            --! Clock signal
     signal reset_n       : std_logic := '1';                            --! Reset signal, active at low state
-    signal i_enable      : std_logic := '0';                            --! Enable signal, active at high state
+    signal i_sys_enable  : std_logic := '0';                            --! Enable signal, active at high state
     signal i_multiplier1 : std_logic_vector(BITWIDTH - 1 downto 0);     --! First mult operand
     signal i_multiplier2 : std_logic_vector(BITWIDTH - 1 downto 0);     --! Second mult operand
     signal i_add         : std_logic_vector(BITWIDTH - 1 downto 0);     --! Third operand
@@ -44,7 +44,7 @@ architecture mac_tb_arch of mac_tb is
         port (
             clock         : in std_logic;
             reset_n       : in std_logic;
-            i_enable      : in std_logic;
+            i_sys_enable  : in std_logic;
             i_multiplier1 : in std_logic_vector(BITWIDTH - 1 downto 0);
             i_multiplier2 : in std_logic_vector(BITWIDTH - 1 downto 0);
             i_add         : in std_logic_vector(BITWIDTH - 1 downto 0);
@@ -63,7 +63,7 @@ begin
     port map(
         clock         => clock,
         reset_n       => reset_n,
-        i_enable      => i_enable,
+        i_sys_enable  => i_sys_enable,
         i_multiplier1 => i_multiplier1,
         i_multiplier2 => i_multiplier2,
         i_add         => i_add,
@@ -84,7 +84,7 @@ begin
         reset_n <= '1';
 
         -- Enable the mac unit
-        i_enable <= '1';
+        i_sys_enable <= '1';
 
         -- Apply input vectors
         i_multiplier1 <= std_logic_vector(to_signed(5, BITWIDTH));
