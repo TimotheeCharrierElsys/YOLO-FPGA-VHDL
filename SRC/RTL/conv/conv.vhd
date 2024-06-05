@@ -25,14 +25,15 @@ entity conv is
         STRIDE         : integer := 1  --! Stride value 
     );
     port (
-        clock    : in std_logic;                                                                                                                                                             --! Clock signal
-        reset_n  : in std_logic;                                                                                                                                                             --! Reset signal, active at low state
-        i_enable : in std_logic;                                                                                                                                                             --! Enable signal, active at low state
-        i_data   : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);                                                        --! Input data  (CHANNEL_NUMBER x (IMAGE_W x IMAGE_W x BITWIDTH) bits)
-        i_kernel : in t_input_feature(KERNEL_NUMBER - 1 downto 0)(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);                   --! Kernel data (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
-        i_bias   : in t_vec(KERNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);                                                                                                              --! Input bias value
-        o_data   : out t_mat((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Output data
-        o_valid  : out std_logic                                                                                                                                                             --! Output valid signal
+        clock        : in std_logic; --! Clock signal
+        reset_n      : in std_logic;
+        i_sys_enable : in std_logic;                                                                                                                                                             --! Reset signal, active at low state
+        i_valid      : in std_logic;                                                                                                                                                             --! Enable signal, active at low state
+        i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);                                                        --! Input data  (CHANNEL_NUMBER x (IMAGE_W x IMAGE_W x BITWIDTH) bits)
+        i_kernel     : in t_input_feature(KERNEL_NUMBER - 1 downto 0)(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);                   --! Kernel data (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
+        i_bias       : in t_vec(KERNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);                                                                                                              --! Input bias value
+        o_data       : out t_mat((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Output data
+        o_valid      : out std_logic                                                                                                                                                             --! Output valid signal
     );
 end conv;
 
@@ -82,14 +83,15 @@ architecture conv_arch of conv is
             KERNEL_SIZE    : integer
         );
         port (
-            clock     : in std_logic;
-            reset_n   : in std_logic;
-            i_enable  : in std_logic;
-            i_data    : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_kernels : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_bias    : in std_logic_vector(BITWIDTH - 1 downto 0);
-            o_result  : out std_logic_vector(2 * BITWIDTH - 1 downto 0);
-            o_valid   : out std_logic
+            clock        : in std_logic;
+            reset_n      : in std_logic;
+            i_sys_enable : in std_logic;
+            i_valid      : in std_logic;
+            i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_kernels    : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_bias       : in std_logic_vector(BITWIDTH - 1 downto 0);
+            o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0);
+            o_valid      : out std_logic
         );
     end component;
 begin
@@ -132,15 +134,17 @@ begin
             KERNEL_SIZE    => KERNEL_SIZE
         )
         port map(
-            clock     => clock,
-            reset_n   => reset_n,
-            i_enable  => i_enable,
-            i_data    => sliced_volume,
-            i_kernels => i_kernel(i),
-            i_bias    => i_bias(i),
-            o_result  => conv_layer_result,
-            o_valid   => conv_layer_valid
+            clock        => clock,
+            reset_n      => reset_n,
+            i_sys_enable => i_sys_enable,
+            i_valid      => i_valid,
+            i_data       => sliced_volume,
+            i_kernels    => i_kernel(i),
+            i_bias       => i_bias(i),
+            o_result     => conv_layer_result,
+            o_valid      => conv_layer_valid
         );
+
     end generate gen_conv_layers;
 
     -------------------------------------------------------------------------------------
@@ -156,7 +160,7 @@ begin
             o_data      <= (others => (others => (others => '0')));
 
         elsif rising_edge(clock) then
-            if i_enable = '1' then
+            if i_valid = '1' then
                 if (conv_layer_valid = '1') then
                     o_data(OUTPUT_SIZE - 1 - r_count_row)(OUTPUT_SIZE - 1 - r_count_col) <= conv_layer_result;
                     if r_count_col = STEP_SIZE - 2 then

@@ -22,121 +22,17 @@ entity conv_layer is
         KERNEL_SIZE    : integer := 3  --! Size of the kernel (e.g., 3 for a 3x3 kernel)
     );
     port (
-        clock     : in std_logic;                                                                                                        --! Clock signal
-        reset_n   : in std_logic;                                                                                                        --! Reset signal, active at low state
-        i_enable  : in std_logic;                                                                                                        --! Enable signal, active at low state
-        i_data    : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data  (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
-        i_kernels : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Kernel data (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
-        i_bias    : in std_logic_vector(BITWIDTH - 1 downto 0);                                                                          --! Input bias value
-        o_result  : out std_logic_vector(2 * BITWIDTH - 1 downto 0);                                                                     --! Output value
-        o_valid   : out std_logic                                                                                                        --! Output valid signal
+        clock        : in std_logic;                                                                                                        --! Clock signal
+        reset_n      : in std_logic;                                                                                                        --! Reset signal, active at low state
+        i_sys_enable : in std_logic;                                                                                                        --! Enable signal, active at high state
+        i_valid      : in std_logic;                                                                                                        --! Valid signal, one clock cyle active high state
+        i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data  (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
+        i_kernels    : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Kernel data (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
+        i_bias       : in std_logic_vector(BITWIDTH - 1 downto 0);                                                                          --! Input bias value
+        o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0);                                                                     --! Output value
+        o_valid      : out std_logic                                                                                                        --! Output valid signal
     );
 end conv_layer;
-
------------------------------------------------------------------------------------
---!     @brief          This architecture implements a convolution layer using pipelined mac
---!                      unit.
---!     @Dependencies:  mac.vhd, mac_layer.vhd
------------------------------------------------------------------------------------
-architecture conv_layer_mac_arch of conv_layer is
-
-    -------------------------------------------------------------------------------------
-    -- SIGNALS
-    -------------------------------------------------------------------------------------
-    signal mac_out : t_vec(0 to CHANNEL_NUMBER - 1)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel.
-    signal r_count : integer range 0 to KERNEL_SIZE * KERNEL_SIZE - 1;          --! Counter for o_valid data
-
-    -------------------------------------------------------------------------------------
-    -- COMPONENTS
-    -------------------------------------------------------------------------------------
-    component mac_layer
-        generic (
-            BITWIDTH    : integer;
-            MATRIX_SIZE : integer
-        );
-        port (
-            clock     : in std_logic;                                                                        --! Clock signal
-            reset_n   : in std_logic;                                                                        --! Reset signal, active at low state
-            i_enable  : in std_logic;                                                                        --! Enable signal, active at high state
-            i_matrix1 : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! First input matrix
-            i_matrix2 : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Second input matrix
-            o_result  : out std_logic_vector (2 * BITWIDTH - 1 downto 0)                                     --! Output result
-        );
-    end component;
-
-begin
-
-    -------------------------------------------------------------------------------------
-    -- GENERATE BLOCK
-    -------------------------------------------------------------------------------------
-    conv_layer : for i in 0 to CHANNEL_NUMBER - 1 generate
-
-        --! Instantiate the mac_layer units for each channel.
-        gen_mac_layer : mac_layer
-        generic map(
-            BITWIDTH    => BITWIDTH,
-            MATRIX_SIZE => KERNEL_SIZE
-        )
-        port map(
-            clock     => clock,
-            reset_n   => reset_n,
-            i_enable  => i_enable,
-            i_matrix1 => i_data(i),
-            i_matrix2 => i_kernels(i),
-            o_result  => mac_out(i)
-        );
-    end generate conv_layer;
-
-    -------------------------------------------------------------------------------------
-    -- PROCESS TO HANDLE SYNCHRONOUS AND ASYNCHRONOUS OPERATIONS
-    -------------------------------------------------------------------------------------
-    process (clock, reset_n)
-        variable sum : signed(2 * BITWIDTH - 1 downto 0); --! Variable to accumulate the sum of MAC outputs.
-    begin
-        if reset_n = '0' then
-            --! Reset output register and sum to zeros.
-            o_result <= (others => '0');
-            o_valid  <= '0';
-            r_count  <= 0;
-            sum := (others => '0');
-
-        elsif rising_edge(clock) then
-            if i_enable = '1' then
-                -- Reset output sum
-                sum := (others => '0');
-
-                --! Sum the MAC outputs for each channel and add bias.
-                for i in 0 to CHANNEL_NUMBER - 1 loop
-                    sum := sum + signed(mac_out(i));
-                end loop;
-
-                -- Counter increment
-                if (r_count >= KERNEL_SIZE * KERNEL_SIZE - 1) then
-                    r_count <= 0;
-                    o_valid <= '1';
-                else
-                    r_count <= r_count + 1;
-                    o_valid <= '0';
-                end if;
-
-                -- Output update
-                o_result <= std_logic_vector(sum + signed(i_bias));
-            end if;
-        end if;
-    end process;
-end conv_layer_mac_arch;
-
-configuration conv_layer_mac_conf of conv_layer is
-    for conv_layer_mac_arch
-        for conv_layer
-
-            for all : mac_layer
-                use configuration LIB_RTL.mac_layer_conf;
-            end for;
-
-        end for;
-    end for;
-end configuration conv_layer_mac_conf;
 
 -----------------------------------------------------------------------------------
 --!     @brief          This architecture implements a convolution layer using fully
@@ -146,28 +42,59 @@ end configuration conv_layer_mac_conf;
 architecture conv_layer_fc_arch of conv_layer is
 
     -------------------------------------------------------------------------------------
+    -- CONSTANTS
+    -------------------------------------------------------------------------------------
+    constant N_ADDITION_REG        : integer := 1;                             --! Number of addition registers.
+    constant N_OUTPUT_REG          : integer := 1;                             --! Number of output registers.
+    constant DFF_DELAY_UNPIPELINED : integer := N_ADDITION_REG + N_OUTPUT_REG; --! Total delay when not pipelined
+
+    -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    constant DFF_DELAY : integer := (integer(ceil(log2(real(KERNEL_SIZE * KERNEL_SIZE)))) + 1) + 1; --! Number of stages required to complete the addition process
-
-    signal mac_out : t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel.
-    signal r_valid : std_logic_vector(DFF_DELAY - 1 downto 0);
+    signal r_results : t_vec(CHANNEL_NUMBER downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel. Add the bias to the vector.
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
     -------------------------------------------------------------------------------------
     component fc_layer
         generic (
-            BITWIDTH    : integer;
-            MATRIX_SIZE : integer
+            BITWIDTH    : integer; --! Bitwidth of the input and output data.
+            MATRIX_SIZE : integer  --! Size of the input matrices.
         );
         port (
-            clock     : in std_logic;                                                                        --! Clock signal
-            reset_n   : in std_logic;                                                                        --! Reset signal, active at low state
-            i_enable  : in std_logic;                                                                        --! Enable signal, active at high state
-            i_matrix1 : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! First input matrix
-            i_matrix2 : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Second input matrix
-            o_result  : out std_logic_vector(2 * BITWIDTH - 1 downto 0)                                      --! Output matrix dot product
+            clock        : in std_logic;                                                                        --! Clock signal.
+            reset_n      : in std_logic;                                                                        --! Reset signal, active at low state.
+            i_sys_enable : in std_logic;                                                                        --! Enable signal, active at high state.
+            i_matrix1    : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! First input matrix.
+            i_matrix2    : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Second input matrix.
+            o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0)                                      --! Output matrix dot product.
+        );
+    end component;
+
+    component pipeline
+        generic (
+            N_STAGES : integer --! Number of pipeline stages
+        );
+        port (
+            clock        : in std_logic; --! Clock signal
+            reset_n      : in std_logic; --! Reset signal, active low
+            i_sys_enable : in std_logic; --! Global enable signal, active high
+            i_data       : in std_logic; --! Input data
+            o_data       : out std_logic --! Output data
+        );
+    end component;
+
+    component adder_tree
+        generic (
+            N_OPD    : integer;
+            BITWIDTH : integer
+        );
+        port (
+            clock        : in std_logic;
+            reset_n      : in std_logic;
+            i_sys_enable : in std_logic;
+            i_data       : in t_vec(N_OPD - 1 downto 0)(BITWIDTH - 1 downto 0);
+            o_data       : out std_logic_vector(BITWIDTH - 1 downto 0)
         );
     end component;
 
@@ -184,52 +111,43 @@ begin
             MATRIX_SIZE => KERNEL_SIZE
         )
         port map(
-            clock     => clock,
-            reset_n   => reset_n,
-            i_enable  => i_enable,
-            i_matrix1 => i_data(i),
-            i_matrix2 => i_kernels(i),
-            o_result  => mac_out(i)
+            clock        => clock,
+            reset_n      => reset_n,
+            i_sys_enable => i_sys_enable,
+            i_matrix1    => i_data(i),
+            i_matrix2    => i_kernels(i),
+            o_result     => r_results(i)
         );
     end generate gen_fc;
 
-    -------------------------------------------------------------------------------------
-    -- PROCESS TO HANDLE SYNCHRONOUS AND ASYNCHRONOUS OPERATIONS
-    -------------------------------------------------------------------------------------
-    process (clock, reset_n)
-        variable sum : signed(2 * BITWIDTH - 1 downto 0); --! Variable to accumulate the sum of MAC outputs.
-    begin
-        if reset_n = '0' then
-            --! Reset output register and counter to zeros.
-            o_result <= (others => '0');
-            o_valid  <= '0';
-            r_valid  <= std_logic_vector(to_unsigned(1, DFF_DELAY));
+    pipeline_inst : pipeline
+    generic map(
+        N_STAGES => DFF_DELAY_UNPIPELINED
+    )
+    port map(
+        clock        => clock,
+        reset_n      => reset_n,
+        i_sys_enable => i_sys_enable,
+        i_data       => i_valid,
+        o_data       => o_valid
+    );
 
-        elsif rising_edge(clock) then
-            if i_enable = '1' then
-                -- Reset output sum
-                sum := (others => '0');
+    adder_tree_inst : adder_tree
+    generic map(
+        N_OPD    => CHANNEL_NUMBER + 1,
+        BITWIDTH => 2 * BITWIDTH
+    )
+    port map(
+        clock        => clock,
+        reset_n      => reset_n,
+        i_sys_enable => i_sys_enable,
+        i_data       => r_results,
+        o_data       => o_result
+    );
 
-                -- Sum the MAC outputs for each channel and add bias.
-                for i in 0 to CHANNEL_NUMBER - 1 loop
-                    sum := sum + signed(mac_out(i));
-                end loop;
+    -- Add bias to r_result last position
+    r_results(CHANNEL_NUMBER) <= std_logic_vector(resize(signed(i_bias), 2 * BITWIDTH));
 
-                -- Shift the valid register
-                if r_valid(DFF_DELAY - 1) = '1' then
-                    r_valid <= (others => '0');
-                else
-                    r_valid <= r_valid(DFF_DELAY - 2 downto 0) & '1';
-                end if;
-
-                -- Update o_valid from the last bit of the shift register
-                o_valid <= r_valid(DFF_DELAY - 1);
-
-                -- Output update
-                o_result <= std_logic_vector(sum + signed(i_bias));
-            end if;
-        end if;
-    end process;
 end conv_layer_fc_arch;
 
 configuration conv_layer_fc_conf of conv_layer is
@@ -242,151 +160,287 @@ configuration conv_layer_fc_conf of conv_layer is
     end for;
 end configuration conv_layer_fc_conf;
 
--- -----------------------------------------------------------------------------------
--- --!     @brief          This architecture implements a convolution layer using one
--- --!                     mac per channel.
--- --!     @Dependencies:  mac_w_mux.vhd
--- -----------------------------------------------------------------------------------
--- architecture conv_layer_one_mac_arch of conv_layer is
+-----------------------------------------------------------------------------------
+--!     @brief          This architecture implements a convolution layer using fully
+--!                     connected layer.
+--!     @Dependencies:  adder_tree.vhd, fc_layer.vhd
+-----------------------------------------------------------------------------------
+architecture conv_layer_fc_pipelined_arch of conv_layer is
 
---     -------------------------------------------------------------------------------------
---     -- SIGNALS
---     -------------------------------------------------------------------------------------
---     signal mac_out     : t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel.
---     signal r_count_row : integer range 0 to KERNEL_SIZE - 1;                            --! Counter to track the current position within the kernel.
---     signal r_count_col : integer range 0 to KERNEL_SIZE - 1;                            --! Counter to track the current position within the kernel.
---     signal r_sel       : std_logic;                                                     --! Selector signal for mac_w_mux control.
+    -------------------------------------------------------------------------------------
+    -- CONSTANTS
+    -------------------------------------------------------------------------------------
+    constant N_STAGES            : integer := integer(ceil(log2(real(KERNEL_SIZE * KERNEL_SIZE)))); --! Number of stages required to complete the addition process.
+    constant N_ADDITION_REG      : integer := 1;                                                    --! Number of addition registers.
+    constant N_OUTPUT_REG        : integer := 1;                                                    --! Number of output registers.
+    constant DFF_DELAY_PIPELINED : integer := N_STAGES + N_ADDITION_REG + N_OUTPUT_REG;             --! Total delay due to flip-flops when pipelined.
 
---     -------------------------------------------------------------------------------------
---     -- COMPONENTS
---     -------------------------------------------------------------------------------------
---     component mac_w_mux
---         generic (
---             BITWIDTH : integer --! Bit width of each operand
---         );
---         port (
---             clock         : in std_logic;                                   --! Clock signal
---             reset_n       : in std_logic;                                   --! Reset signal, active at low state
---             i_enable      : in std_logic;                                   --! Enable signal, active at high state
---             i_sel         : in std_logic;                                   --! Select signal for the MUX (1 for (bias + mult), 0 for (output + mult))
---             i_multiplier1 : in std_logic_vector(BITWIDTH - 1 downto 0);     --! First multiplication operand
---             i_multiplier2 : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Second multiplication operand
---             i_bias        : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Input bias value
---             o_result      : out std_logic_vector(2 * BITWIDTH - 1 downto 0) --! Output result value
---         );
---     end component;
+    -------------------------------------------------------------------------------------
+    -- SIGNALS
+    -------------------------------------------------------------------------------------
+    signal r_results : t_vec(CHANNEL_NUMBER downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel. Add the bias to the vector.
 
--- begin
+    -------------------------------------------------------------------------------------
+    -- COMPONENTS
+    -------------------------------------------------------------------------------------
+    component fc_layer
+        generic (
+            BITWIDTH    : integer; --! Bitwidth of the input and output data.
+            MATRIX_SIZE : integer  --! Size of the input matrices.
+        );
+        port (
+            clock        : in std_logic;                                                                        --! Clock signal.
+            reset_n      : in std_logic;                                                                        --! Reset signal, active at low state.
+            i_sys_enable : in std_logic;                                                                        --! Enable signal, active at high state.
+            i_matrix1    : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! First input matrix.
+            i_matrix2    : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Second input matrix.
+            o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0)                                      --! Output matrix dot product.
+        );
+    end component;
 
---     -------------------------------------------------------------------------------------
---     -- GENERATE BLOCK FOR MAC UNITS
---     -------------------------------------------------------------------------------------
---     gen_mac_channel : for i in 0 to CHANNEL_NUMBER - 1 generate
+    component pipeline
+        generic (
+            N_STAGES : integer --! Number of pipeline stages
+        );
+        port (
+            clock        : in std_logic; --! Clock signal
+            reset_n      : in std_logic; --! Reset signal, active low
+            i_sys_enable : in std_logic; --! Global enable signal, active high
+            i_data       : in std_logic; --! Input data
+            o_data       : out std_logic --! Output data
+        );
+    end component;
 
---         --! Instantiate one mac_w_mux unit for each channel except the last one.
---         gen_mac_w_mux : if i < CHANNEL_NUMBER - 1 generate
---             gen_mac_w_mux_inst : mac_w_mux
---             generic map(
---                 BITWIDTH => BITWIDTH
---             )
---             port map(
---                 clock         => clock,
---                 reset_n       => reset_n,
---                 i_enable      => i_enable,
---                 i_sel         => r_sel,
---                 i_multiplier1 => i_data(i)(r_count_row)(r_count_col),
---                 i_multiplier2 => i_kernels(i)(r_count_row)(r_count_col),
---                 i_bias => (others => '0'),
---                 o_result      => mac_out(i)
---             );
---         end generate gen_mac_w_mux;
+    component adder_tree
+        generic (
+            N_OPD    : integer;
+            BITWIDTH : integer
+        );
+        port (
+            clock        : in std_logic;
+            reset_n      : in std_logic;
+            i_sys_enable : in std_logic;
+            i_data       : in t_vec(N_OPD - 1 downto 0)(BITWIDTH - 1 downto 0);
+            o_data       : out std_logic_vector(BITWIDTH - 1 downto 0)
+        );
+    end component;
 
---         --! Instantiate the last MAC unit and include bias in the calculation.
---         last_mac : if i = CHANNEL_NUMBER - 1 generate
---             last_mac_w_mux_inst : mac_w_mux
---             generic map(
---                 BITWIDTH => BITWIDTH
---             )
---             port map(
---                 clock         => clock,
---                 reset_n       => reset_n,
---                 i_enable      => i_enable,
---                 i_sel         => r_sel,
---                 i_multiplier1 => i_data(i)(r_count_row)(r_count_col),
---                 i_multiplier2 => i_kernels(i)(r_count_row)(r_count_col),
---                 i_bias        => i_bias,
---                 o_result      => mac_out(i)
---             );
---         end generate last_mac;
+begin
+    -------------------------------------------------------------------------------------
+    -- GENERATE BLOCK
+    -------------------------------------------------------------------------------------
+    gen_fc : for i in 0 to CHANNEL_NUMBER - 1 generate
 
---     end generate gen_mac_channel;
+        --! Instantiate the fc_layer units for each channel.
+        gen_fc_layer : fc_layer
+        generic map(
+            BITWIDTH    => BITWIDTH,
+            MATRIX_SIZE => KERNEL_SIZE
+        )
+        port map(
+            clock        => clock,
+            reset_n      => reset_n,
+            i_sys_enable => i_sys_enable,
+            i_matrix1    => i_data(i),
+            i_matrix2    => i_kernels(i),
+            o_result     => r_results(i)
+        );
+    end generate gen_fc;
 
---     -------------------------------------------------------------------------------------
---     -- PROCESS TO HANDLE SYNCHRONOUS AND ASYNCHRONOUS OPERATIONS
---     -------------------------------------------------------------------------------------
---     process (clock, reset_n)
---         variable sum : signed(2 * BITWIDTH - 1 downto 0); --! Variable to accumulate the sum of MAC outputs.
---     begin
---         if reset_n = '0' then
---             -- Reset output register, counters, and selector to initial states.
---             o_result    <= (others => '0');
---             o_valid     <= '0';
---             r_count_row <= 0;
---             r_count_col <= 0;
---             r_sel       <= '1';
+    pipeline_inst : pipeline
+    generic map(
+        N_STAGES => DFF_DELAY_PIPELINED
+    )
+    port map(
+        clock        => clock,
+        reset_n      => reset_n,
+        i_sys_enable => i_sys_enable,
+        i_data       => i_valid,
+        o_data       => o_valid
+    );
 
---         elsif rising_edge(clock) then
---             if i_enable = '1' then
---                 -- Initialize sum for this cycle.
---                 sum := (others => '0');
+    adder_tree_inst : adder_tree
+    generic map(
+        N_OPD    => CHANNEL_NUMBER + 1,
+        BITWIDTH => 2 * BITWIDTH
+    )
+    port map(
+        clock        => clock,
+        reset_n      => reset_n,
+        i_sys_enable => i_sys_enable,
+        i_data       => r_results,
+        o_data       => o_result
+    );
 
---                 -- Sum the MAC outputs for each channel.
---                 for i in 0 to CHANNEL_NUMBER - 1 loop
---                     sum := sum + signed(mac_out(i));
---                 end loop;
+    -- Add bias to r_result last position
+    r_results(CHANNEL_NUMBER) <= std_logic_vector(resize(signed(i_bias), 2 * BITWIDTH));
 
---                 -- Update counter and selector signals.
---                 if r_count_col = KERNEL_SIZE - 1 then
---                     r_count_col <= 0;
---                     if r_count_row = KERNEL_SIZE - 1 then
---                         r_count_row <= 0;
---                         o_valid     <= '1';
---                     else
---                         r_count_row <= r_count_row + 1;
---                         o_valid     <= '0';
---                     end if;
---                 else
---                     r_count_col <= r_count_col + 1;
---                     o_valid     <= '0';
---                 end if;
+end conv_layer_fc_pipelined_arch;
 
---                 -- Assign the computed sum to the output.
---                 o_result <= std_logic_vector(sum);
+configuration conv_layer_fc_pipelined_conf of conv_layer is
+    for conv_layer_fc_pipelined_arch
+        for gen_fc
+            for all : fc_layer
+                use configuration LIB_RTL.fc_layer_pipelined_conf;
+            end for;
+        end for;
+    end for;
+end configuration conv_layer_fc_pipelined_conf;
 
---                 -- Toggle r_sel at the start of a new kernel
---                 if r_count_row = 0 and r_count_col = 0 then
---                     r_sel <= not r_sel;
---                 end if;
---             end if;
---         end if;
---     end process;
--- end conv_layer_one_mac_arch;
+-----------------------------------------------------------------------------------
+--!     @brief          This architecture implements a convolution layer using one
+--!                     mac per channel.
+--!     @Dependencies:  mac.vhd, accumulative_mac.vhd, pipeline.vhd, adder_tree.vhd
+-----------------------------------------------------------------------------------
+architecture conv_layer_one_mac_arch of conv_layer is
 
--- configuration conv_layer_one_mac_conf of conv_layer is
---     for conv_layer_one_mac_arch
---         for gen_mac_channel
+    -------------------------------------------------------------------------------------
+    -- SIGNALS
+    -------------------------------------------------------------------------------------
+    constant N_OUTPUT_REG : integer := 1;                                            --! Number of output registers.
+    constant DFF_DELAY    : integer := KERNEL_SIZE * KERNEL_SIZE + N_OUTPUT_REG + 1; --! Total delay due to flip-flops and computation (+1 for clear)
 
---             for gen_mac_w_mux
---                 for all : mac_w_mux
---                     use entity LIB_RTL.mac_w_mux(mac_w_mux_arch);
---                 end for;
---             end for;
+    -------------------------------------------------------------------------------------
+    -- SIGNALS
+    -------------------------------------------------------------------------------------
+    signal r_results   : t_vec(CHANNEL_NUMBER downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel.
+    signal r_count_row : integer range 0 to KERNEL_SIZE - 1;                        --! Counter to track the current position within the kernel.
+    signal r_count_col : integer range 0 to KERNEL_SIZE - 1;                        --! Counter to track the current position within the kernel.
 
---             for last_mac
---                 for all : mac_w_mux
---                     use entity LIB_RTL.mac_w_mux(mac_w_mux_arch);
---                 end for;
---             end for;
---         end for;
---     end for;
--- end configuration conv_layer_one_mac_conf;
+    -------------------------------------------------------------------------------------
+    -- COMPONENTS
+    -------------------------------------------------------------------------------------
+    component accumulative_mac
+        generic (
+            BITWIDTH : integer
+        );
+        port (
+            clock         : in std_logic;
+            reset_n       : in std_logic;
+            i_sys_enable  : in std_logic;
+            i_clear       : in std_logic;
+            i_multiplier1 : in std_logic_vector(BITWIDTH - 1 downto 0);
+            i_multiplier2 : in std_logic_vector(BITWIDTH - 1 downto 0);
+            o_result      : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
+        );
+    end component;
+
+    component pipeline
+        generic (
+            N_STAGES : integer --! Number of pipeline stages
+        );
+        port (
+            clock        : in std_logic; --! Clock signal
+            reset_n      : in std_logic; --! Reset signal, active low
+            i_sys_enable : in std_logic; --! Global enable signal, active high
+            i_data       : in std_logic; --! Input data
+            o_data       : out std_logic --! Output data
+        );
+    end component;
+
+    component adder_tree
+        generic (
+            N_OPD    : integer;
+            BITWIDTH : integer
+        );
+        port (
+            clock        : in std_logic;
+            reset_n      : in std_logic;
+            i_sys_enable : in std_logic;
+            i_data       : in t_vec(N_OPD - 1 downto 0)(BITWIDTH - 1 downto 0);
+            o_data       : out std_logic_vector(BITWIDTH - 1 downto 0)
+        );
+    end component;
+
+begin
+
+    -------------------------------------------------------------------------------------
+    -- GENERATE BLOCK FOR MAC UNITS
+    -------------------------------------------------------------------------------------
+    gen_mac_channel : for i in 0 to CHANNEL_NUMBER - 1 generate
+
+        --! Instantiate one accumualtive mac for each channel
+        gen_accumulative_mac_inst : accumulative_mac
+        generic map(
+            BITWIDTH => BITWIDTH
+        )
+        port map(
+            clock         => clock,
+            reset_n       => reset_n,
+            i_sys_enable  => i_sys_enable,
+            i_clear       => i_valid,
+            i_multiplier1 => i_data(i)(r_count_row)(r_count_col),
+            i_multiplier2 => i_kernels(i)(r_count_row)(r_count_col),
+            o_result      => r_results(i)
+        );
+
+    end generate gen_mac_channel;
+
+    pipeline_inst : pipeline
+    generic map(
+        N_STAGES => DFF_DELAY
+    )
+    port map(
+        clock        => clock,
+        reset_n      => reset_n,
+        i_sys_enable => i_sys_enable,
+        i_data       => i_valid,
+        o_data       => o_valid
+    );
+
+    adder_tree_inst : adder_tree
+    generic map(
+        N_OPD    => CHANNEL_NUMBER + 1,
+        BITWIDTH => 2 * BITWIDTH
+    )
+    port map(
+        clock        => clock,
+        reset_n      => reset_n,
+        i_sys_enable => i_sys_enable,
+        i_data       => r_results,
+        o_data       => o_result
+    );
+
+    -- Add bias to r_result last position
+    r_results(CHANNEL_NUMBER) <= std_logic_vector(resize(signed(i_bias), 2 * BITWIDTH));
+
+    -------------------------------------------------------------------------------------
+    -- PROCESS TO HANDLE SYNCHRONOUS AND ASYNCHRONOUS OPERATIONS
+    -------------------------------------------------------------------------------------
+    process (clock, reset_n)
+        variable sum : signed(2 * BITWIDTH - 1 downto 0); --! Variable to accumulate the sum of MAC outputs.
+    begin
+        if reset_n = '0' then
+            -- Reset counters  to initial states.
+            r_count_row <= 0;
+            r_count_col <= 0;
+
+        elsif rising_edge(clock) then
+            if i_sys_enable = '1' then
+                -- Update counter signals.
+                if r_count_col = KERNEL_SIZE - 1 then
+                    r_count_col <= 0;
+                    if r_count_row = KERNEL_SIZE - 1 then
+                        r_count_row <= 0;
+                    else
+                        r_count_row <= r_count_row + 1;
+                    end if;
+                else
+                    r_count_col <= r_count_col + 1;
+                end if;
+            end if;
+        end if;
+    end process;
+end conv_layer_one_mac_arch;
+
+configuration conv_layer_one_mac_conf of conv_layer is
+    for conv_layer_one_mac_arch
+        for gen_mac_channel
+
+            for all : accumulative_mac
+                use entity LIB_RTL.accumulative_mac(accumulative_mac_arch);
+            end for;
+
+        end for;
+    end for;
+end configuration conv_layer_one_mac_conf;
