@@ -37,7 +37,7 @@ entity conv is
     );
 end conv;
 
-architecture conv_arch of conv is
+architecture conv_fc_arch of conv is
 
     -------------------------------------------------------------------------------------
     -- CONSTANTS
@@ -49,12 +49,13 @@ architecture conv_arch of conv is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal padded_input      : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Matrix volume with input padded on all channels
-    signal sliced_volume     : t_volume(CHANNEL_NUMBER - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);             --! Sliced volume for conv_layer input
-    signal conv_layer_result : std_logic_vector(2 * BITWIDTH - 1 downto 0);                                                                                  --! Output result of the conv_layer
-    signal conv_layer_valid  : std_logic;                                                                                                                    --! Output valid of the conv_layer
-    signal r_count_row       : integer range 0 to INPUT_PADDED_SIZE - 1;                                                                                     --! Counter for the row index
-    signal r_count_col       : integer range 0 to INPUT_PADDED_SIZE - 1;                                                                                     --! Counter for the col index
+    signal padded_input            : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Matrix volume with input padded on all channels
+    signal sliced_volume           : t_volume(CHANNEL_NUMBER - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);             --! Sliced volume for conv_layer input
+    signal conv_layer_result       : std_logic_vector(2 * BITWIDTH - 1 downto 0);                                                                                  --! Output result of the conv_layer
+    signal conv_layer_output_valid : std_logic;                                                                                                                    --! Output valid of the conv_layer
+    signal r_count_row             : integer range 0 to INPUT_PADDED_SIZE - 1;                                                                                     --! Counter for the row index
+    signal r_count_col             : integer range 0 to INPUT_PADDED_SIZE - 1;                                                                                     --! Counter for the col index
+    signal r_count_op              : integer range 0 to KERNEL_SIZE * KERNEL_SIZE - 1;                                                                             --! Counter
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -142,9 +143,8 @@ begin
             i_kernels    => i_kernel(i),
             i_bias       => i_bias(i),
             o_result     => conv_layer_result,
-            o_valid      => conv_layer_valid
+            o_valid      => conv_layer_output_valid
         );
-
     end generate gen_conv_layers;
 
     -------------------------------------------------------------------------------------
@@ -156,37 +156,45 @@ begin
             -- Reset output register, counters, and selector to initial states.
             r_count_row <= 0;
             r_count_col <= 0;
+            r_count_op  <= 0;
             o_valid     <= '0';
             o_data      <= (others => (others => (others => '0')));
 
         elsif rising_edge(clock) then
-            if i_valid = '1' then
-                if (conv_layer_valid = '1') then
+            if i_sys_enable = '1' then
+                if (conv_layer_output_valid = '1') then
+                    -- Output update
                     o_data(OUTPUT_SIZE - 1 - r_count_row)(OUTPUT_SIZE - 1 - r_count_col) <= conv_layer_result;
+
+                    -- Index update
                     if r_count_col = STEP_SIZE - 2 then
                         r_count_col <= 0;
-                        o_valid     <= '0';
                         if r_count_row = STEP_SIZE - 2 then
                             r_count_row <= 0;
-                            o_valid     <= '1';
                         else
                             r_count_row <= r_count_row + 1;
                         end if;
                     else
                         r_count_col <= r_count_col + 1;
                     end if;
+
+                    r_count_op <= r_count_op + 1;
+                    if (r_count_op = KERNEL_SIZE * KERNEL_SIZE - 1) then
+                        o_valid <= '1';
+                    else
+                        o_valid <= '0';
+                    end if;
                 end if;
             end if;
         end if;
     end process;
-
 end architecture;
 
-configuration conv_conf of conv is
-    for conv_arch
+configuration conv_fc_conf of conv is
+    for conv_fc_arch
 
         for gen_conv_layers
-            for conv_layer_inst : conv_layer
+            for all : conv_layer
                 use configuration LIB_RTL.conv_layer_fc_conf;
             end for;
         end for;
@@ -195,4 +203,4 @@ configuration conv_conf of conv is
             use configuration LIB_RTL.volume_slice_conf;
         end for;
     end for;
-end configuration conv_conf;
+end configuration conv_fc_conf;

@@ -21,14 +21,15 @@ architecture conv_tb_arch of conv_tb is
     constant PADDING        : integer := 1;
     constant STRIDE         : integer := 1;
     -- Ports
-    signal clock    : std_logic := '0';
-    signal reset_n  : std_logic := '0';
-    signal i_enable : std_logic := '1';
-    signal i_data   : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-    signal i_kernel : t_input_feature(KERNEL_NUMBER - 1 downto 0)(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-    signal i_bias   : t_vec(KERNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
-    signal o_data   : t_mat((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Output data
-    signal o_valid  : std_logic;
+    signal clock        : std_logic                                                                                                                                           := '0';
+    signal reset_n      : std_logic                                                                                                                                           := '0';
+    signal i_sys_enable : std_logic                                                                                                                                           := '0';
+    signal i_valid      : std_logic                                                                                                                                           := '0';
+    signal i_data       : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)                                      := (others => (others => (others => (others => '0'))));
+    signal i_kernel     : t_input_feature(KERNEL_NUMBER - 1 downto 0)(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0) := (others => (others => (others => (others => (others => '0')))));
+    signal i_bias       : t_vec(KERNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
+    signal o_data       : t_mat((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Output data
+    signal o_valid      : std_logic;
 
     component conv
         generic (
@@ -41,14 +42,15 @@ architecture conv_tb_arch of conv_tb is
             STRIDE         : integer
         );
         port (
-            clock    : in std_logic;
-            reset_n  : in std_logic;
-            i_enable : in std_logic;
-            i_data   : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_kernel : in t_input_feature(KERNEL_NUMBER - 1 downto 0)(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_bias   : in t_vec(KERNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
-            o_data   : out t_mat((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Output data
-            o_valid  : out std_logic
+            clock        : in std_logic;
+            reset_n      : in std_logic;
+            i_sys_enable : in std_logic;
+            i_valid      : in std_logic;
+            i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_kernel     : in t_input_feature(KERNEL_NUMBER - 1 downto 0)(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_bias       : in t_vec(KERNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
+            o_data       : out t_mat((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Output data
+            o_valid      : out std_logic
         );
     end component;
 begin
@@ -64,14 +66,15 @@ begin
         STRIDE         => STRIDE
     )
     port map(
-        clock    => clock,
-        reset_n  => reset_n,
-        i_enable => i_enable,
-        i_data   => i_data,
-        i_kernel => i_kernel,
-        i_bias   => i_bias,
-        o_data   => o_data,
-        o_valid  => o_valid
+        clock        => clock,
+        reset_n      => reset_n,
+        i_sys_enable => i_sys_enable,
+        i_valid      => i_valid,
+        i_data       => i_data,
+        i_kernel     => i_kernel,
+        i_bias       => i_bias,
+        o_data       => o_data,
+        o_valid      => o_valid
     );
 
     i_data(0) <= (
@@ -97,8 +100,7 @@ begin
 
     i_kernel(0)(1) <= i_kernel(0)(0);
     i_kernel(0)(2) <= i_kernel(0)(0);
-
-    i_bias <= (others => std_logic_vector(to_signed(0, BITWIDTH)));
+    i_bias         <= (others => std_logic_vector(to_signed(0, BITWIDTH)));
 
     -- Clock generation
     clock <= not clock after i_clk_period / 2;
@@ -110,12 +112,17 @@ begin
     begin
         -- Reset the system
         reset_n <= '0';
-        wait for 2 * i_clk_period;
-        reset_n <= '1';
+        i_valid <= '0';
+        wait for i_clk_period;
+        reset_n      <= '1';
+        i_sys_enable <= '1';
+        wait for i_clk_period/2;
+        i_valid <= '1';
+        wait for i_clk_period;
+        i_valid <= '0';
 
-        -- Enable the system
-        i_enable <= '1';
-        wait for 6 * 10 * i_clk_period;
+        wait for 40 * i_clk_period;
+
     end process stimulus;
 
 end;
@@ -123,7 +130,7 @@ end;
 configuration conv_tb_conf of conv_tb is
     for conv_tb_arch
         for UUT : conv
-            use entity LIB_RTL.conv(conv_arch);
+            use configuration LIB_RTL.conv_fc_conf;
         end for;
     end for;
 end configuration conv_tb_conf;
