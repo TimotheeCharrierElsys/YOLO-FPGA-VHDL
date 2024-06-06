@@ -44,9 +44,9 @@ architecture conv_layer_fc_arch of conv_layer is
     -------------------------------------------------------------------------------------
     -- CONSTANTS
     -------------------------------------------------------------------------------------
-    constant N_ADDITION_REG        : integer := 1;                             --! Number of addition registers.
-    constant N_OUTPUT_REG          : integer := 1;                             --! Number of output registers.
-    constant DFF_DELAY_UNPIPELINED : integer := N_ADDITION_REG + N_OUTPUT_REG; --! Total delay when not pipelined
+    constant N_ADDITION_REG        : integer := 1;                                 --! Number of addition registers.
+    constant N_OUTPUT_REG          : integer := 1;                                 --! Number of output registers.
+    constant DFF_DELAY_UNPIPELINED : integer := N_ADDITION_REG + N_OUTPUT_REG + 1; --! Total delay when not pipelined
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
