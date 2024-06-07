@@ -19,7 +19,7 @@ use LIB_RTL.types_pkg.all;
 entity conv is
     generic (
         BITWIDTH       : integer := 8; --! Bit width of each operand
-        INPUT_SIZE     : integer := 5; --! Width and Height of the input
+        INPUT_SIZE     : integer := 3; --! Width and Height of the input
         CHANNEL_NUMBER : integer := 3; --! Number of channels in the input
         KERNEL_SIZE    : integer := 3; --! Size of the kernel
         KERNEL_NUMBER  : integer := 1; --! Number of kernels
