@@ -27,15 +27,15 @@ entity conv is
         STRIDE         : integer := 1  --! Stride value 
     );
     port (
-        clock        : in std_logic;                                                                                                                                                             --! Clock signal
-        reset_n      : in std_logic;                                                                                                                                                             --! Reset signal, active low
-        i_sys_enable : in std_logic;                                                                                                                                                             --! System enable signal, active high                                                                                                                                                     
-        i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);                                                        --! Input data (CHANNEL_NUMBER x (INPUT_SIZE x INPUT_SIZE x BITWIDTH) bits)
-        i_data_valid : in std_logic;                                                                                                                                                             --! Data valid signal, active high
-        i_kernel     : in t_input_feature(KERNEL_NUMBER - 1 downto 0)(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);                   --! Kernel data (KERNEL_NUMBER x CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
-        i_bias       : in t_vec(KERNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);                                                                                                              --! Input bias value
-        o_data       : out t_mat((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Output data
-        o_data_valid : out std_logic                                                                                                                                                             --! Output valid signal
+        clock        : in std_logic;                                                                                                                                                                                            --! Clock signal
+        reset_n      : in std_logic;                                                                                                                                                                                            --! Reset signal, active low
+        i_sys_enable : in std_logic;                                                                                                                                                                                            --! System enable signal, active high                                                                                                                                                     
+        i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);                                                                                       --! Input data (CHANNEL_NUMBER x (INPUT_SIZE x INPUT_SIZE x BITWIDTH) bits)
+        i_data_valid : in std_logic;                                                                                                                                                                                            --! Data valid signal, active high
+        i_kernel     : in t_input_feature(KERNEL_NUMBER - 1 downto 0)(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);                                                  --! Kernel data (KERNEL_NUMBER x CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
+        i_bias       : in t_vec(KERNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);                                                                                                                                             --! Input bias value
+        o_data       : out t_volume(KERNEL_NUMBER - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Output data
+        o_data_valid : out std_logic                                                                                                                                                                                            --! Output valid signal
     );
 end conv;
 
@@ -53,8 +53,8 @@ architecture conv_fc_arch of conv is
     -------------------------------------------------------------------------------------
     signal padded_input_data   : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Matrix volume with input padded on all channels
     signal sliced_input_volume : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);             --! Sliced volume for conv_layer input
-    signal output_data_reg     : t_mat(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                         --! Register to store the output data
-    signal conv_result         : std_logic_vector(2 * BITWIDTH - 1 downto 0);                                                                                  --! Output result of the conv_layer
+    signal output_data_reg     : t_volume(KERNEL_NUMBER - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(2 * BITWIDTH - 1 downto 0);          --! Register to store the output data
+    signal conv_result         : t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                                                 --! Output result of the conv_layer
     signal conv_start          : std_logic;                                                                                                                    --! Signal to start convolution
     signal conv_layer_done     : std_logic;                                                                                                                    --! Signal indicating convolution layer completion
     signal row_index           : std_logic_vector(KERNEL_SIZE - 1 downto 0);                                                                                   --! Current row index
@@ -159,7 +159,7 @@ begin
             i_data       => sliced_input_volume,
             i_kernels    => i_kernel(i),
             i_bias       => i_bias(i),
-            o_result     => conv_result,
+            o_result     => conv_result(i),
             o_valid      => conv_layer_done
         );
     end generate gen_conv_layers;
@@ -172,12 +172,14 @@ begin
     begin
         if reset_n = '0' then
             -- Reset output register to zeros
-            output_data_reg <= (others => (others => (others => '0')));
+            output_data_reg <= (others => (others => (others => (others => '0'))));
         elsif rising_edge(clock) then
             if (i_sys_enable = '1') then
                 -- Update output
                 if (conv_layer_done = '1') then
-                    output_data_reg(to_integer(unsigned(row_index)))(to_integer(unsigned(col_index))) <= conv_result;
+                    for i in 0 to KERNEL_NUMBER - 1 loop
+                        output_data_reg(i)(to_integer(unsigned(row_index)))(to_integer(unsigned(col_index))) <= conv_result(i);
+                    end loop;
                 end if;
             end if;
         end if;
@@ -217,8 +219,8 @@ architecture conv_fc_pipelined_arch of conv is
     -------------------------------------------------------------------------------------
     signal padded_input_data   : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Matrix volume with input padded on all channels
     signal sliced_input_volume : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);             --! Sliced volume for conv_layer input
-    signal output_data_reg     : t_mat(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                         --! Register to store the output data
-    signal conv_result         : std_logic_vector(2 * BITWIDTH - 1 downto 0);                                                                                  --! Output result of the conv_layer
+    signal output_data_reg     : t_volume(KERNEL_NUMBER - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(2 * BITWIDTH - 1 downto 0);          --! Register to store the output data
+    signal conv_result         : t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                                                 --! Output result of the conv_layer
     signal conv_start          : std_logic;                                                                                                                    --! Signal to start convolution
     signal conv_layer_done     : std_logic;                                                                                                                    --! Signal indicating convolution layer completion
     signal row_index           : std_logic_vector(KERNEL_SIZE - 1 downto 0);                                                                                   --! Current row index
@@ -323,7 +325,7 @@ begin
             i_data       => sliced_input_volume,
             i_kernels    => i_kernel(i),
             i_bias       => i_bias(i),
-            o_result     => conv_result,
+            o_result     => conv_result(i),
             o_valid      => conv_layer_done
         );
     end generate gen_conv_layers;
@@ -336,12 +338,14 @@ begin
     begin
         if reset_n = '0' then
             -- Reset output register to zeros
-            output_data_reg <= (others => (others => (others => '0')));
+            output_data_reg <= (others => (others => (others => (others => '0'))));
         elsif rising_edge(clock) then
             if (i_sys_enable = '1') then
                 -- Update output
                 if (conv_layer_done = '1') then
-                    output_data_reg(to_integer(unsigned(row_index)))(to_integer(unsigned(col_index))) <= conv_result;
+                    for i in 0 to KERNEL_NUMBER - 1 loop
+                        output_data_reg(i)(to_integer(unsigned(row_index)))(to_integer(unsigned(col_index))) <= conv_result(i);
+                    end loop;
                 end if;
             end if;
         end if;
@@ -381,8 +385,8 @@ architecture conv_one_mac_arch of conv is
     -------------------------------------------------------------------------------------
     signal padded_input_data   : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Matrix volume with input padded on all channels
     signal sliced_input_volume : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);             --! Sliced volume for conv_layer input
-    signal output_data_reg     : t_mat(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                         --! Register to store the output data
-    signal conv_result         : std_logic_vector(2 * BITWIDTH - 1 downto 0);                                                                                  --! Output result of the conv_layer
+    signal output_data_reg     : t_volume(KERNEL_NUMBER - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(2 * BITWIDTH - 1 downto 0);          --! Register to store the output data
+    signal conv_result         : t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                                                 --! Output result of the conv_layer
     signal conv_start          : std_logic;                                                                                                                    --! Signal to start convolution
     signal conv_layer_done     : std_logic;                                                                                                                    --! Signal indicating convolution layer completion
     signal row_index           : std_logic_vector(KERNEL_SIZE - 1 downto 0);                                                                                   --! Current row index
@@ -487,7 +491,7 @@ begin
             i_data       => sliced_input_volume,
             i_kernels    => i_kernel(i),
             i_bias       => i_bias(i),
-            o_result     => conv_result,
+            o_result     => conv_result(i),
             o_valid      => conv_layer_done
         );
     end generate gen_conv_layers;
@@ -500,12 +504,14 @@ begin
     begin
         if reset_n = '0' then
             -- Reset output register to zeros
-            output_data_reg <= (others => (others => (others => '0')));
+            output_data_reg <= (others => (others => (others => (others => '0'))));
         elsif rising_edge(clock) then
             if (i_sys_enable = '1') then
                 -- Update output
                 if (conv_layer_done = '1') then
-                    output_data_reg(to_integer(unsigned(row_index)))(to_integer(unsigned(col_index))) <= conv_result;
+                    for i in 0 to KERNEL_NUMBER - 1 loop
+                        output_data_reg(i)(to_integer(unsigned(row_index)))(to_integer(unsigned(col_index))) <= conv_result(i);
+                    end loop;
                 end if;
             end if;
         end if;
