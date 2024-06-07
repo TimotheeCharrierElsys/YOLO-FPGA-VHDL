@@ -34,7 +34,7 @@ begin
     -------------------------------------------------------------------------------------
     -- Generate pipeline registers
     gen_pipeline : for i in 0 to N_STAGES - 1 generate
-        process (clock, reset_n)
+        pipeline_control : process (clock, reset_n)
         begin
             if reset_n = '0' then
                 pipeline_regs(i) <= '0';
@@ -47,7 +47,7 @@ begin
                     end if;
                 end if;
             end if;
-        end process;
+        end process pipeline_control;
     end generate;
 
     -- Output the last stage of the pipeline

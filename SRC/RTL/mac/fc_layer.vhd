@@ -61,7 +61,7 @@ begin
     -------------------------------------------------------------------------------------
     -- COMBINATIONAL PROCESS TO FLATTEN THE DATAS
     -------------------------------------------------------------------------------------
-    process (i_matrix1, i_matrix2)
+    comb_proc : process (i_matrix1, i_matrix2)
     begin
         for i in 0 to MATRIX_SIZE - 1 loop
             for j in 0 to MATRIX_SIZE - 1 loop
@@ -69,7 +69,7 @@ begin
                 flatten_i_matrix2(i * MATRIX_SIZE + j) <= i_matrix2(i)(j);
             end loop;
         end loop;
-    end process;
+    end process comb_proc;
 
     -------------------------------------------------------------------------------------
     -- MULTIPLICATION GENERATION

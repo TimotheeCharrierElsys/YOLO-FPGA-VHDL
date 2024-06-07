@@ -136,7 +136,7 @@ end;
 configuration conv_tb_conf of conv_tb is
     for conv_tb_arch
         for UUT : conv
-            use configuration LIB_RTL.conv_fc_conf;
+            use configuration LIB_RTL.conv_one_mac_conf;
         end for;
     end for;
 end configuration conv_tb_conf;

@@ -51,8 +51,8 @@ architecture volume_slice_arch of volume_slice is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal current_row               : integer range 0 to INPUT_SIZE - 1;                                                                                --! Current row counter for slicing
-    signal current_col               : integer range 0 to INPUT_SIZE - 1;                                                                                --! Current column counter for slicing
+    signal current_row               : integer range 0 to OUTPUT_SIZE - 1;                                                                               --! Current row counter for slicing
+    signal current_col               : integer range 0 to OUTPUT_SIZE - 1;                                                                               --! Current column counter for slicing
     signal start_processing          : std_logic;                                                                                                        --! Signal to start processing
     signal data_valid_previous_state : std_logic;                                                                                                        --! Previous state of the data_valid signal
     signal sliced_output_data        : t_volume(CHANNEL_NUMBER - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Buffer for output data
@@ -68,10 +68,10 @@ architecture volume_slice_arch of volume_slice is
         );
         port (
             i_data            : in t_mat(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_row_index_start : in std_logic_vector(INPUT_SIZE - 1 downto 0);
-            i_row_index_end   : in std_logic_vector(INPUT_SIZE - 1 downto 0);
-            i_col_index_start : in std_logic_vector(INPUT_SIZE - 1 downto 0);
-            i_col_index_end   : in std_logic_vector(INPUT_SIZE - 1 downto 0);
+            i_row_index_start : in std_logic_vector(OUTPUT_SIZE - 1 downto 0);
+            i_row_index_end   : in std_logic_vector(OUTPUT_SIZE - 1 downto 0);
+            i_col_index_start : in std_logic_vector(OUTPUT_SIZE - 1 downto 0);
+            i_col_index_end   : in std_logic_vector(OUTPUT_SIZE - 1 downto 0);
             o_data            : out t_mat(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)
         );
     end component;
@@ -92,10 +92,10 @@ begin
         )
         port map(
             i_data            => i_data(i),
-            i_row_index_start => std_logic_vector(to_unsigned(current_row * STRIDE, INPUT_SIZE)),
-            i_row_index_end   => std_logic_vector(to_unsigned(current_row * STRIDE + KERNEL_SIZE - 1, INPUT_SIZE)),
-            i_col_index_start => std_logic_vector(to_unsigned(current_col * STRIDE, INPUT_SIZE)),
-            i_col_index_end   => std_logic_vector(to_unsigned(current_col * STRIDE + KERNEL_SIZE - 1, INPUT_SIZE)),
+            i_row_index_start => std_logic_vector(to_unsigned(current_row * STRIDE, OUTPUT_SIZE)),
+            i_row_index_end   => std_logic_vector(to_unsigned(current_row * STRIDE + KERNEL_SIZE - 1, OUTPUT_SIZE)),
+            i_col_index_start => std_logic_vector(to_unsigned(current_col * STRIDE, OUTPUT_SIZE)),
+            i_col_index_end   => std_logic_vector(to_unsigned(current_col * STRIDE + KERNEL_SIZE - 1, OUTPUT_SIZE)),
             o_data            => sliced_output_data(i)
         );
     end generate gen_window_slice;
@@ -103,7 +103,7 @@ begin
     -------------------------------------------------------------------------------------
     -- PROCESS TO HANDLE SYNCHRONOUS AND ASYNCHRONOUS OPERATIONS
     -------------------------------------------------------------------------------------
-    process (clock, reset_n)
+    state_control : process (clock, reset_n)
     begin
         if reset_n = '0' then
             -- Reset output register, counters, and selector to initial states.
@@ -164,11 +164,11 @@ begin
                 end if;
             end if;
         end if;
-    end process;
+    end process state_control;
 
     -- Output signals update for debugging and control
-    o_current_row <= std_logic_vector(to_unsigned(current_row, KERNEL_SIZE));
-    o_current_col <= std_logic_vector(to_unsigned(current_col, KERNEL_SIZE));
+    o_current_row <= std_logic_vector(to_unsigned(OUTPUT_SIZE - 1 - current_row, KERNEL_SIZE));
+    o_current_col <= std_logic_vector(to_unsigned(OUTPUT_SIZE - 1 - current_col, KERNEL_SIZE));
 
 end volume_slice_arch;
 

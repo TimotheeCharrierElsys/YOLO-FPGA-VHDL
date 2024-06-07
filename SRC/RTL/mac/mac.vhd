@@ -36,7 +36,7 @@ begin
     -------------------------------------------------------------------------------------
     --! Process
     --! Handles the synchronous and asynchronous operations of the mac unit.
-    process (clock, reset_n)
+    mac_operation : process (clock, reset_n)
     begin
         if reset_n = '0' then
             -- Reset output register to zeros
@@ -47,5 +47,5 @@ begin
                 o_result <= std_logic_vector(signed(i_add) + signed(i_multiplier1) * signed(i_multiplier2));
             end if;
         end if;
-    end process;
+    end process mac_operation;
 end mac_arch;

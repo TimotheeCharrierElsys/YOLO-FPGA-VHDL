@@ -76,7 +76,7 @@ begin
     -------------------------------------------------------------------------------------
     --! Process
     --! Handles the synchronous and asynchronous operations of the pipelined adder.
-    process (clock, reset_n)
+    pipeline_control : process (clock, reset_n)
     begin
         if reset_n = '0' then
             -- Initialize the register with zeros on reset
@@ -88,7 +88,7 @@ begin
                 r_reg <= r_next; -- Transfer next state to current state on rising edge of the clock
             end if;
         end if;
-    end process;
+    end process pipeline_control;
 
     -------------------------------------------------------------------------------------
     -- OUTPUT ASSIGNMENT
@@ -146,7 +146,7 @@ begin
     -------------------------------------------------------------------------------------
     --! Process
     --! Handles the synchronous and asynchronous operations of the pipelined adder.
-    process (clock, reset_n)
+    pipeline_control : process (clock, reset_n)
     begin
         if reset_n = '0' then
             -- Initialize the register with zeros on reset
@@ -158,7 +158,7 @@ begin
                 r_output <= intermediate_sums(0)(0);
             end if;
         end if;
-    end process;
+    end process pipeline_control;
 
     -- Assign the final output data from the first stage of the intermediate sums
     o_data <= r_output;

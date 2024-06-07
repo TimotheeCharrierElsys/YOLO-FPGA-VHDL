@@ -173,7 +173,7 @@ architecture conv_layer_fc_pipelined_arch of conv_layer is
     constant N_STAGES            : integer := integer(ceil(log2(real(KERNEL_SIZE * KERNEL_SIZE)))); --! Number of stages required to complete the addition process.
     constant N_ADDITION_REG      : integer := 1;                                                    --! Number of addition registers.
     constant N_OUTPUT_REG        : integer := 1;                                                    --! Number of output registers.
-    constant DFF_DELAY_PIPELINED : integer := N_STAGES + N_ADDITION_REG + N_OUTPUT_REG;             --! Total delay due to flip-flops when pipelined.
+    constant DFF_DELAY_PIPELINED : integer := N_STAGES + N_ADDITION_REG + N_OUTPUT_REG + 1;         --! Total delay due to flip-flops when pipelined.
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
@@ -407,7 +407,7 @@ begin
     -------------------------------------------------------------------------------------
     -- PROCESS TO HANDLE SYNCHRONOUS AND ASYNCHRONOUS OPERATIONS
     -------------------------------------------------------------------------------------
-    process (clock, reset_n)
+    counter_control : process (clock, reset_n)
         variable sum : signed(2 * BITWIDTH - 1 downto 0); --! Variable to accumulate the sum of MAC outputs.
     begin
         if reset_n = '0' then
@@ -430,7 +430,7 @@ begin
                 end if;
             end if;
         end if;
-    end process;
+    end process counter_control;
 end conv_layer_one_mac_arch;
 
 configuration conv_layer_one_mac_conf of conv_layer is
