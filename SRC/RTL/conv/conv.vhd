@@ -46,7 +46,6 @@ architecture conv_fc_arch of conv is
     -------------------------------------------------------------------------------------
     constant INPUT_PADDED_SIZE : integer := INPUT_SIZE + 2 * PADDING;                              --! Input matrix size with padding
     constant OUTPUT_SIZE       : integer := (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE) / STRIDE + 1; --! Size of the output 
-    constant STEP_SIZE         : integer := (INPUT_PADDED_SIZE - KERNEL_SIZE) / STRIDE;            --! Index step size 
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
@@ -57,33 +56,34 @@ architecture conv_fc_arch of conv is
     signal conv_result         : t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                                                 --! Output result of the conv_layer
     signal conv_start          : std_logic;                                                                                                                    --! Signal to start convolution
     signal conv_layer_done     : std_logic;                                                                                                                    --! Signal indicating convolution layer completion
-    signal row_index           : std_logic_vector(KERNEL_SIZE - 1 downto 0);                                                                                   --! Current row index
-    signal col_index           : std_logic_vector(KERNEL_SIZE - 1 downto 0);                                                                                   --! Current column index
+    signal row_index           : std_logic_vector(OUTPUT_SIZE - 1 downto 0);                                                                                   --! Current row index
+    signal col_index           : std_logic_vector(OUTPUT_SIZE - 1 downto 0);                                                                                   --! Current column index
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
     -------------------------------------------------------------------------------------
     component volume_slice
         generic (
-            BITWIDTH       : integer;
-            INPUT_SIZE     : integer;
-            CHANNEL_NUMBER : integer;
-            KERNEL_SIZE    : integer;
-            STRIDE         : integer;
-            OUTPUT_SIZE    : integer
+            BITWIDTH          : integer;
+            INPUT_PADDED_SIZE : integer;
+            CHANNEL_NUMBER    : integer;
+            KERNEL_SIZE       : integer;
+            PADDING           : integer;
+            STRIDE            : integer;
+            OUTPUT_SIZE       : integer
         );
         port (
             clock                   : in std_logic;
             reset_n                 : in std_logic;
             i_sys_enable            : in std_logic;
-            i_data                  : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_data                  : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE + 2 * PADDING - 1 downto 0)(INPUT_PADDED_SIZE + 2 * PADDING - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_data_valid            : in std_logic;
             i_last_computation_done : in std_logic;
-            o_data                  : out t_volume(CHANNEL_NUMBER - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            o_data                  : out t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             o_done                  : out std_logic;
             o_computation_start     : out std_logic;
-            o_current_row           : out std_logic_vector(KERNEL_SIZE - 1 downto 0);
-            o_current_col           : out std_logic_vector(KERNEL_SIZE - 1 downto 0)
+            o_current_row           : out std_logic_vector((INPUT_PADDED_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0);
+            o_current_col           : out std_logic_vector((INPUT_PADDED_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)
         );
     end component;
 
@@ -120,12 +120,13 @@ begin
     -------------------------------------------------------------------------------------
     volume_slice_inst : volume_slice
     generic map(
-        BITWIDTH       => BITWIDTH,
-        INPUT_SIZE     => INPUT_PADDED_SIZE,
-        CHANNEL_NUMBER => CHANNEL_NUMBER,
-        KERNEL_SIZE    => KERNEL_SIZE,
-        STRIDE         => STRIDE,
-        OUTPUT_SIZE    => OUTPUT_SIZE
+        BITWIDTH          => BITWIDTH,
+        INPUT_PADDED_SIZE => INPUT_PADDED_SIZE,
+        CHANNEL_NUMBER    => CHANNEL_NUMBER,
+        KERNEL_SIZE       => KERNEL_SIZE,
+        PADDING           => PADDING,
+        STRIDE            => STRIDE,
+        OUTPUT_SIZE       => OUTPUT_SIZE
     )
     port map(
         clock                   => clock,
@@ -210,9 +211,8 @@ architecture conv_fc_pipelined_arch of conv is
     -------------------------------------------------------------------------------------
     -- CONSTANTS
     -------------------------------------------------------------------------------------
-    constant INPUT_PADDED_SIZE : integer := INPUT_SIZE + 2 * PADDING;                              --! Input matrix size with padding
-    constant OUTPUT_SIZE       : integer := (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE) / STRIDE + 1; --! Size of the output 
-    constant STEP_SIZE         : integer := (INPUT_PADDED_SIZE - KERNEL_SIZE) / STRIDE;            --! Index step size 
+    constant INPUT_PADDED_SIZE : integer := INPUT_SIZE + 2 * PADDING;                       --! Input matrix size with padding
+    constant OUTPUT_SIZE       : integer := (INPUT_PADDED_SIZE - KERNEL_SIZE) / STRIDE + 1; --! Size of the output 
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
@@ -223,33 +223,34 @@ architecture conv_fc_pipelined_arch of conv is
     signal conv_result         : t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                                                 --! Output result of the conv_layer
     signal conv_start          : std_logic;                                                                                                                    --! Signal to start convolution
     signal conv_layer_done     : std_logic;                                                                                                                    --! Signal indicating convolution layer completion
-    signal row_index           : std_logic_vector(KERNEL_SIZE - 1 downto 0);                                                                                   --! Current row index
-    signal col_index           : std_logic_vector(KERNEL_SIZE - 1 downto 0);                                                                                   --! Current column index
+    signal row_index           : std_logic_vector(OUTPUT_SIZE - 1 downto 0);                                                                                   --! Current row index
+    signal col_index           : std_logic_vector(OUTPUT_SIZE - 1 downto 0);                                                                                   --! Current column index
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
     -------------------------------------------------------------------------------------
     component volume_slice
         generic (
-            BITWIDTH       : integer;
-            INPUT_SIZE     : integer;
-            CHANNEL_NUMBER : integer;
-            KERNEL_SIZE    : integer;
-            STRIDE         : integer;
-            OUTPUT_SIZE    : integer
+            BITWIDTH          : integer;
+            INPUT_PADDED_SIZE : integer;
+            CHANNEL_NUMBER    : integer;
+            KERNEL_SIZE       : integer;
+            PADDING           : integer;
+            STRIDE            : integer;
+            OUTPUT_SIZE       : integer
         );
         port (
             clock                   : in std_logic;
             reset_n                 : in std_logic;
             i_sys_enable            : in std_logic;
-            i_data                  : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_data                  : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE + 2 * PADDING - 1 downto 0)(INPUT_PADDED_SIZE + 2 * PADDING - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_data_valid            : in std_logic;
             i_last_computation_done : in std_logic;
-            o_data                  : out t_volume(CHANNEL_NUMBER - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            o_data                  : out t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             o_done                  : out std_logic;
             o_computation_start     : out std_logic;
-            o_current_row           : out std_logic_vector(KERNEL_SIZE - 1 downto 0);
-            o_current_col           : out std_logic_vector(KERNEL_SIZE - 1 downto 0)
+            o_current_row           : out std_logic_vector((INPUT_PADDED_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0);
+            o_current_col           : out std_logic_vector((INPUT_PADDED_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)
         );
     end component;
 
@@ -286,12 +287,13 @@ begin
     -------------------------------------------------------------------------------------
     volume_slice_inst : volume_slice
     generic map(
-        BITWIDTH       => BITWIDTH,
-        INPUT_SIZE     => INPUT_PADDED_SIZE,
-        CHANNEL_NUMBER => CHANNEL_NUMBER,
-        KERNEL_SIZE    => KERNEL_SIZE,
-        STRIDE         => STRIDE,
-        OUTPUT_SIZE    => OUTPUT_SIZE
+        BITWIDTH          => BITWIDTH,
+        INPUT_PADDED_SIZE => INPUT_PADDED_SIZE,
+        CHANNEL_NUMBER    => CHANNEL_NUMBER,
+        KERNEL_SIZE       => KERNEL_SIZE,
+        PADDING           => PADDING,
+        STRIDE            => STRIDE,
+        OUTPUT_SIZE       => OUTPUT_SIZE
     )
     port map(
         clock                   => clock,
@@ -378,7 +380,6 @@ architecture conv_one_mac_arch of conv is
     -------------------------------------------------------------------------------------
     constant INPUT_PADDED_SIZE : integer := INPUT_SIZE + 2 * PADDING;                              --! Input matrix size with padding
     constant OUTPUT_SIZE       : integer := (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE) / STRIDE + 1; --! Size of the output 
-    constant STEP_SIZE         : integer := (INPUT_PADDED_SIZE - KERNEL_SIZE) / STRIDE;            --! Index step size 
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
@@ -389,33 +390,34 @@ architecture conv_one_mac_arch of conv is
     signal conv_result         : t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                                                 --! Output result of the conv_layer
     signal conv_start          : std_logic;                                                                                                                    --! Signal to start convolution
     signal conv_layer_done     : std_logic;                                                                                                                    --! Signal indicating convolution layer completion
-    signal row_index           : std_logic_vector(KERNEL_SIZE - 1 downto 0);                                                                                   --! Current row index
-    signal col_index           : std_logic_vector(KERNEL_SIZE - 1 downto 0);                                                                                   --! Current column index
+    signal row_index           : std_logic_vector(OUTPUT_SIZE - 1 downto 0);                                                                                   --! Current row index
+    signal col_index           : std_logic_vector(OUTPUT_SIZE - 1 downto 0);                                                                                   --! Current column index
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
     -------------------------------------------------------------------------------------
     component volume_slice
         generic (
-            BITWIDTH       : integer;
-            INPUT_SIZE     : integer;
-            CHANNEL_NUMBER : integer;
-            KERNEL_SIZE    : integer;
-            STRIDE         : integer;
-            OUTPUT_SIZE    : integer
+            BITWIDTH          : integer;
+            INPUT_PADDED_SIZE : integer;
+            CHANNEL_NUMBER    : integer;
+            KERNEL_SIZE       : integer;
+            PADDING           : integer;
+            STRIDE            : integer;
+            OUTPUT_SIZE       : integer
         );
         port (
             clock                   : in std_logic;
             reset_n                 : in std_logic;
             i_sys_enable            : in std_logic;
-            i_data                  : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_data                  : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE + 2 * PADDING - 1 downto 0)(INPUT_PADDED_SIZE + 2 * PADDING - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_data_valid            : in std_logic;
             i_last_computation_done : in std_logic;
-            o_data                  : out t_volume(CHANNEL_NUMBER - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            o_data                  : out t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             o_done                  : out std_logic;
             o_computation_start     : out std_logic;
-            o_current_row           : out std_logic_vector(KERNEL_SIZE - 1 downto 0);
-            o_current_col           : out std_logic_vector(KERNEL_SIZE - 1 downto 0)
+            o_current_row           : out std_logic_vector(OUTPUT_SIZE - 1 downto 0);
+            o_current_col           : out std_logic_vector(OUTPUT_SIZE - 1 downto 0)
         );
     end component;
 
@@ -452,12 +454,13 @@ begin
     -------------------------------------------------------------------------------------
     volume_slice_inst : volume_slice
     generic map(
-        BITWIDTH       => BITWIDTH,
-        INPUT_SIZE     => INPUT_PADDED_SIZE,
-        CHANNEL_NUMBER => CHANNEL_NUMBER,
-        KERNEL_SIZE    => KERNEL_SIZE,
-        STRIDE         => STRIDE,
-        OUTPUT_SIZE    => OUTPUT_SIZE
+        BITWIDTH          => BITWIDTH,
+        INPUT_PADDED_SIZE => INPUT_PADDED_SIZE,
+        CHANNEL_NUMBER    => CHANNEL_NUMBER,
+        KERNEL_SIZE       => KERNEL_SIZE,
+        PADDING           => PADDING,
+        STRIDE            => STRIDE,
+        OUTPUT_SIZE       => OUTPUT_SIZE
     )
     port map(
         clock                   => clock,

@@ -23,10 +23,10 @@ entity window_slice is
     );
     port (
         i_data            : in t_mat(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);   --! Input matrix
-        i_row_index_start : in std_logic_vector(OUTPUT_SIZE - 1 downto 0);                                       --! First dimension (row) starting index
-        i_row_index_end   : in std_logic_vector(OUTPUT_SIZE - 1 downto 0);                                       --! First dimension (row) ending index
-        i_col_index_start : in std_logic_vector(OUTPUT_SIZE - 1 downto 0);                                       --! Second dimension (col) starting index
-        i_col_index_end   : in std_logic_vector(OUTPUT_SIZE - 1 downto 0);                                       --! Second dimension (col) ending index
+        i_row_index_start : in std_logic_vector(BITWIDTH - 1 downto 0);                                          --! First dimension (row) starting index
+        i_row_index_end   : in std_logic_vector(BITWIDTH - 1 downto 0);                                          --! First dimension (row) ending index
+        i_col_index_start : in std_logic_vector(BITWIDTH - 1 downto 0);                                          --! Second dimension (col) starting index
+        i_col_index_end   : in std_logic_vector(BITWIDTH - 1 downto 0);                                          --! Second dimension (col) ending index
         o_data            : out t_mat(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0) --! Output sliced matrix
     );
 end window_slice;
@@ -36,10 +36,10 @@ architecture window_slice_arch of window_slice is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal row_index_start : integer range 0 to INPUT_SIZE - 1; --! Signal for integer row starting index
-    signal row_index_stop  : integer range 0 to INPUT_SIZE - 1; --! Signal for integer row ending index
-    signal col_index_start : integer range 0 to INPUT_SIZE - 1; --! Signal for integer col starting index
-    signal col_index_stop  : integer range 0 to INPUT_SIZE - 1; --! Signal for integer col ending index
+    signal row_index_start : integer range 0 to INPUT_SIZE; --! Signal for integer row starting index
+    signal row_index_stop  : integer range 0 to INPUT_SIZE; --! Signal for integer row ending index
+    signal col_index_start : integer range 0 to INPUT_SIZE; --! Signal for integer col starting index
+    signal col_index_stop  : integer range 0 to INPUT_SIZE; --! Signal for integer col ending index
 
 begin
 
@@ -58,13 +58,15 @@ begin
     -- Slice the window from the input matrix
     comb_proc : process (row_index_start, row_index_stop, col_index_start, col_index_stop, i_data)
     begin
+        -- Assign the sliced window to the output matrix
         for i in 0 to OUTPUT_SIZE - 1 loop
             for j in 0 to OUTPUT_SIZE - 1 loop
-                -- Check if the indices are within bounds
-                if (row_index_start + i <= row_index_stop) and (col_index_start + j <= col_index_stop) then
-                    o_data(i)(j) <= i_data(OUTPUT_SIZE - 1 - row_index_start + i)(OUTPUT_SIZE - 1 - col_index_start + j); --! Slice the window from the input matrix
+                -- Check indices are within valid range
+                if row_index_start + i <= row_index_stop and row_index_start + i < INPUT_SIZE and
+                    col_index_start + j    <= col_index_stop and col_index_start + j < INPUT_SIZE then
+                    o_data(i)(j)           <= i_data(row_index_start + i)(col_index_start + j);
                 else
-                    o_data(i)(j) <= (others => '0'); --! Handle out-of-bound indices by filling with '0's
+                    o_data(i)(j) <= (others => '0');
                 end if;
             end loop;
         end loop;
