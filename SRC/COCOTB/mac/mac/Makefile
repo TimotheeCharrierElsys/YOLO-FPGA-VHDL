@@ -4,7 +4,7 @@ WAVE_FILE           := $(MODULE)_wave.vcd
 
 COCOTB_LOG_LEVEL    := DEBUG
 TOPLEVEL_LANG       ?= vhdl
-SIM     := ghdl
+SIM                 := ghdl
 SIM_BUILD           := build
 
 COMPILE_ARGS        := --std=08
