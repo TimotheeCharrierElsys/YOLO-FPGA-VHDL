@@ -1,9 +1,39 @@
 Getting started
 ===============
 
-Start by cloning the repo:
+Installation guide
+------------------
 
-  git clone https://github.com/TimotheeCharrierElsys/YOLO-FPGA-VHDL/tree/dev
+Installing WSL2
+===============
+
+Open a PowerShell as administrator and run
+   `wls --install`
+
+Then follow the instructions.
+
+Installing dependencies
+=======================
+
+Install GHDL
+
+.. code-block:: bash
+
+    sudo apt install gtkwave ghdl
+
+Install Python3 (after running a `sudo apt update` and `sudo apt upgrade`):
+
+.. code-block:: bash
+
+    sudo apt install python3-pip
+
+Then, cocotb can be installed by running
+
+.. code-block:: bash
+   
+    pip3 install cocotb
+
+You are now ready to go!
 
 Source code
 -----------
