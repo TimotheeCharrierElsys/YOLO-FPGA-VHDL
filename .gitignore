@@ -1,11 +1,3 @@
 /.venv
 /LIB/LIB_RTL
 /LIB/LIB_BENCH
-/SRC/RTL/temp
-/SRC/BENCH/temp
-SRC/BENCH/common/xvhdl.pb
-transcript
-modelsim.ini
-vsim.wlf
-YOLO.cr.mti
-YOLO.mpf
