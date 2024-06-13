@@ -82,7 +82,7 @@ begin
         o_data_valid => o_data_valid
     );
 
-    i_bias <= (others => std_logic_vector(to_signed(0, BITWIDTH)));
+    i_bias <= (others => std_logic_vector(to_signed(-1, BITWIDTH)));
 
     -- Clock generation
     clock <= not clock after i_clk_period / 2;
@@ -310,19 +310,19 @@ begin
         (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))));
 
         i_kernel(1)(0) <= (
-        (std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(1, 16))),
-        (std_logic_vector(to_signed(-2, 16)), std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(2, 16))),
-        (std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(1, 16)))
+        (std_logic_vector(to_signed(-30, 16)), std_logic_vector(to_signed(-21, 16)), std_logic_vector(to_signed(7, 16))),
+        (std_logic_vector(to_signed(-19, 16)), std_logic_vector(to_signed(10, 16)), std_logic_vector(to_signed(-1, 16))),
+        (std_logic_vector(to_signed(-4, 16)), std_logic_vector(to_signed(-2, 16)), std_logic_vector(to_signed(8, 16)))
         );
         i_kernel(1)(1) <= (
-        (std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(1, 16))),
-        (std_logic_vector(to_signed(-2, 16)), std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(2, 16))),
-        (std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(1, 16)))
+        (std_logic_vector(to_signed(-30, 16)), std_logic_vector(to_signed(-21, 16)), std_logic_vector(to_signed(7, 16))),
+        (std_logic_vector(to_signed(-19, 16)), std_logic_vector(to_signed(10, 16)), std_logic_vector(to_signed(-1, 16))),
+        (std_logic_vector(to_signed(-4, 16)), std_logic_vector(to_signed(-2, 16)), std_logic_vector(to_signed(8, 16)))
         );
         i_kernel(1)(2) <= (
-        (std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(1, 16))),
-        (std_logic_vector(to_signed(-2, 16)), std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(2, 16))),
-        (std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(1, 16)))
+        (std_logic_vector(to_signed(-30, 16)), std_logic_vector(to_signed(-21, 16)), std_logic_vector(to_signed(7, 16))),
+        (std_logic_vector(to_signed(-19, 16)), std_logic_vector(to_signed(10, 16)), std_logic_vector(to_signed(-1, 16))),
+        (std_logic_vector(to_signed(-4, 16)), std_logic_vector(to_signed(-2, 16)), std_logic_vector(to_signed(8, 16)))
         );
 
         wait for i_clk_period/2;

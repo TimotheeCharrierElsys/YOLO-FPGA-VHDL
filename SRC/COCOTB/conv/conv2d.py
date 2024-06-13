@@ -22,7 +22,7 @@ filters = {
     "filter_laplacian_gaussian": [np.array([[0, 0, -1, 0, 0], [0, -1, -2, -1, 0], [-1, -2, 16, -2, -1], [0, -1, -2, -1, 0], [0, 0, -1, 0, 0]]) for _ in range(3)],
     "filter_randoml_33": [np.array([[random.randint(-1, 1) for _ in range(3)] for _ in range(3)]) for _ in range(3)],
     "filter_randoml_55": [np.array([[random.randint(-1, 1) for _ in range(5)] for _ in range(5)]) for _ in range(3)],
-    "filter_test": [np.array([[50, 0, 0], [0, 1, 0], [0, 0, -1]]) for _ in range(3)]
+    "filter_test": [np.array([[-30, -21, 7], [-19, 10, -1], [-4, -2, 8]]) for _ in range(3)]
 }
 
 
@@ -327,11 +327,11 @@ if __name__ == '__main__':
     # Choose filters
     filter_name1 = "filter_laplacian"
     filter1 = filters[filter_name1]
-    filter_name2 = "filter_sobel_x"
+    filter_name2 = "filter_test"
     filter2 = filters[filter_name2]
 
     # Choose biases (one for each filter)
-    biases = [0 for _ in range(len(filter1))]
+    biases = [-1 for _ in range(len(filter1))]
 
     # Create an image object
     img = Image(image_path)
@@ -339,22 +339,19 @@ if __name__ == '__main__':
     # Perform convolution with the filters
     output1 = img.conv2d(filter1, biases, padding=1, stride=1)
     output2 = img.conv2d(filter2, biases, padding=1, stride=1)
+    output2 = output2 / 100
 
     # Loop through all the filters and plot the results
     # img.loop_through_filters(filters, biases, padding=0)
     print(img.charac())
 
     # img.i_data_to_vhdl_vector()
-    i_kernels_to_vector("filter_sobel_x", filters)
+    # i_kernels_to_vector("filter_test", filters)
 
     # Reconstruct images from file
-    images = reconstruct_image(r"C:\Users\UF523TCH\Documents\GIT\YOLO-FPGA-VHDL\conv_output_results.txt", 64)
-    
-    # Rotate each image along x and y axes once
-    rotated_images = []
-    for image in images:
-        rotated_image = np.rot90(image, k=2, axes=(0,1))  # Rotate once along x and y axes
-        rotated_images.append(rotated_image)
+    images = reconstruct_image(
+        r"C:\Users\UF523TCH\Documents\GIT\Modelsim\conv_output_results.txt", 64)
+    images[1] = images[1] / 100
 
     # Plot each image on the same graph with expected outputs
     num_images = len(images)
@@ -362,16 +359,18 @@ if __name__ == '__main__':
 
     for i in range(num_images):
         # Plot reconstructed images
-        axes[0, i].imshow(rotated_images[i], cmap='gray')
+        axes[0, i].imshow(images[i], cmap='gray')
         axes[0, i].axis('off')
         axes[0, i].set_title(f'Reconstructed Image {i + 1}')
 
         # Plot the expected value from output1 and output2
-        axes[1, 0].imshow(output1[:, :, i], cmap='gray')  # Adjust indexing as per your expected output structure
+        # Adjust indexing as per your expected output structure
+        axes[1, 0].imshow(output1[:, :, i], cmap='gray')
         axes[1, 0].axis('off')
         axes[1, 0].set_title(f'Expected Output for {filter_name1}')
 
-        axes[1, 1].imshow(output2[:, :, i], cmap='gray')  # Adjust indexing as per your expected output structure
+        # Adjust indexing as per your expected output structure
+        axes[1, 1].imshow(output2[:, :, i], cmap='gray')
         axes[1, 1].axis('off')
         axes[1, 1].set_title(f'Expected Output for {filter_name2}')
 
