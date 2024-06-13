@@ -137,7 +137,7 @@ begin
     end process state_control;
 
     -- Output signals update for control
-    o_current_row <= std_logic_vector(to_unsigned(current_row, integer(ceil(log2(real(OUTPUT_SIZE))))));
-    o_current_col <= std_logic_vector(to_unsigned(current_col, integer(ceil(log2(real(OUTPUT_SIZE))))));
+    o_current_row <= std_logic_vector(to_unsigned(OUTPUT_SIZE - 1 - current_row, integer(ceil(log2(real(OUTPUT_SIZE))))));
+    o_current_col <= std_logic_vector(to_unsigned(OUTPUT_SIZE - 1 - current_col, integer(ceil(log2(real(OUTPUT_SIZE))))));
 
 end volume_slice_arch;
