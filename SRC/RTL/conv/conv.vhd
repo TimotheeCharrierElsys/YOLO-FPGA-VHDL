@@ -76,7 +76,7 @@ architecture conv_fc_arch of conv is
             clock                   : in std_logic;
             reset_n                 : in std_logic;
             i_sys_enable            : in std_logic;
-            i_data                  : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE + 2 * PADDING - 1 downto 0)(INPUT_PADDED_SIZE + 2 * PADDING - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_data                  : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_data_valid            : in std_logic;
             i_last_computation_done : in std_logic;
             o_data                  : out t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
@@ -243,7 +243,7 @@ architecture conv_fc_pipelined_arch of conv is
             clock                   : in std_logic;
             reset_n                 : in std_logic;
             i_sys_enable            : in std_logic;
-            i_data                  : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE + 2 * PADDING - 1 downto 0)(INPUT_PADDED_SIZE + 2 * PADDING - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_data                  : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_data_valid            : in std_logic;
             i_last_computation_done : in std_logic;
             o_data                  : out t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
@@ -410,7 +410,7 @@ architecture conv_one_mac_arch of conv is
             clock                   : in std_logic;
             reset_n                 : in std_logic;
             i_sys_enable            : in std_logic;
-            i_data                  : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE + 2 * PADDING - 1 downto 0)(INPUT_PADDED_SIZE + 2 * PADDING - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_data                  : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_data_valid            : in std_logic;
             i_last_computation_done : in std_logic;
             o_data                  : out t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
