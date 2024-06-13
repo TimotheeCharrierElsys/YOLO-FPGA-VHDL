@@ -299,19 +299,31 @@ begin
         (std_logic_vector(to_signed(68, 16)), std_logic_vector(to_signed(53, 16)), std_logic_vector(to_signed(64, 16)), std_logic_vector(to_signed(58, 16)), std_logic_vector(to_signed(58, 16)), std_logic_vector(to_signed(57, 16)), std_logic_vector(to_signed(87, 16)), std_logic_vector(to_signed(88, 16)), std_logic_vector(to_signed(75, 16)), std_logic_vector(to_signed(87, 16)), std_logic_vector(to_signed(91, 16)), std_logic_vector(to_signed(81, 16)), std_logic_vector(to_signed(74, 16)), std_logic_vector(to_signed(63, 16)), std_logic_vector(to_signed(112, 16)), std_logic_vector(to_signed(117, 16)), std_logic_vector(to_signed(123, 16)), std_logic_vector(to_signed(120, 16)), std_logic_vector(to_signed(113, 16)), std_logic_vector(to_signed(119, 16)), std_logic_vector(to_signed(120, 16)), std_logic_vector(to_signed(115, 16)), std_logic_vector(to_signed(111, 16)), std_logic_vector(to_signed(122, 16)), std_logic_vector(to_signed(111, 16)), std_logic_vector(to_signed(147, 16)), std_logic_vector(to_signed(144, 16)), std_logic_vector(to_signed(137, 16)), std_logic_vector(to_signed(147, 16)), std_logic_vector(to_signed(145, 16)), std_logic_vector(to_signed(143, 16)), std_logic_vector(to_signed(146, 16)), std_logic_vector(to_signed(148, 16)), std_logic_vector(to_signed(141, 16)), std_logic_vector(to_signed(151, 16)), std_logic_vector(to_signed(143, 16)), std_logic_vector(to_signed(145, 16)), std_logic_vector(to_signed(64, 16)), std_logic_vector(to_signed(72, 16)), std_logic_vector(to_signed(141, 16)), std_logic_vector(to_signed(114, 16)), std_logic_vector(to_signed(132, 16)), std_logic_vector(to_signed(130, 16)), std_logic_vector(to_signed(120, 16)), std_logic_vector(to_signed(105, 16)), std_logic_vector(to_signed(128, 16)), std_logic_vector(to_signed(74, 16)), std_logic_vector(to_signed(78, 16)), std_logic_vector(to_signed(77, 16)), std_logic_vector(to_signed(66, 16)), std_logic_vector(to_signed(98, 16)), std_logic_vector(to_signed(86, 16)), std_logic_vector(to_signed(89, 16)), std_logic_vector(to_signed(85, 16)), std_logic_vector(to_signed(84, 16)), std_logic_vector(to_signed(84, 16)), std_logic_vector(to_signed(90, 16)), std_logic_vector(to_signed(87, 16)), std_logic_vector(to_signed(90, 16)), std_logic_vector(to_signed(86, 16)), std_logic_vector(to_signed(91, 16)), std_logic_vector(to_signed(91, 16)), std_logic_vector(to_signed(71, 16)), std_logic_vector(to_signed(73, 16)))
         );
 
-        i_kernel(0)(0) <= (others => (others => std_logic_vector(to_signed(11, BITWIDTH))));
-        i_kernel(0)(1) <= (others => (others => std_logic_vector(to_signed(11, BITWIDTH))));
-        i_kernel(0)(2) <= (others => (others => std_logic_vector(to_signed(11, BITWIDTH))));
+        i_kernel(0)(0) <= ((std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
+        (std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(-4, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH))),
+        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))));
+        i_kernel(0)(1) <= ((std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
+        (std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(-4, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH))),
+        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))));
+        i_kernel(0)(2) <= ((std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
+        (std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(-4, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH))),
+        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))));
 
-        i_kernel(1)(0) <= ((std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
-        (std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(4, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH))),
-        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))));
-        i_kernel(1)(1) <= ((std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
-        (std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(4, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH))),
-        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))));
-        i_kernel(1)(2) <= ((std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
-        (std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(4, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH))),
-        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))));
+        i_kernel(1)(0) <= (
+        (std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(1, 16))),
+        (std_logic_vector(to_signed(-2, 16)), std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(2, 16))),
+        (std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(1, 16)))
+        );
+        i_kernel(1)(1) <= (
+        (std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(1, 16))),
+        (std_logic_vector(to_signed(-2, 16)), std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(2, 16))),
+        (std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(1, 16)))
+        );
+        i_kernel(1)(2) <= (
+        (std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(1, 16))),
+        (std_logic_vector(to_signed(-2, 16)), std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(2, 16))),
+        (std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(1, 16)))
+        );
 
         wait for i_clk_period/2;
         i_data_valid <= '1';

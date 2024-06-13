@@ -22,7 +22,7 @@ filters = {
     "filter_laplacian_gaussian": [np.array([[0, 0, -1, 0, 0], [0, -1, -2, -1, 0], [-1, -2, 16, -2, -1], [0, -1, -2, -1, 0], [0, 0, -1, 0, 0]]) for _ in range(3)],
     "filter_randoml_33": [np.array([[random.randint(-1, 1) for _ in range(3)] for _ in range(3)]) for _ in range(3)],
     "filter_randoml_55": [np.array([[random.randint(-1, 1) for _ in range(5)] for _ in range(5)]) for _ in range(3)],
-    "filter_test": [np.array([[11, 11, 11], [11, 11, 11], [11, 11, 11]]) for _ in range(3)]
+    "filter_test": [np.array([[50, 0, 0], [0, 1, 0], [0, 0, -1]]) for _ in range(3)]
 }
 
 
@@ -175,7 +175,7 @@ class Image:
         plt.tight_layout()
         plt.show()
 
-    def i_data_to_vhdl_vector(self, output_path, bitwidth=16):
+    def i_data_to_vhdl_vector(self, output_path="i_data.txt"):
         """
         Convert the image pixels to a VHDL vector format.
 
@@ -185,8 +185,8 @@ class Image:
         rows, cols, _ = self.image.shape
         print(rows, cols)
 
-        def pixel_to_vhdl(value, bitwidth):
-            return f"std_logic_vector(to_signed({value}, {bitwidth}))"
+        def pixel_to_vhdl(value):
+            return f"std_logic_vector(to_signed({value}, BITWIDTH))"
 
         # Prepare VHDL data for each channel
         vhdl_data = {'R': [], 'G': [], 'B': []}
@@ -194,7 +194,7 @@ class Image:
         for channel, channel_name in enumerate(['R', 'G', 'B']):
             channel_data = []
             for row in range(rows):
-                row_data = [pixel_to_vhdl(self.image[row, col, channel], bitwidth)
+                row_data = [pixel_to_vhdl(self.image[row, col, channel])
                             for col in range(cols)]
                 channel_data.append(f"({', '.join(row_data)})")
             vhdl_data[channel_name] = channel_data
@@ -279,13 +279,55 @@ def binary_to_signed_32bit(bin_str):
         return int(bin_str, 2)
 
 
+def i_kernels_to_vector(filter_name, filters, output_path="o_kernel.txt", bitwidth=16):
+    """
+    Convert the filter kernels to a VHDL vector format.
+
+    Args:
+        filter_name (str): Name of the filter set.
+        filters (dict): Dictionary containing the filter kernels.
+        output_path (str): Output file path for saving VHDL vector data.
+        bitwidth (int): Bitwidth for VHDL representation (default: 16).
+    """
+    # Get the filters for the specified filter_name
+    filter_set = filters[filter_name]
+
+    # Determine the dimensions of the filters
+    filter_height, filter_width = filter_set[0].shape
+
+    def pixel_to_vhdl(value, bitwidth):
+        return f"std_logic_vector(to_signed({value}, {bitwidth}))"
+
+    # Prepare VHDL data for each filter
+    vhdl_data = []
+
+    for filter_index, kernel in enumerate(filter_set):
+        kernel_data = []
+        for row in range(filter_height):
+            row_data = [pixel_to_vhdl(kernel[row, col], bitwidth)
+                        for col in range(filter_width)]
+            kernel_data.append(f"({', '.join(row_data)})")
+        vhdl_data.append(f"i_kernel({filter_index}) <= (\n")
+        vhdl_data.append(",\n".join(kernel_data))
+        vhdl_data.append("\n);\n")
+
+    # Generate VHDL formatted string
+    vhdl_string = "".join(vhdl_data)
+
+    # Save the output to a file
+    with open(output_path, 'w') as file:
+        file.write(vhdl_string)
+
+    print(f"VHDL i_kernel saved to {output_path}")
+
+
 if __name__ == '__main__':
     image_path = r"C:\Users\UF523TCH\Documents\GIT\YOLO-FPGA-VHDL\SRC\COCOTB\conv\wolf.jpg"
 
     # Choose filters
-    filter_name1 = "filter_ridge"
+    filter_name1 = "filter_laplacian"
     filter1 = filters[filter_name1]
-    filter_name2 = "filter_test"
+    filter_name2 = "filter_sobel_x"
     filter2 = filters[filter_name2]
 
     # Choose biases (one for each filter)
@@ -299,20 +341,19 @@ if __name__ == '__main__':
     output2 = img.conv2d(filter2, biases, padding=1, stride=1)
 
     # Loop through all the filters and plot the results
-    img.loop_through_filters(filters, biases, padding=0)
+    # img.loop_through_filters(filters, biases, padding=0)
     print(img.charac())
 
-    # Uncomment the line below if you want to save the VHDL vector
-    # img.i_data_to_vhdl_vector(r"C:\Users\UF523TCH\Documents\GIT\YOLO-FPGA-VHDL\SRC\COCOTB\conv\vhdl_vector_file.txt")
+    # img.i_data_to_vhdl_vector()
+    i_kernels_to_vector("filter_sobel_x", filters)
 
     # Reconstruct images from file
-    images = reconstruct_image(
-        r"C:\Users\UF523TCH\Documents\GIT\YOLO-FPGA-VHDL\conv_output_results.txt", 64)
+    images = reconstruct_image(r"C:\Users\UF523TCH\Documents\GIT\YOLO-FPGA-VHDL\conv_output_results.txt", 64)
     
     # Rotate each image along x and y axes once
     rotated_images = []
     for image in images:
-        rotated_image = np.rot90(image, k=2, axes=(0, 1))  # Rotate once along x and y axes
+        rotated_image = np.rot90(image, k=2, axes=(0,1))  # Rotate once along x and y axes
         rotated_images.append(rotated_image)
 
     # Plot each image on the same graph with expected outputs
@@ -325,14 +366,14 @@ if __name__ == '__main__':
         axes[0, i].axis('off')
         axes[0, i].set_title(f'Reconstructed Image {i + 1}')
 
-    # Plot the expected values
-    axes[1, 1].imshow(output1[:, :, 1], cmap='gray')
-    axes[1, 1].axis('off')
-    axes[1, 1].set_title(f'Expected Output for {filter_name1}')
+        # Plot the expected value from output1 and output2
+        axes[1, 0].imshow(output1[:, :, i], cmap='gray')  # Adjust indexing as per your expected output structure
+        axes[1, 0].axis('off')
+        axes[1, 0].set_title(f'Expected Output for {filter_name1}')
 
-    axes[1, 0].imshow(output2[:, :, 0], cmap='gray')
-    axes[1, 0].axis('off')
-    axes[1, 0].set_title(f'Expected Output for {filter_name2}')
+        axes[1, 1].imshow(output2[:, :, i], cmap='gray')  # Adjust indexing as per your expected output structure
+        axes[1, 1].axis('off')
+        axes[1, 1].set_title(f'Expected Output for {filter_name2}')
 
     plt.tight_layout()
     plt.show()

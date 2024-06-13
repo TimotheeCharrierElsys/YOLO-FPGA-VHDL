@@ -19,12 +19,12 @@ use LIB_RTL.types_pkg.all;
 entity conv is
     generic (
         BITWIDTH       : integer := 8; --! Bit width of each operand
-        INPUT_SIZE     : integer := 3; --! Width and Height of the input
+        INPUT_SIZE     : integer := 5; --! Width and Height of the input
         CHANNEL_NUMBER : integer := 3; --! Number of channels in the input
         KERNEL_SIZE    : integer := 3; --! Size of the kernel
         KERNEL_NUMBER  : integer := 1; --! Number of kernels
         PADDING        : integer := 1; --! Padding value
-        STRIDE         : integer := 1  --! Stride value 
+        STRIDE         : integer := 2  --! Stride value 
     );
     port (
         clock        : in std_logic;                                                                                                                                                                                            --! Clock signal
@@ -56,8 +56,8 @@ architecture conv_fc_arch of conv is
     signal conv_result         : t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                                                 --! Output result of the conv_layer
     signal conv_start          : std_logic;                                                                                                                    --! Signal to start convolution
     signal conv_layer_done     : std_logic;                                                                                                                    --! Signal indicating convolution layer completion
-    signal row_index           : std_logic_vector(OUTPUT_SIZE - 1 downto 0);                                                                                   --! Current row index
-    signal col_index           : std_logic_vector(OUTPUT_SIZE - 1 downto 0);                                                                                   --! Current column index
+    signal row_index           : std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                                        --! Current row index
+    signal col_index           : std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                                        --! Current column index
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -82,8 +82,8 @@ architecture conv_fc_arch of conv is
             o_data                  : out t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             o_done                  : out std_logic;
             o_computation_start     : out std_logic;
-            o_current_row           : out std_logic_vector((INPUT_PADDED_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0);
-            o_current_col           : out std_logic_vector((INPUT_PADDED_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)
+            o_current_row           : out std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);
+            o_current_col           : out std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0)
         );
     end component;
 
@@ -201,7 +201,7 @@ configuration conv_fc_conf of conv is
         end for;
 
         for all : volume_slice
-            use configuration LIB_RTL.volume_slice_conf;
+            use entity LIB_RTL.volume_slice(volume_slice_arch);
         end for;
     end for;
 end configuration conv_fc_conf;
@@ -223,8 +223,8 @@ architecture conv_fc_pipelined_arch of conv is
     signal conv_result         : t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                                                 --! Output result of the conv_layer
     signal conv_start          : std_logic;                                                                                                                    --! Signal to start convolution
     signal conv_layer_done     : std_logic;                                                                                                                    --! Signal indicating convolution layer completion
-    signal row_index           : std_logic_vector(OUTPUT_SIZE - 1 downto 0);                                                                                   --! Current row index
-    signal col_index           : std_logic_vector(OUTPUT_SIZE - 1 downto 0);                                                                                   --! Current column index
+    signal row_index           : std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                                        --! Current row index
+    signal col_index           : std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                                        --! Current column index
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -249,8 +249,8 @@ architecture conv_fc_pipelined_arch of conv is
             o_data                  : out t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             o_done                  : out std_logic;
             o_computation_start     : out std_logic;
-            o_current_row           : out std_logic_vector((INPUT_PADDED_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0);
-            o_current_col           : out std_logic_vector((INPUT_PADDED_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)
+            o_current_row           : out std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);
+            o_current_col           : out std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0)
         );
     end component;
 
@@ -368,7 +368,7 @@ configuration conv_fc_pipelined_conf of conv is
         end for;
 
         for all : volume_slice
-            use configuration LIB_RTL.volume_slice_conf;
+            use entity LIB_RTL.volume_slice(volume_slice_arch);
         end for;
     end for;
 end configuration conv_fc_pipelined_conf;
@@ -390,8 +390,8 @@ architecture conv_one_mac_arch of conv is
     signal conv_result         : t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                                                 --! Output result of the conv_layer
     signal conv_start          : std_logic;                                                                                                                    --! Signal to start convolution
     signal conv_layer_done     : std_logic;                                                                                                                    --! Signal indicating convolution layer completion
-    signal row_index           : std_logic_vector(OUTPUT_SIZE - 1 downto 0);                                                                                   --! Current row index
-    signal col_index           : std_logic_vector(OUTPUT_SIZE - 1 downto 0);                                                                                   --! Current column index
+    signal row_index           : std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                                        --! Current row index
+    signal col_index           : std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                                        --! Current column index
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -416,8 +416,8 @@ architecture conv_one_mac_arch of conv is
             o_data                  : out t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             o_done                  : out std_logic;
             o_computation_start     : out std_logic;
-            o_current_row           : out std_logic_vector(OUTPUT_SIZE - 1 downto 0);
-            o_current_col           : out std_logic_vector(OUTPUT_SIZE - 1 downto 0)
+            o_current_row           : out std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);
+            o_current_col           : out std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0)
         );
     end component;
 
@@ -535,7 +535,7 @@ configuration conv_one_mac_conf of conv is
         end for;
 
         for all : volume_slice
-            use configuration LIB_RTL.volume_slice_conf;
+            use entity LIB_RTL.volume_slice(volume_slice_arch);
         end for;
     end for;
 end configuration conv_one_mac_conf;
