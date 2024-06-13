@@ -10,6 +10,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
+use IEEE.MATH_REAL.all;
 
 library LIB_RTL;
 use LIB_RTL.types_pkg.all;
@@ -20,12 +21,12 @@ use LIB_RTL.types_pkg.all;
 entity volume_slice is
     generic (
         BITWIDTH          : integer := 8; --! Bit width of each operand
-        INPUT_PADDED_SIZE : integer := 5; --! Width and Height of the input
+        INPUT_PADDED_SIZE : integer := 7; --! Width and Height of the input
         CHANNEL_NUMBER    : integer := 3; --! Number of channels in the input
         KERNEL_SIZE       : integer := 3; --! Size of the kernel
         PADDING           : integer := 1; --! Padding value
-        STRIDE            : integer := 1; --! Stride value 
-        OUTPUT_SIZE       : integer := 3  --! Output size of the global volum
+        STRIDE            : integer := 2; --! Stride value 
+        OUTPUT_SIZE       : integer := 3  --! Output size of the global volume
     );
     port (
         clock                   : in std_logic;                                                                                                                    --! Clock signal
@@ -37,8 +38,8 @@ entity volume_slice is
         o_data                  : out t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);            --! Output sliced matrix volume
         o_done                  : out std_logic;                                                                                                                   --! Output valid signal
         o_computation_start     : out std_logic;                                                                                                                   --! Signal to start the next computation
-        o_current_row           : out std_logic_vector(OUTPUT_SIZE - 1 downto 0);                                                                                  --! Current row index
-        o_current_col           : out std_logic_vector(OUTPUT_SIZE - 1 downto 0)                                                                                   --! Current column index
+        o_current_row           : out std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                                       --! Current row index
+        o_current_col           : out std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0)                                                        --! Current column index
     );
 end volume_slice;
 
@@ -49,51 +50,24 @@ architecture volume_slice_arch of volume_slice is
     -------------------------------------------------------------------------------------
     signal current_row               : integer range 0 to OUTPUT_SIZE - 1 := 0;                                                                          --! Current row counter for slicing
     signal current_col               : integer range 0 to OUTPUT_SIZE - 1 := 0;                                                                          --! Current column counter for slicing
-    signal start_processing          : std_logic;                                                                                                        --! Signal to start processing
-    signal data_valid_previous_state : std_logic;                                                                                                        --! Previous state of the data_valid signal
+    signal start_processing          : std_logic                          := '0';                                                                        --! Signal to start processing
+    signal data_valid_previous_state : std_logic                          := '0';                                                                        --! Previous state of the data_valid signal
     signal sliced_output_data        : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Buffer for output data
-
-    -------------------------------------------------------------------------------------
-    -- COMPONENTS
-    -------------------------------------------------------------------------------------
-    component window_slice
-        generic (
-            BITWIDTH    : integer;
-            INPUT_SIZE  : integer;
-            OUTPUT_SIZE : integer
-        );
-        port (
-            i_data            : in t_mat(INPUT_PADDED_SIZE - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_row_index_start : in std_logic_vector(BITWIDTH - 1 downto 0);
-            i_row_index_end   : in std_logic_vector(BITWIDTH - 1 downto 0);
-            i_col_index_start : in std_logic_vector(BITWIDTH - 1 downto 0);
-            i_col_index_end   : in std_logic_vector(BITWIDTH - 1 downto 0);
-            o_data            : out t_mat(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)
-        );
-    end component;
 
 begin
 
     -------------------------------------------------------------------------------------
-    -- GENERATE THE SLICED WINDOWS
+    -- SUB-MATRIX SELECTION
     -------------------------------------------------------------------------------------
     gen_window_slice : for i in 0 to CHANNEL_NUMBER - 1 generate
-
-        --! Instantiate the window_slice units for each channel.
-        window_slice_inst : window_slice
-        generic map(
-            BITWIDTH    => BITWIDTH,
-            INPUT_SIZE  => INPUT_PADDED_SIZE,
-            OUTPUT_SIZE => KERNEL_SIZE
-        )
-        port map(
-            i_data            => i_data(i),
-            i_row_index_start => std_logic_vector(to_unsigned(INPUT_PADDED_SIZE - current_row * STRIDE - KERNEL_SIZE, BITWIDTH)),
-            i_row_index_end   => std_logic_vector(to_unsigned(INPUT_PADDED_SIZE - current_row * STRIDE, BITWIDTH)),
-            i_col_index_start => std_logic_vector(to_unsigned(INPUT_PADDED_SIZE - current_col * STRIDE - KERNEL_SIZE, BITWIDTH)),
-            i_col_index_end   => std_logic_vector(to_unsigned(INPUT_PADDED_SIZE - current_col * STRIDE, BITWIDTH)),
-            o_data            => sliced_output_data(i)
-        );
+        process (i_data, current_row, current_col)
+        begin
+            for row in 0 to KERNEL_SIZE - 1 loop
+                for col in 0 to KERNEL_SIZE - 1 loop
+                    sliced_output_data(i)(row)(col) <= i_data(i)(current_row + (KERNEL_SIZE - 1) - row)(current_col + (KERNEL_SIZE - 1) - col);
+                end loop;
+            end loop;
+        end process;
     end generate gen_window_slice;
 
     -------------------------------------------------------------------------------------
@@ -162,18 +136,8 @@ begin
         end if;
     end process state_control;
 
-    -- Output signals update for debugging and control
-    o_current_row <= std_logic_vector(to_unsigned(OUTPUT_SIZE - 1 - current_row, OUTPUT_SIZE));
-    o_current_col <= std_logic_vector(to_unsigned(OUTPUT_SIZE - 1 - current_col, OUTPUT_SIZE));
+    -- Output signals update for control
+    o_current_row <= std_logic_vector(to_unsigned(current_row, integer(ceil(log2(real(OUTPUT_SIZE))))));
+    o_current_col <= std_logic_vector(to_unsigned(current_col, integer(ceil(log2(real(OUTPUT_SIZE))))));
 
 end volume_slice_arch;
-
-configuration volume_slice_conf of volume_slice is
-    for volume_slice_arch
-        for gen_window_slice
-            for all : window_slice
-                use entity LIB_RTL.window_slice(window_slice_arch);
-            end for;
-        end for;
-    end for;
-end configuration volume_slice_conf;
