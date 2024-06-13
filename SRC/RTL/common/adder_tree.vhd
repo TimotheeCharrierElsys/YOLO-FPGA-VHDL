@@ -9,8 +9,8 @@ use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
 use IEEE.MATH_REAL.all;
 
-library work;
-use work.types_pkg.all;
+library LIB_RTL;
+use LIB_RTL.types_pkg.all;
 
 --! Entity adder_tree
 --! This entity implements a pipelined multi-operand adder (MOA).
