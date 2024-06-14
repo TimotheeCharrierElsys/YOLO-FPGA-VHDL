@@ -4,25 +4,25 @@ from scipy.signal import convolve2d
 import random
 
 filters = {
-    "filter_identity": [np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]) for _ in range(3)],
-    "filter_ridge": [np.array([[0, -1, 0], [-1, 4, -1], [0, -1, 0]]) for _ in range(3)],
-    "filter_edge": [np.array([[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]]) for _ in range(3)],
-    "filter_sharp": [np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]]) for _ in range(3)],
-    "filter_blur": [np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]]) / 9 for _ in range(3)],
-    "filter_gaussian_33": [np.array([[1, 2, 1], [2, 4, 2], [1, 2, 1]]) / 16 for _ in range(3)],
-    "filter_gaussian_55": [np.array([[1, 4, 6, 4, 1], [4, 16, 24, 16, 4], [6, 24, 36, 24, 6], [4, 16, 24, 16, 4], [1, 4, 6, 4, 1]]) / 256 for _ in range(3)],
-    "filter_unsharp_55": [np.array([[1, 4, 6, 4, 1], [4, 16, 24, 16, 4], [6, 24, -476, 24, 6], [4, 16, 24, 16, 4], [1, 4, 6, 4, 1]]) / 256 for _ in range(3)],
-    "filter_emboss": [np.array([[-2, -1, 0], [-1, 1, 1], [0, 1, 2]]) for _ in range(3)],
-    "filter_sobel_x": [np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]) for _ in range(3)],
-    "filter_sobel_y": [np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]]) for _ in range(3)],
-    "filter_prewitt_x": [np.array([[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]]) for _ in range(3)],
-    "filter_prewitt_y": [np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1]]) for _ in range(3)],
-    "filter_laplacian": [np.array([[0, 1, 0], [1, -4, 1], [0, 1, 0]]) for _ in range(3)],
-    "filter_laplacian_diag": [np.array([[1, 1, 1], [1, -8, 1], [1, 1, 1]]) for _ in range(3)],
-    "filter_laplacian_gaussian": [np.array([[0, 0, -1, 0, 0], [0, -1, -2, -1, 0], [-1, -2, 16, -2, -1], [0, -1, -2, -1, 0], [0, 0, -1, 0, 0]]) for _ in range(3)],
-    "filter_randoml_33": [np.array([[random.randint(-1, 1) for _ in range(3)] for _ in range(3)]) for _ in range(3)],
-    "filter_randoml_55": [np.array([[random.randint(-1, 1) for _ in range(5)] for _ in range(5)]) for _ in range(3)],
-    "filter_test": [np.array([[-30, -21, 7], [-19, 10, -1], [-4, -2, 8]]) for _ in range(3)]
+    "filter_identity": [np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]])] * 3,
+    "filter_ridge": [np.array([[0, -1, 0], [-1, 4, -1], [0, -1, 0]])] * 3,
+    "filter_edge": [np.array([[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]])] * 3,
+    "filter_sharp": [np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])] * 3,
+    "filter_blur": [np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]]) / 9 * 1000] * 3,
+    "filter_gaussian_33": [np.array([[1, 2, 1], [2, 4, 2], [1, 2, 1]]) / 16 * 1000] * 3,
+    "filter_gaussian_55": [np.array([[1, 4, 6, 4, 1], [4, 16, 24, 16, 4], [6, 24, 36, 24, 6], [4, 16, 24, 16, 4], [1, 4, 6, 4, 1]]) / 256] * 3,
+    "filter_unsharp_55": [np.array([[1, 4, 6, 4, 1], [4, 16, 24, 16, 4], [6, 24, -476, 24, 6], [4, 16, 24, 16, 4], [1, 4, 6, 4, 1]]) / 256] * 3,
+    "filter_emboss": [np.array([[-2, -1, 0], [-1, 1, 1], [0, 1, 2]])] * 3,
+    "filter_sobel_x": [np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])] * 3,
+    "filter_sobel_y": [np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]])] * 3,
+    "filter_prewitt_x": [np.array([[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]])] * 3,
+    "filter_prewitt_y": [np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1]])] * 3,
+    "filter_laplacian": [np.array([[0, 1, 0], [1, -4, 1], [0, 1, 0]])] * 3,
+    "filter_laplacian_diag": [np.array([[1, 1, 1], [1, -8, 1], [1, 1, 1]])] * 3,
+    "filter_laplacian_gaussian": [np.array([[0, 0, -1, 0, 0], [0, -1, -2, -1, 0], [-1, -2, 16, -2, -1], [0, -1, -2, -1, 0], [0, 0, -1, 0, 0]])] * 3,
+    "filter_randoml_33": [np.array([[random.randint(-10, 10) for _ in range(3)] for _ in range(3)])] * 3,
+    "filter_randoml_55": [np.array([[random.randint(-1, 1) for _ in range(5)] for _ in range(5)])] * 3,
+    "filter_test": [np.array([[-30, -21, 7], [-19, 10, -1], [-4, -2, 8]])] * 3
 }
 
 
@@ -321,36 +321,30 @@ def i_kernels_to_vector(filter_name, filters, output_path="o_kernel.txt", bitwid
     print(f"VHDL i_kernel saved to {output_path}")
 
 
-if __name__ == '__main__':
-    image_path = r"C:\Users\UF523TCH\Documents\GIT\YOLO-FPGA-VHDL\SRC\COCOTB\conv\wolf.jpg"
+def plot_compare(img):
+    filter_names = ["filter_edge",
+                    "filter_emboss",
+                    "filter_identity",
+                    "filter_laplacian_diag",
+                    "filter_prewitt_x",
+                    "filter_prewitt_y",
+                    "filter_randoml_33",
+                    "filter_ridge",
+                    "filter_sharp",
+                    "filter_sobel_x",
+                    "filter_sobel_y",
+                    "filter_blur",
+                    "filter_gaussian_33"]
 
-    # Choose filters
-    filter_name1 = "filter_laplacian"
-    filter1 = filters[filter_name1]
-    filter_name2 = "filter_test"
-    filter2 = filters[filter_name2]
+    filter_samples = [filters[name] for name in filter_names]
+    biases = [-1 for _ in range(len(filter_samples[0]))]
 
-    # Choose biases (one for each filter)
-    biases = [-1 for _ in range(len(filter1))]
-
-    # Create an image object
-    img = Image(image_path)
-
-    # Perform convolution with the filters
-    output1 = img.conv2d(filter1, biases, padding=1, stride=1)
-    output2 = img.conv2d(filter2, biases, padding=1, stride=1)
-    output2 = output2 / 100
-
-    # Loop through all the filters and plot the results
-    # img.loop_through_filters(filters, biases, padding=0)
-    print(img.charac())
-
-    # img.i_data_to_vhdl_vector()
-    # i_kernels_to_vector("filter_test", filters)
+    outputs = []
+    for filter in filter_samples:
+        outputs.append(img.conv2d(filter, biases, padding=1, stride=1))
 
     # Reconstruct images from file
-    images = reconstruct_image(
-        r"C:\Users\UF523TCH\Documents\GIT\Modelsim\conv_output_results.txt", 64)
+    images = reconstruct_image(r"C:\Users\UF523TCH\Documents\GIT\Modelsim\conv_output_results.txt", 64)
     images[1] = images[1] / 100
 
     # Plot each image on the same graph with expected outputs
@@ -363,16 +357,11 @@ if __name__ == '__main__':
         axes[0, i].axis('off')
         axes[0, i].set_title(f'Reconstructed Image {i + 1}')
 
-        # Plot the expected value from output1 and output2
-        # Adjust indexing as per your expected output structure
-        axes[1, 0].imshow(output1[:, :, i], cmap='gray')
-        axes[1, 0].axis('off')
-        axes[1, 0].set_title(f'Expected Output for {filter_name1}')
-
-        # Adjust indexing as per your expected output structure
-        axes[1, 1].imshow(output2[:, :, i], cmap='gray')
-        axes[1, 1].axis('off')
-        axes[1, 1].set_title(f'Expected Output for {filter_name2}')
+        # Plot the expected output from filter_samples
+        if i < len(outputs):
+            axes[1, i].imshow(outputs[i], cmap='gray')
+            axes[1, i].axis('off')
+            axes[1, i].set_title(f'Expected Output for {filter_names[i]}')
 
     plt.tight_layout()
     plt.show()
