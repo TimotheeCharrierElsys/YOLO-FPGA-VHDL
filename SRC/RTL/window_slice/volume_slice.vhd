@@ -53,7 +53,7 @@ architecture volume_slice_arch of volume_slice is
     signal start_processing          : std_logic                          := '0';                                                                        --! Signal to start processing
     signal data_valid_previous_state : std_logic                          := '0';                                                                        --! Previous state of the data_valid signal
     signal sliced_output_data        : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Buffer for output data
-
+    signal o_done_previous_state     : std_logic;                                                                                                        --! Signal to delay the o_done to deal with the (0,0) index when conv is done
 begin
 
     -------------------------------------------------------------------------------------
@@ -81,7 +81,7 @@ begin
             current_col               <= 0;
             start_processing          <= '0';
             data_valid_previous_state <= '0';
-            o_done                    <= '0';
+            o_done_previous_state     <= '0';
             o_computation_start       <= '0';
 
         elsif rising_edge(clock) then
@@ -98,30 +98,24 @@ begin
                     start_processing    <= '1';
                     o_computation_start <= '1';
                 else
-                    o_done              <= '0';
-                    o_computation_start <= '0';
+                    o_done_previous_state <= '0';
+                    o_computation_start   <= '0';
                 end if;
 
                 -- If input data is valid, start the index computation
                 if (start_processing = '1') then
-
-                    -- Start next computation
                     if (i_last_computation_done = '1') then
 
-                        -- Boundaries limit
-                        if (current_row = OUTPUT_SIZE - 1 and current_col = OUTPUT_SIZE - 1) then
-                            o_computation_start <= '0';
-                        else
-                            o_computation_start <= '1';
-                        end if;
+                        -- Start next computation
+                        o_computation_start <= '1';
 
                         -- Update the new index
                         if current_col = OUTPUT_SIZE - 1 then
                             current_col <= 0;
                             if current_row = OUTPUT_SIZE - 1 then
-                                current_row      <= 0;
-                                o_done           <= '1';
-                                start_processing <= '0';
+                                current_row           <= 0;
+                                o_done_previous_state <= '1';
+                                start_processing      <= '0';
                             else
                                 current_row <= current_row + 1;
                             end if;
@@ -139,5 +133,6 @@ begin
     -- Output signals update for control
     o_current_row <= std_logic_vector(to_unsigned(OUTPUT_SIZE - 1 - current_row, integer(ceil(log2(real(OUTPUT_SIZE))))));
     o_current_col <= std_logic_vector(to_unsigned(OUTPUT_SIZE - 1 - current_col, integer(ceil(log2(real(OUTPUT_SIZE))))));
+    o_done        <= o_done_previous_state;
 
 end volume_slice_arch;

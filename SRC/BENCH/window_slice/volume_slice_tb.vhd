@@ -8,6 +8,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
+use IEEE.MATH_REAL.all;
 
 library LIB_RTL;
 use LIB_RTL.types_pkg.all;
@@ -42,8 +43,8 @@ architecture volume_slice_tb_arch of volume_slice_tb is
     signal o_data                  : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
     signal o_done                  : std_logic;
     signal o_computation_start     : std_logic;
-    signal o_current_row           : std_logic_vector(OUTPUT_SIZE - 1 downto 0);
-    signal o_current_col           : std_logic_vector(OUTPUT_SIZE - 1 downto 0);
+    signal o_current_row           : std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);
+    signal o_current_col           : std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -68,11 +69,10 @@ architecture volume_slice_tb_arch of volume_slice_tb is
             o_data                  : out t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             o_done                  : out std_logic;
             o_computation_start     : out std_logic;
-            o_current_row           : out std_logic_vector(OUTPUT_SIZE - 1 downto 0);
-            o_current_col           : out std_logic_vector(OUTPUT_SIZE - 1 downto 0)
+            o_current_row           : out std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);
+            o_current_col           : out std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0)
         );
     end component;
-
 begin
     -------------------------------------------------------------------------------------
     -- UNIT UNDER TEST (UUT)
@@ -178,7 +178,7 @@ end architecture;
 configuration volume_slice_tb_conf of volume_slice_tb is
     for volume_slice_tb_arch
         for UUT : volume_slice
-            use configuration LIB_RTL.volume_slice_conf;
+            use entity LIB_RTL.volume_slice(volume_slice_arch);
         end for;
     end for;
 end configuration volume_slice_tb_conf;
