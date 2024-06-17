@@ -17,9 +17,11 @@ Welcome to the YOLO implementation on FPGA's documentation!
   real level.
 
 .. toctree::
+  :maxdepth: 1
   :caption: User guide
 
   getting_started
+  convolution
 
 .. toctree::
   :maxdepth: 1
