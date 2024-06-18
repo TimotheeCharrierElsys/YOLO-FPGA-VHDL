@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.signal import convolve2d
 import random
 import os
+import time
 
 filters = {
     "filter_identity": [np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]) for _ in range(3)],
@@ -38,6 +39,7 @@ class conv2d:
         self.output = self.convolution2d()
 
     def convolution2d(self, bias=0):
+        tic = time.perf_counter_ns()
         R = self.img_padded[:, :, 0]
         G = self.img_padded[:, :, 1]
         B = self.img_padded[:, :, 2]
@@ -53,6 +55,9 @@ class conv2d:
 
         # Sum all the convolutions
         conv = conv_R + conv_G + conv_B + bias
+        
+        toc = time.perf_counter_ns()
+        print(f"Executed in {(toc - tic)/1000:0.4f} us")
 
         return conv
 
@@ -170,7 +175,7 @@ def plot_image(img):
 if __name__ == "__main__":
     img = plt.imread(
         r"C:\Users\UF523TCH\Documents\GIT\YOLO-FPGA-VHDL\SRC\COCOTB\conv\wolf.jpg")
-
+    
     # Reconstruct the output image
     images = reconstruct_image(
         r"C:\Users\UF523TCH\Documents\GIT\Modelsim\conv_output_results.txt", 64)
