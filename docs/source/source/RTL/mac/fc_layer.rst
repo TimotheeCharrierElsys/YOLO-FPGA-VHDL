@@ -38,10 +38,10 @@ Generics
      - integer
      - 8
      - Bit width of each operand
-   * - VECTOR_SIZE
+   * - MATRIX_SIZE
      - integer
-     - 8
-     - Input Vector Size
+     - 3
+     - Input Maxtrix Size (squared)
 
 
 Ports
@@ -61,23 +61,23 @@ Ports
    * - reset_n
      - in
      - std_logic
-     - Reset signal, active at low state
-   * - i_enable
+     - Reset signal, active low
+   * - i_sys_enable
      - in
      - std_logic
-     - Enable signal, active at low state
-   * - i_data
+     - Global enable signal, active high
+   * - i_matrix1
      - in
-     - t_vec(VECTOR_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)
-     - Input data
-   * - i_weight
+     - t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)
+     - First input matrix
+   * - i_matrix2
      - in
-     - t_vec(VECTOR_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)
-     - Input weights
-   * - o_sum
+     - t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)
+     - Second input matrix
+   * - o_result
      - out
      - std_logic_vector(2 * BITWIDTH - 1 downto 0)
-     - Output value
+     - Output matrix dot product
 
 
 Signals
@@ -90,12 +90,24 @@ Signals
      - Type
      - Description
    * - r_mult_to_add
-     - t_vec(VECTOR_SIZE - 1 downto 0)(2 * BITWIDTH - 1 downto 0)
+     - t_vec(MATRIX_SIZE * MATRIX_SIZE - 1 downto 0)(2 * BITWIDTH - 1 downto 0)
      - Signal between the multiplications and the additions
+   * - flatten_i_matrix1
+     - t_vec(MATRIX_SIZE * MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)
+     - Flattened i_matrix1
+   * - flatten_i_matrix2
+     - t_vec(MATRIX_SIZE * MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)
+     - Flattened i_matrix2
    * - r_sum
      - std_logic_vector(2 * BITWIDTH - 1 downto 0)
      - Output signal register
 
+
+Processes
+---------
+
+
+* comb_proc: ( i_matrix1, i_matrix2 )
 
 Instantiations
 --------------

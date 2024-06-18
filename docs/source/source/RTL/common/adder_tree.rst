@@ -1,26 +1,26 @@
 
-Entity: binary_adder_tree
-=========================
+Entity: adder_tree
+==================
 
 
-* **File**\ : binary_adder_tree.vhd
-* **Brief:**       This file provides the binary adder tree entity and architecture
+* **File**\ : adder_tree.vhd
+* **File:**        adder_tree
+* **Brief:**       This file provides an adder tree entity and architecture
 * **Author:**      Timothée Charrier
 
 Diagram
 -------
 
 
-.. image:: binary_adder_tree.svg
-   :target: binary_adder_tree.svg
+.. image:: adder_tree.svg
+   :target: adder_tree.svg
    :alt: Diagram
 
 
 Description
 -----------
 
-@Package    binary_adder_tree
-Entity binary_adder_tree
+Entity adder_tree
 This entity implements a pipelined multi-operand adder (MOA).
 It sums multiple operands using a tree structure, reducing the number of inputs
 by half in each stage until the final sum is obtained.
@@ -37,8 +37,8 @@ Generics
      - Description
    * - N_OPD
      - integer
-     - 8
-     - Number of operands (must be a power of 2)
+     - 12
+     - Number of operands
    * - BITWIDTH
      - integer
      - 8
@@ -63,9 +63,13 @@ Ports
      - in
      - std_logic
      - Reset signal, active at low state
+   * - i_sys_enable
+     - in
+     - std_logic
+     - Reset signal, active at low state
    * - i_data
      - in
-     - t_vec(0 to N_OPD - 1)(BITWIDTH - 1 downto 0)
+     - t_vec(N_OPD - 1 downto 0)(BITWIDTH - 1 downto 0)
      - Input data vector
    * - o_data
      - out
@@ -76,14 +80,17 @@ Ports
 Signals
 -------
 
-.. .. list-table::
-..    :header-rows: 1
+.. list-table::
+   :header-rows: 1
 
-..    * - Name
-..      - Type
-..      - Description
-..    * - r_pipeline
-..      - t_mat(0 to N_STAGES)(0 to N_OPD - 1)(BITWIDTH - 1 downto 0)
+   * - Name
+     - Type
+     - Description
+   * - r_next
+     - t_mat(0 to N_STAGES)(0 to (2 ** N_STAGES) - 1)(BITWIDTH - 1 downto 0)
+     - Next state of the pipeline registers
+   * - r_reg
+     - t_mat(0 to N_STAGES)(0 to (2 ** N_STAGES) - 1)(BITWIDTH - 1 downto 0)
 
 
 Constants
@@ -106,7 +113,7 @@ Processes
 ---------
 
 
-* unnamed: ( clock, reset_n )
+* pipeline_control: ( clock, reset_n )
 
   * **Description**
     Process

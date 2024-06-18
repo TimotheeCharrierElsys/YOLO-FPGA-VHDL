@@ -11,6 +11,7 @@ This document describes the three different architectures available for the `con
 This architecture uses a fully connected layer approach to perform the convolution operation. It involves an adder tree to sum the results.
 
 **Dependencies:**
+- `types_pkg.vhd`
 - `adder_tree.vhd`
 - `fc_layer.vhd`
 
@@ -29,9 +30,6 @@ This architecture uses a fully connected layer approach to perform the convoluti
 **Overview:**
 This architecture uses one MAC unit per channel. The MAC units are controlled using a multiplexer that handles the selection of operands and inclusion of bias.
 
-**Dependencies:**
-- `mac_w_mux.vhd`
-
 **Details:**
 - Each channel has a dedicated MAC unit controlled by a multiplexer.
 - The MAC outputs are summed together, and the result is updated based on a selector signal.
@@ -41,12 +39,35 @@ This architecture uses one MAC unit per channel. The MAC units are controlled us
    :target: fig/architecture-conv_layer_one_mac_arch.drawio.svg
    :alt: Diagram
 
+3. **Conv layer architecture**
+------------------------------
 
+The conv layer instantiate one entity per filter/kernel number to perform the computation. It takes one sliced matrix and kernel per channels. It computes the and return the 
+result, while raising a *done flag* according to the computation delay induced by the DFF.
+
+4. **Conv2D architecture**
+---------------------------
+
+**Overview:**
+The con2d architecture is based on conv_layer and volume_slicer entities.
+
+**Dependencies:**
+- `types_pkg.vhd`
+- `conv_layer.vhd`
+- `mac.vhd`
+- `volume_slicer.vhd`
+
+.. image:: fig/architecture-conv2d.drawio.svg
+   :target: fig/architecture-conv2d.drawio.svg
+   :alt: Diagram
 
 Output Table
 ------------
 
-This is an example of a table containing matrices in reStructuredText (reST) for Sphinx documentation.
+This is an example of the output of the conv2d layer where the input image is a 64x64 RGB image. The hyperparameters
+used are: *Stride=1*, *Padding=1* and with a *Kernel Size=3*. The output size is a 64x64 gray image.
+
+.. image:: fig/wolf.png
 
 +--------------------+-----------------------------------------------+------------------------------------------+
 |     Operation      |                    Kernels                    |               Image result               |
@@ -90,10 +111,11 @@ This is an example of a table containing matrices in reStructuredText (reST) for
 +--------------------+-----------------------------------------------+------------------------------------------+
 | Blur               | .. math::                                     | .. image:: fig/filter_blur.png           |
 |                    |                                               |                                          |
+|                    |    \frac{1}{9}                                |                                          |
 |                    |    \begin{bmatrix}                            |                                          |
-|                    |    \frac{1}{9} & \frac{1}{9} & \frac{1}{9} \\ |                                          |
-|                    |    \frac{1}{9} & \frac{1}{9} & \frac{1}{9} \\ |                                          |
-|                    |    \frac{1}{9} & \frac{1}{9} & \frac{1}{9}    |                                          |
+|                    |    1 & 1 & 1 \\                               |                                          |
+|                    |    1 & 1 & 1 \\                               |                                          |
+|                    |    1 & 1 & 1                                  |                                          |
 |                    |    \end{bmatrix}                              |                                          |
 |                    |                                               |                                          |
 +--------------------+-----------------------------------------------+------------------------------------------+
@@ -173,17 +195,8 @@ This is an example of a table containing matrices in reStructuredText (reST) for
 | Random (3x3)       | .. math::                                     | .. image:: fig/filter_random_33.png      |
 |                    |                                               |                                          |
 |                    |    \begin{bmatrix}                            |                                          |
-|                    |    rand1 & rand2 & rand3 \\                   |                                          |
-|                    |    rand4 & rand5 & rand6 \\                   |                                          |
-|                    |    rand7 & rand8 & rand9                      |                                          |
+|                    |    -10 & 2 & -9 \\                            |                                          |
+|                    |    4 & 7 & -7 \\                              |                                          |
+|                    |    -4 & 9 & -4                                |                                          |
 |                    |    \end{bmatrix}                              |                                          |
-+--------------------+-----------------------------------------------+------------------------------------------+
-| Test               | .. math::                                     | .. image:: fig/filter_test.png           |
-|                    |                                               |                                          |
-|                    |    \begin{bmatrix}                            |                                          |
-|                    |    11 & 11 & 11 \\                            |                                          |
-|                    |    11 & 11 & 11 \\                            |                                          |
-|                    |    11 & 11 & 11                               |                                          |
-|                    |    \end{bmatrix}                              |                                          |
-|                    |                                               |                                          |
 +--------------------+-----------------------------------------------+------------------------------------------+

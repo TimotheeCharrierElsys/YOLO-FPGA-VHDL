@@ -4,6 +4,7 @@ Entity: mac
 
 
 * **File**\ : mac.vhd
+* **File:**        mac
 * **Brief:**       This entity implements a Multiply-Accumulate (mac) unit.
 * **Author:**      Timothée Charrier
 
@@ -19,7 +20,6 @@ Diagram
 Description
 -----------
 
-Entity      mac
 It performs multiplication of two operands followed by an addition
 with a third operand.
 Entity mac
@@ -59,11 +59,11 @@ Ports
    * - reset_n
      - in
      - std_logic
-     - Reset signal, active at low state
-   * - i_enable
+     - Reset signal, active low
+   * - i_sys_enable
      - in
      - std_logic
-     - Enable signal, active at low state
+     - Global enable signal, active high
    * - i_multiplier1
      - in
      - std_logic_vector(BITWIDTH - 1 downto 0)
@@ -86,7 +86,7 @@ Processes
 ---------
 
 
-* unnamed: ( clock, reset_n )
+* mac_operation: ( clock, reset_n )
 
   * **Description**
     Process

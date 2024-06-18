@@ -1,9 +1,10 @@
 
-Entity: mac_w_mux
-=================
+Entity: accumulative_mac
+========================
 
 
-* **File**\ : mac_w_mux.vhd
+* **File**\ : accumulative_mac.vhd
+* **File:**        accumulative_mac
 * **Brief:**       This entity implements a Multiply-Accumulate (MAC) unit.
 * **Author:**      Timothée Charrier
 
@@ -11,20 +12,19 @@ Diagram
 -------
 
 
-.. image:: mac_w_mux.svg
-   :target: mac_w_mux.svg
+.. image:: accumulative_mac.svg
+   :target: accumulative_mac.svg
    :alt: Diagram
 
 
 Description
 -----------
 
-Entity      mac_w_mux
 It performs multiplication of two operands followed by an addition
 with a third operand.
-Entity mac_w_mux
+Entity accumulative_mac
 This entity implements a Multiply-Accumulate (MAC) unit.
-It multiplies two operands and then adds a third operand.
+It multiplies two operands and then adds the output.
 
 Generics
 --------
@@ -59,15 +59,15 @@ Ports
    * - reset_n
      - in
      - std_logic
-     - Reset signal, active at low state
-   * - i_enable
+     - Reset signal, active low
+   * - i_sys_enable
      - in
      - std_logic
-     - Enable signal, active at high state
-   * - i_sel
+     - Global enable signal, active high
+   * - i_clear
      - in
      - std_logic
-     - Select signal for the MUX (1 for (bias + mult), 0 for (output + mult))
+     - Clear signal, active high
    * - i_multiplier1
      - in
      - std_logic_vector(BITWIDTH - 1 downto 0)
@@ -76,10 +76,6 @@ Ports
      - in
      - std_logic_vector(BITWIDTH - 1 downto 0)
      - Second multiplication operand
-   * - i_bias
-     - in
-     - std_logic_vector(BITWIDTH - 1 downto 0)
-     - Input bias value
    * - o_result
      - out
      - std_logic_vector(2 * BITWIDTH - 1 downto 0)

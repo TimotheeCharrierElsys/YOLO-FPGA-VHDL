@@ -66,23 +66,27 @@ Ports
      - in
      - std_logic
      - Reset signal, active at low state
-   * - i_enable
+   * - i_sys_enable
      - in
      - std_logic
-     - Enable signal, active at low state
+     - Enable signal, active at high state
+   * - i_valid
+     - in
+     - std_logic
+     - Valid signal, one clock cyle active high state
    * - i_data
      - in
-     - t_mat(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE * KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)
+     - t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)
      - Input data  (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
    * - i_kernels
      - in
-     - t_mat(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE * KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)
+     - t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)
      - Kernel data (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
    * - i_bias
      - in
      - std_logic_vector(BITWIDTH - 1 downto 0)
      - Input bias value
-   * - o_Y
+   * - o_result
      - out
      - std_logic_vector(2 * BITWIDTH - 1 downto 0)
      - Output value
@@ -101,16 +105,38 @@ Signals
    * - Name
      - Type
      - Description
-   * - mac_out
-     - t_vec(0 to CHANNEL_NUMBER - 1)(2 * BITWIDTH - 1 downto 0)
-     - Intermediate signal to hold the output of each MAC unit for each channel.
-   * - r_count
-     - integer range 0 to KERNEL_SIZE * KERNEL_SIZE - 1
-     - Counter for o_valid data
+   * - r_results
+     - t_vec(CHANNEL_NUMBER downto 0)(2 * BITWIDTH - 1 downto 0)
+     - Intermediate signal to hold the output of each MAC unit for each channel. Add the bias to the vector.
 
 
-Processes
+Constants
 ---------
 
+.. list-table::
+   :header-rows: 1
 
-* unnamed: ( clock, reset_n )
+   * - Name
+     - Type
+     - Value
+     - Description
+   * - N_ADDITION_REG
+     - integer
+     - 1
+     - Number of addition registers.
+   * - N_OUTPUT_REG
+     - integer
+     - 1
+     - Number of output registers.
+   * - DFF_DELAY_UNPIPELINED
+     - integer
+     - N_ADDITION_REG + N_OUTPUT_REG + 1
+     - Total delay when not pipelined
+
+
+Instantiations
+--------------
+
+
+* pipeline_inst: pipeline
+* adder_tree_inst: adder_tree
