@@ -10,7 +10,7 @@ use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
 
 library LIB_RTL;
-use LIB_RTL.types_pkg.all;
+use LIB_RTL.TYPES_PKG.all;
 
 --! Entity fc_layer
 --! This entity implements a full connected layer layer using an adder tree.
@@ -21,8 +21,8 @@ entity fc_layer is
     );
     port (
         clock        : in std_logic;                                                                        --! Clock signal
-        reset_n      : in std_logic;                                                                        --! Reset signal, active at low state
-        i_sys_enable : in std_logic;                                                                        --! Enable signal, active at high state
+        reset_n      : in std_logic;                                                                        --! Reset signal, active low
+        i_sys_enable : in std_logic;                                                                        --! Global enable signal, active high
         i_matrix1    : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! First input matrix
         i_matrix2    : in t_mat(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Second input matrix
         o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0)                                      --! Output matrix dot product

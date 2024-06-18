@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------
---!     Entity      accumulative_mac
+--!     @file       accumulative_mac
 --!     @brief      This entity implements a Multiply-Accumulate (MAC) unit.
 --!                 It performs multiplication of two operands followed by an addition
 --!                 with a third operand.
@@ -19,9 +19,9 @@ entity accumulative_mac is
     );
     port (
         clock         : in std_logic;                                   --! Clock signal
-        reset_n       : in std_logic;                                   --! Reset signal, active at low state
-        i_sys_enable  : in std_logic;                                   --! Enable signal, active at high state
-        i_clear       : in std_logic;                                   --! Clear signal
+        reset_n       : in std_logic;                                   --! Reset signal, active low
+        i_sys_enable  : in std_logic;                                   --! Global enable signal, active high
+        i_clear       : in std_logic;                                   --! Clear signal, active high
         i_multiplier1 : in std_logic_vector(BITWIDTH - 1 downto 0);     --! First multiplication operand
         i_multiplier2 : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Second multiplication operand
         o_result      : out std_logic_vector(2 * BITWIDTH - 1 downto 0) --! Output result value
@@ -59,9 +59,7 @@ begin
         end if;
     end process;
 
-    -------------------------------------------------------------------------------------
-    -- OUTPUT ASSIGNMENT
-    -------------------------------------------------------------------------------------
+    -- Output update
     o_result <= mac_out;
 
 end accumulative_mac_arch;

@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------
---!     Entity      mac
+--!     @file       mac
 --!     @brief      This entity implements a Multiply-Accumulate (mac) unit.
 --!                 It performs multiplication of two operands followed by an addition
 --!                 with a third operand.
@@ -19,8 +19,8 @@ entity mac is
     );
     port (
         clock         : in std_logic;                                   --! Clock signal
-        reset_n       : in std_logic;                                   --! Reset signal, active at low state
-        i_sys_enable  : in std_logic;                                   --! Enable signal, active at low state
+        reset_n       : in std_logic;                                   --! Reset signal, active low
+        i_sys_enable  : in std_logic;                                   --! Global enable signal, active high
         i_multiplier1 : in std_logic_vector(BITWIDTH - 1 downto 0);     --! First multiplication operand
         i_multiplier2 : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Second multiplication operand
         i_add         : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Accumulation operand

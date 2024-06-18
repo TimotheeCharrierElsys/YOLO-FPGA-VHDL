@@ -1,10 +1,10 @@
 -----------------------------------------------------------------------------------
---! @file       volume_slice
---! @brief      This file provides a volume slicing entity
---! @details    This entity takes an input matrix volume and slices a window 
---!             for each channel from it based on the specified row and column indices.
---!             It outputs the sliced window as a separate volume matrix.
---! @author     Timothée Charrier
+--!     @file       volume_slice
+--!     @brief      This file provides a volume slicing entity
+--!     @details    This entity takes an input matrix volume and slices a window 
+--!                 for each channel from it based on the specified row and column indices.
+--!                 It outputs the sliced window as a separate volume matrix.
+--!     @author     Timothée Charrier
 -----------------------------------------------------------------------------------
 
 library IEEE;
@@ -54,6 +54,7 @@ architecture volume_slice_arch of volume_slice is
     signal data_valid_previous_state : std_logic                          := '0';                                                                        --! Previous state of the data_valid signal
     signal sliced_output_data        : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Buffer for output data
     signal o_done_previous_state     : std_logic;                                                                                                        --! Signal to delay the o_done to deal with the (0,0) index when conv is done
+
 begin
 
     -------------------------------------------------------------------------------------

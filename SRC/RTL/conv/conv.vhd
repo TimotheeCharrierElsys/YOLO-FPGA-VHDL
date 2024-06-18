@@ -12,17 +12,17 @@ use IEEE.NUMERIC_STD.all;
 use IEEE.MATH_REAL.all;
 
 library LIB_RTL;
-use LIB_RTL.types_pkg.all;
+use LIB_RTL.TYPES_PKG.all;
 
 --! Entity conv
 --! This entity implements a convolution operation
 entity conv is
     generic (
         BITWIDTH       : integer := 8; --! Bit width of each operand
-        INPUT_SIZE     : integer := 5; --! Width and Height of the input
+        INPUT_SIZE     : integer := 64; --! Width and Height of the input
         CHANNEL_NUMBER : integer := 3; --! Number of channels in the input
         KERNEL_SIZE    : integer := 3; --! Size of the kernel
-        KERNEL_NUMBER  : integer := 1; --! Number of kernels
+        KERNEL_NUMBER  : integer := 3; --! Number of kernels
         PADDING        : integer := 1; --! Padding value
         STRIDE         : integer := 2  --! Stride value 
     );

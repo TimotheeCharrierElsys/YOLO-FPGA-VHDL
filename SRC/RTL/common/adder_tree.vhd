@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------
---!     @Package    adder_tree
+--!     @file       adder_tree
 --!     @brief      This file provides an adder tree entity and architecture
 --!     @author     Timothée Charrier
 -----------------------------------------------------------------------------------
@@ -10,7 +10,7 @@ use IEEE.NUMERIC_STD.all;
 use IEEE.MATH_REAL.all;
 
 library LIB_RTL;
-use LIB_RTL.types_pkg.all;
+use LIB_RTL.TYPES_PKG.all;
 
 --! Entity adder_tree
 --! This entity implements a pipelined multi-operand adder (MOA).
@@ -89,10 +89,7 @@ begin
         end if;
     end process pipeline_control;
 
-    -------------------------------------------------------------------------------------
-    -- OUTPUT ASSIGNMENT
-    -------------------------------------------------------------------------------------
-    -- Assign the final output data from the first stage of the register
+    -- Output update
     o_data <= r_reg(0)(0);
 
 end adder_tree_pipelined_arch;
@@ -158,7 +155,7 @@ begin
         end if;
     end process pipeline_control;
 
-    -- Assign the final output data from the first stage of the intermediate sums
+    -- Output update
     o_data <= r_output;
 
 end adder_tree_arch;

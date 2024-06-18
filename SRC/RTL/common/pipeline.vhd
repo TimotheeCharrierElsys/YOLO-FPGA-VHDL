@@ -1,7 +1,16 @@
+-----------------------------------------------------------------------------------
+--!     @file       pipeline
+--!     @brief      This entity implements a register pipeline
+--!                 It delays the input by the constant value N_STAGES
+--!     @author     Timothée Charrier
+-----------------------------------------------------------------------------------
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
 
+--! Entity pipeline
+--! This entity implements a pipeline.
 entity pipeline is
     generic (
         N_STAGES : integer := 4 --! Number of pipeline stages
@@ -32,7 +41,8 @@ begin
     -------------------------------------------------------------------------------------
     -- GENERATE PROCESS
     -------------------------------------------------------------------------------------
-    -- Generate pipeline registers
+    --! Process
+    --! Handles the synchronous and asynchronous operations of the pipeline.
     gen_pipeline : for i in 0 to N_STAGES - 1 generate
         pipeline_control : process (clock, reset_n)
         begin

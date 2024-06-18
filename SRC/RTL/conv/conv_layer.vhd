@@ -11,7 +11,7 @@ use IEEE.NUMERIC_STD.all;
 use IEEE.MATH_REAL.all;
 
 library LIB_RTL;
-use LIB_RTL.types_pkg.all;
+use LIB_RTL.TYPES_PKG.all;
 
 --! Entity conv_layer
 --! This entity implements a convolution layer using a pipelined MAC unit with a 3x3 kernel.
