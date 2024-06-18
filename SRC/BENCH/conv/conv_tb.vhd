@@ -531,8 +531,8 @@ begin
         -- Wait for output to be valid and write to file
         wait until o_data_valid = '1';
         for k in 0 to KERNEL_NUMBER - 1 loop
-            for i in 0 to ((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1) loop
-                for j in 0 to ((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1) loop
+            for i in ((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1) downto 0 loop
+                for j in ((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1) downto 0 loop
                     write(line_buffer, o_data(k)(i)(j));
                     writeline(output_file, line_buffer);
                 end loop;
