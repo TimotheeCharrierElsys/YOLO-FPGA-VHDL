@@ -12,7 +12,6 @@ COMPILE_ARGS        += -Wno-error
 COMPILE_ARGS        += -g
 SIM_ARGS            += --vcd=$(WAVE_FILE)
 SIM_ARGS            += -gBITWIDTH=16
-SIM_ARGS            += -gSCALE_FACTOR_POWER2=10
 
 PWD=$(shell pwd)
 
