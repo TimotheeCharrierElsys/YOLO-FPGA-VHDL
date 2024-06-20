@@ -22,6 +22,7 @@ Welcome to the YOLO implementation on FPGA's documentation!
 
   getting_started
   convolution
+  activation_function
 
 .. toctree::
   :maxdepth: 0

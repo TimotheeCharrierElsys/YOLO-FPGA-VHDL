@@ -67,13 +67,13 @@ Output Table
 This is an example of the output of the conv2d layer where the input image is a 64x64 RGB image. The hyperparameters
 used are: *Stride=1*, *Padding=1* and with a *Kernel Size=3*. The output size is a 64x64 gray image.
 
-.. image:: fig/wolf.png
+.. image:: fig/filters/wolf.png
 
 +--------------------+-----------------------------------------------+------------------------------------------+
 |     Operation      |                    Kernels                    |               Image result               |
 +====================+===============================================+==========================================+
 |                    |                                               |                                          |
-| Identity           | .. math::                                     | .. image:: fig/filter_identity.png       |
+| Identity           | .. math::                                     | .. image:: fig/filters/identity.png      |
 |                    |                                               |                                          |
 |                    |    \begin{bmatrix}                            |                                          |
 |                    |    0 & 0 & 0 \\                               |                                          |
@@ -82,7 +82,7 @@ used are: *Stride=1*, *Padding=1* and with a *Kernel Size=3*. The output size is
 |                    |    \end{bmatrix}                              |                                          |
 |                    |                                               |                                          |
 +--------------------+-----------------------------------------------+------------------------------------------+
-| Ridge              | .. math::                                     | .. image:: fig/filter_ridge.png          |
+| Ridge              | .. math::                                     | .. image:: fig/filters/ridge.png         |
 |                    |                                               |                                          |
 |                    |    \begin{bmatrix}                            |                                          |
 |                    |    0 & -1 & 0 \\                              |                                          |
@@ -91,7 +91,7 @@ used are: *Stride=1*, *Padding=1* and with a *Kernel Size=3*. The output size is
 |                    |    \end{bmatrix}                              |                                          |
 |                    |                                               |                                          |
 +--------------------+-----------------------------------------------+------------------------------------------+
-| Edge               | .. math::                                     | .. image:: fig/filter_edge.png           |
+| Edge               | .. math::                                     | .. image:: fig/filters/edge.png          |
 |                    |                                               |                                          |
 |                    |    \begin{bmatrix}                            |                                          |
 |                    |    -1 & -1 & -1 \\                            |                                          |
@@ -100,7 +100,7 @@ used are: *Stride=1*, *Padding=1* and with a *Kernel Size=3*. The output size is
 |                    |    \end{bmatrix}                              |                                          |
 |                    |                                               |                                          |
 +--------------------+-----------------------------------------------+------------------------------------------+
-| Sharp              | .. math::                                     | .. image:: fig/filter_sharp.png          |
+| Sharp              | .. math::                                     | .. image:: fig/filters/sharp.png         |
 |                    |                                               |                                          |
 |                    |    \begin{bmatrix}                            |                                          |
 |                    |    0 & -1 & 0 \\                              |                                          |
@@ -109,7 +109,7 @@ used are: *Stride=1*, *Padding=1* and with a *Kernel Size=3*. The output size is
 |                    |    \end{bmatrix}                              |                                          |
 |                    |                                               |                                          |
 +--------------------+-----------------------------------------------+------------------------------------------+
-| Blur               | .. math::                                     | .. image:: fig/filter_blur.png           |
+| Blur               | .. math::                                     | .. image:: fig/filters/blur.png          |
 |                    |                                               |                                          |
 |                    |    \frac{1}{9}                                |                                          |
 |                    |    \begin{bmatrix}                            |                                          |
@@ -119,7 +119,7 @@ used are: *Stride=1*, *Padding=1* and with a *Kernel Size=3*. The output size is
 |                    |    \end{bmatrix}                              |                                          |
 |                    |                                               |                                          |
 +--------------------+-----------------------------------------------+------------------------------------------+
-| Gaussian (3x3)     | .. math::                                     | .. image:: fig/filter_gaussian_33.png    |
+| Gaussian (3x3)     | .. math::                                     | .. image:: fig/filters/gaussian_33.png   |
 |                    |                                               |                                          |
 |                    |    \frac{1}{16}                               |                                          |
 |                    |    \begin{bmatrix}                            |                                          |
@@ -129,7 +129,7 @@ used are: *Stride=1*, *Padding=1* and with a *Kernel Size=3*. The output size is
 |                    |    \end{bmatrix}                              |                                          |
 |                    |                                               |                                          |
 +--------------------+-----------------------------------------------+------------------------------------------+
-| Emboss             | .. math::                                     | .. image:: fig/filter_emboss.png         |
+| Emboss             | .. math::                                     | .. image:: fig/filters/emboss.png        |
 |                    |                                               |                                          |
 |                    |    \begin{bmatrix}                            |                                          |
 |                    |    -2 & -1 & 0 \\                             |                                          |
@@ -138,7 +138,7 @@ used are: *Stride=1*, *Padding=1* and with a *Kernel Size=3*. The output size is
 |                    |    \end{bmatrix}                              |                                          |
 |                    |                                               |                                          |
 +--------------------+-----------------------------------------------+------------------------------------------+
-| Sobel X            | .. math::                                     | .. image:: fig/filter_sobel_x.png        |
+| Sobel X            | .. math::                                     | .. image:: fig/filters/sobel_x.png       |
 |                    |                                               |                                          |
 |                    |    \begin{bmatrix}                            |                                          |
 |                    |    -1 & 0 & 1 \\                              |                                          |
@@ -147,7 +147,7 @@ used are: *Stride=1*, *Padding=1* and with a *Kernel Size=3*. The output size is
 |                    |    \end{bmatrix}                              |                                          |
 |                    |                                               |                                          |
 +--------------------+-----------------------------------------------+------------------------------------------+
-| Sobel Y            | .. math::                                     | .. image:: fig/filter_sobel_y.png        |
+| Sobel Y            | .. math::                                     | .. image:: fig/filters/sobel_y.png       |
 |                    |                                               |                                          |
 |                    |    \begin{bmatrix}                            |                                          |
 |                    |    -1 & -2 & -1 \\                            |                                          |
@@ -156,7 +156,7 @@ used are: *Stride=1*, *Padding=1* and with a *Kernel Size=3*. The output size is
 |                    |    \end{bmatrix}                              |                                          |
 |                    |                                               |                                          |
 +--------------------+-----------------------------------------------+------------------------------------------+
-| Prewitt X          | .. math::                                     | .. image:: fig/filter_prewitt_x.png      |
+| Prewitt X          | .. math::                                     | .. image:: fig/filters/prewitt_x.png     |
 |                    |                                               |                                          |
 |                    |    \begin{bmatrix}                            |                                          |
 |                    |    -1 & 0 & 1 \\                              |                                          |
@@ -165,7 +165,7 @@ used are: *Stride=1*, *Padding=1* and with a *Kernel Size=3*. The output size is
 |                    |    \end{bmatrix}                              |                                          |
 |                    |                                               |                                          |
 +--------------------+-----------------------------------------------+------------------------------------------+
-| Prewitt Y          | .. math::                                     | .. image:: fig/filter_prewitt_y.png      |
+| Prewitt Y          | .. math::                                     | .. image:: fig/filters/prewitt_y.png     |
 |                    |                                               |                                          |
 |                    |    \begin{bmatrix}                            |                                          |
 |                    |    -1 & -1 & -1 \\                            |                                          |
@@ -174,7 +174,7 @@ used are: *Stride=1*, *Padding=1* and with a *Kernel Size=3*. The output size is
 |                    |    \end{bmatrix}                              |                                          |
 |                    |                                               |                                          |
 +--------------------+-----------------------------------------------+------------------------------------------+
-| Laplacian          | .. math::                                     | .. image:: fig/filter_laplacian.png      |
+| Laplacian          | .. math::                                     | .. image:: fig/filters/laplacian.png     |
 |                    |                                               |                                          |
 |                    |    \begin{bmatrix}                            |                                          |
 |                    |    0 & 1 & 0 \\                               |                                          |
@@ -183,7 +183,7 @@ used are: *Stride=1*, *Padding=1* and with a *Kernel Size=3*. The output size is
 |                    |    \end{bmatrix}                              |                                          |
 |                    |                                               |                                          |
 +--------------------+-----------------------------------------------+------------------------------------------+
-| Laplacian Diagonal | .. math::                                     | .. image:: fig/filter_laplacian_diag.png |
+| Laplacian Diagonal | .. math::                                     | .. image:: fig/filters/laplacian_diag.png|
 |                    |                                               |                                          |
 |                    |    \begin{bmatrix}                            |                                          |
 |                    |    1 & 1 & 1 \\                               |                                          |
@@ -192,7 +192,7 @@ used are: *Stride=1*, *Padding=1* and with a *Kernel Size=3*. The output size is
 |                    |    \end{bmatrix}                              |                                          |
 |                    |                                               |                                          |
 +--------------------+-----------------------------------------------+------------------------------------------+
-| Random (3x3)       | .. math::                                     | .. image:: fig/filter_random_33.png      |
+| Random (3x3)       | .. math::                                     | .. image:: fig/filters/random_33.png     |
 |                    |                                               |                                          |
 |                    |    \begin{bmatrix}                            |                                          |
 |                    |    -10 & 2 & -9 \\                            |                                          |
