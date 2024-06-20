@@ -1,10 +1,10 @@
 
-Entity: conv_layer
-==================
+Entity: conv2d_layer
+====================
 
 
-* **File**\ : conv_layer.vhd
-* **File:**        conv_layer
+* **File**\ : conv2d_layer.vhd
+* **File:**        conv2d_layer
 * **Brief:**       This entity implements a convolution layer using three different architectures.
 * **Author:**      Timothée Charrier
 
@@ -12,16 +12,16 @@ Diagram
 -------
 
 
-.. image:: conv_layer.svg
-   :target: conv_layer.svg
+.. image:: conv2d_layer.svg
+   :target: conv2d_layer.svg
    :alt: Diagram
 
 
 Description
 -----------
 
-It performs conv_layer operations.
-Entity conv_layer
+It performs conv2d_layer operations.
+Entity conv2d_layer
 This entity implements a convolution layer using a pipelined MAC unit with a 3x3 kernel.
 
 Generics

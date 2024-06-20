@@ -1,7 +1,7 @@
-Convolution Layer Architectures
-===============================
+Convolution 2D Layer Architectures
+==================================
 
-This document describes the three different architectures available for the `conv_layer` entity, which implements a convolution layer using various methods. Each architecture has unique characteristics and dependencies.
+This document describes the three different architectures available for the `conv2d_layer` entity, which implements a convolution layer using various methods. Each architecture has unique characteristics and dependencies.
 
 
 1. **Fully Connected Architecture**
@@ -20,8 +20,8 @@ This architecture uses a fully connected layer approach to perform the convoluti
 - The outputs of the fully connected layers are summed and added to the bias.
 - The design ensures proper delay handling using a constant `DFF_DELAY` and the design can be fully pipelined or only the output can be pipelined according to needs.
 
-.. image:: fig/architecture-conv_layer_fc_arch.drawio.svg
-   :target: fig/architecture-conv_layer_fc_arch.drawio.svg
+.. image:: fig/architecture-conv2d_layer_fc_arch.drawio.svg
+   :target: fig/architecture-conv2d_layer_fc_arch.drawio.svg
    :alt: Diagram
 
 2. **One MAC per Channel Architecture**
@@ -35,8 +35,8 @@ This architecture uses one MAC unit per channel. The MAC units are controlled us
 - The MAC outputs are summed together, and the result is updated based on a selector signal.
 - The architecture includes handling of synchronous and asynchronous operations with proper reset logic.
 
-.. image:: fig/architecture-conv_layer_one_mac_arch.drawio.svg
-   :target: fig/architecture-conv_layer_one_mac_arch.drawio.svg
+.. image:: fig/architecture-conv2d_layer_one_mac_arch.drawio.svg
+   :target: fig/architecture-conv2d_layer_one_mac_arch.drawio.svg
    :alt: Diagram
 
 3. **Conv layer architecture**
@@ -49,11 +49,11 @@ result, while raising a *done flag* according to the computation delay induced b
 ---------------------------
 
 **Overview:**
-The con2d architecture is based on conv_layer and volume_slicer entities.
+The con2d architecture is based on conv2d_layer and volume_slicer entities.
 
 **Dependencies:**
 - `types_pkg.vhd`
-- `conv_layer.vhd`
+- `conv2d_layer.vhd`
 - `mac.vhd`
 - `volume_slicer.vhd`
 

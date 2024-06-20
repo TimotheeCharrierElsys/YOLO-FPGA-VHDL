@@ -34,14 +34,9 @@ Welcome to the YOLO implementation on FPGA's documentation!
   source/RTL/mac/mac
   source/RTL/mac/accumulative_mac
   source/RTL/mac/fc_layer
-  source/RTL/conv/conv_layer
+  source/RTL/conv/conv2d_layer
   source/RTL/window_slice/volume_slice
   source/RTL/conv/conv
-
-.. toctree::
-  :caption: Modules
-
-  modules/common/doc/module_common
 
 .. toctree::
   :caption: Bibliography

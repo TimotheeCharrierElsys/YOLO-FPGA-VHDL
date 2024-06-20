@@ -5,7 +5,7 @@ Entity: conv
 
 * **File**\ : conv.vhd
 * **File:**        conv
-* **Brief:**       This entity implements a convolution using conv_layer units
+* **Brief:**       This entity implements a convolution using conv2d_layer units
 * **Details:**     This entity takes an input matrix volume and applies convolution
 * **Author:**      Timothée Charrier
 
@@ -127,17 +127,17 @@ Signals
      - Matrix volume with input padded on all channels
    * - sliced_input_volume
      - t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)
-     - Sliced volume for conv_layer input
+     - Sliced volume for conv2d_layer input
    * - output_data_reg
      - t_volume(KERNEL_NUMBER - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(2 * BITWIDTH - 1 downto 0)
      - Register to store the output data
    * - conv_result
      - t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0)
-     - Output result of the conv_layer
+     - Output result of the conv2d_layer
    * - conv_start
      - std_logic
      - Signal to start convolution
-   * - conv_layer_done
+   * - conv2d_layer_done
      - std_logic
      - Signal indicating convolution layer completion
    * - row_index
