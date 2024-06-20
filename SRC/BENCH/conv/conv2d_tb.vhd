@@ -7,10 +7,10 @@ use std.textio.all;
 library LIB_RTL;
 use LIB_RTL.types_pkg.all;
 
-entity conv_tb is
+entity conv2d_tb is
 end;
 
-architecture conv_tb_arch of conv_tb is
+architecture conv2d_tb_arch of conv2d_tb is
     -- Clock period
     constant i_clk_period : time := 5 ns;
     -- Generics
@@ -35,7 +35,7 @@ architecture conv_tb_arch of conv_tb is
     -- File variables
     file output_file : text;
 
-    component conv
+    component conv2d
         generic (
             BITWIDTH       : integer;
             INPUT_SIZE     : integer;
@@ -60,7 +60,7 @@ architecture conv_tb_arch of conv_tb is
 
 begin
 
-    UUT : conv
+    UUT : conv2d
     generic map(
         BITWIDTH       => BITWIDTH,
         INPUT_SIZE     => INPUT_SIZE,
@@ -526,7 +526,7 @@ begin
         i_data_valid <= '0';
 
         -- Open the file
-        file_open(output_file, "conv_output_results.txt", write_mode);
+        file_open(output_file, "conv2d_output_results.txt", write_mode);
 
         -- Wait for output to be valid and write to file
         wait until o_data_valid = '1';
@@ -546,12 +546,12 @@ begin
         wait;
 
     end process stimulus;
-end conv_tb_arch;
+end conv2d_tb_arch;
 
-configuration conv_tb_conf of conv_tb is
-    for conv_tb_arch
-        for UUT : conv
-            use configuration LIB_RTL.conv_fc_conf;
+configuration conv2d_tb_conf of conv2d_tb is
+    for conv2d_tb_arch
+        for UUT : conv2d
+            use configuration LIB_RTL.conv2d_fc_conf;
         end for;
     end for;
-end configuration conv_tb_conf;
+end configuration conv2d_tb_conf;
