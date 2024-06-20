@@ -40,6 +40,7 @@ architecture silu_activation_arch of silu_activation is
     constant HARDSWISH_DIVISION_FACTOR    : integer := DIVISION_SCALE_FACTOR / 6;
 
     signal i_data_signed : signed(BITWIDTH - 1 downto 0);
+    signal o_data_signed : signed(3 * BITWIDTH - 1 downto 0);
 
 begin
 
@@ -60,7 +61,7 @@ begin
             hardswish_addition       := (others => '0');
             hardswish_multiplication := (others => '0');
             hardswish_division       := (others => '0');
-            o_data                   <= (others => '0');
+            o_data_signed <= (others            => '0');
 
         elsif rising_edge(clock) then
             if i_sys_enable = '1' then
@@ -82,10 +83,11 @@ begin
                 else -- Test if x > 3
                     hardswish_division := resize(i_data_signed, 3 * BITWIDTH);
                 end if;
-
-                -- Output update
-                o_data <= std_logic_vector(resize(hardswish_division, 2 * BITWIDTH));
+                o_data_signed <= hardswish_division;
             end if;
         end if;
     end process;
+
+    -- Output update
+    o_data <= std_logic_vector(resize(o_data_signed, 2 * BITWIDTH));
 end architecture;
