@@ -14,9 +14,10 @@ SOURCES             := $(SRC_DIR)/types_pkg.vhd \
 					   $(SRC_DIR)/window_slice/volume_slice.vhd \
 					   $(SRC_DIR)/conv/conv2d_layer.vhd \
 					   $(SRC_DIR)/conv/conv2d.vhd \
+					   $(SRC_DIR)/maxpool/maxpool2d_layer.vhd \
 
-TESTBENCH           := $(BENCH_DIR)/conv/conv2d_tb.vhd
-TOPLEVEL            := conv2d_tb
+TESTBENCH           := $(BENCH_DIR)/maxpool/maxpool2d_layer_tb.vhd
+TOPLEVEL            := maxpool2d_layer_tb
 WAVE_FILE           := wave_$(TOPLEVEL).vcd
 
 # GHDL Settings
@@ -24,7 +25,7 @@ GHDL_CMD            := ghdl
 GHDL_FLAGS          := --std=08 -Wno-error -v --work=LIB_RTL
 
 # Simulation Settings
-S_TIME              := 100us
+S_TIME              := 100ns
 
 # Targets
 .PHONY: all compile simulate clean
