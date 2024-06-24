@@ -7,7 +7,7 @@ Installation guide
 Cloning the repo
 ^^^^^^^^^^^^^^^^
 
-Open a CMD and run
+Open a terminal and run
 
 .. code-block:: bash
 
