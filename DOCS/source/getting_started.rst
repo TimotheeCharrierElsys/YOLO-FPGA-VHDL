@@ -40,7 +40,7 @@ and the install the package for building the documentation
 
    pip install -r requirements.txt
 
-You are now ready to go to build the documentation. Go to the ``/DOCS`` folder and run 
+You are now ready to go to build the documentation. Go to the ``DOCS`` folder and run 
 
 .. code-block:: bash
 
