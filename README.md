@@ -23,8 +23,7 @@ Install package for virtual environment support:
 apt install python3.10-venv
 ```
 
-Then create a virtual environment:
-
+Then create a virtual environement at the root of the project:
 
 ```bash
 python3 -m venv .venv

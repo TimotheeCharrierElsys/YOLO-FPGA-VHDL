@@ -28,7 +28,7 @@ Install package for virtual environement support:
 
     apt install python3.10-venv
 
-Then create a virtual environement:
+Then create a virtual environement at the root of the project:
 
 .. code-block:: bash
 
