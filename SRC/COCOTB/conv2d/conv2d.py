@@ -4,6 +4,8 @@ from scipy.signal import convolve2d
 import random
 import os
 import time
+import torch
+from torch.nn import MaxPool2d
 
 filters = {
     "filter_identity": [np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]) for _ in range(3)],
@@ -36,7 +38,8 @@ class conv2d:
         self.filter = filter
         self.stride = stride
         self.padding = padding
-        self.output = self.convolution2d()
+        self.conv2d_output = self.convolution2d()
+        self.maxpool2d_output = self.maxpool2d()
 
     def convolution2d(self, bias=0):
         tic = time.perf_counter_ns()
@@ -55,11 +58,42 @@ class conv2d:
 
         # Sum all the convolutions
         conv = conv_R + conv_G + conv_B + bias
-        
+
         toc = time.perf_counter_ns()
         print(f"Executed in {(toc - tic)/1000:0.4f} us")
 
         return conv
+
+    def maxpool2d(self, kernel_size=3, stride=1, padding=0):
+        # Add padding to the input array
+        if padding > 0:
+            padded_input = np.pad(self.conv2d_output, ((
+                padding, padding), (padding, padding)), mode='constant', constant_values=0)
+        else:
+            padded_input = self.conv2d_output
+
+        # Get the dimensions of the padded input
+        (h, w) = padded_input.shape
+
+        # Calculate the dimensions of the output after pooling
+        out_h = (h - kernel_size + 2*padding) // stride + 1
+        out_w = (w - kernel_size + 2*padding) // stride + 1
+
+        # Initialize the pooled output
+        pooled_output = np.zeros((out_h, out_w))
+
+        # Perform max pooling
+        for i in range(out_h):
+            for j in range(out_w):
+                h_start = i * stride
+                h_end = h_start + kernel_size
+                w_start = j * stride
+                w_end = w_start + kernel_size
+
+                pooled_output[i, j] = np.max(
+                    padded_input[h_start:h_end, w_start:w_end])
+
+        return pooled_output
 
     def __str__(self):
         return f"conv2d(img, filter, stride={self.stride}, padding={self.padding})"
@@ -174,16 +208,26 @@ def plot_image(img):
 
 if __name__ == "__main__":
     img = plt.imread(
-        r"C:\Users\UF523TCH\Documents\GIT\YOLO-FPGA-VHDL\SRC\COCOTB\conv\wolf.jpg")
-    
-    # Reconstruct the output image
-    images = reconstruct_image(
-        r"C:\Users\UF523TCH\Documents\GIT\Modelsim\conv_output_results.txt", 64)
+        r"/home/tim/YOLO-FPGA-VHDL/SRC/COCOTB/conv2d/wolf.jpg")
 
-    # Plot the images
-    for i, image in enumerate(images):
-        plt.figure(figsize=(4, 4))
-        plt.imshow(image, cmap='gray')
-        plt.axis('off')
-        plt.savefig(
-            f"./output_images/output_image_{i}.png", bbox_inches='tight', pad_inches=0, dpi=1000)
+    # Apply ridge filter to the image
+    filter_ridge_conv2d_output = conv2d(
+        img, filters["filter_ridge"]).conv2d_output
+
+    # Show the result
+    plt.figure(figsize=(4, 4))
+    plt.imshow(filter_ridge_conv2d_output)
+    plt.axis('off')
+    plt.tight_layout()
+    plt.show()
+
+    # Apply conv2d and maxpool2d
+    filter_ridge_maxpool2d_output = conv2d(
+        img, filters["filter_ridge"]).maxpool2d_output
+
+    # Show the result
+    plt.figure(figsize=(4, 4))
+    plt.imshow(filter_ridge_maxpool2d_output)
+    plt.axis('off')
+    plt.tight_layout()
+    plt.show()
