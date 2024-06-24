@@ -1,5 +1,5 @@
-YOLO HDL implementation!
-========================
+YOLO HDL implementation
+=======================
 
 .. |pic_repository| image:: fig/repository.svg
   :alt: Repository
