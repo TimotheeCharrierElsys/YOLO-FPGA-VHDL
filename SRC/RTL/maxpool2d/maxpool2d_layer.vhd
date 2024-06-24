@@ -76,7 +76,7 @@ begin
     -- GENERATE PROCESS
     -------------------------------------------------------------------------------------
     --! Process
-    --! Handles the synchronous and asynchronous operations of the pipeline.
+    --! Handles the synchronous and asynchronous operations
     gen_pipeline : for i in 0 to CHANNEL_NUMBER - 1 generate
         find_max_process : process (clock, reset_n)
             variable max_value  : signed(BITWIDTH - 1 downto 0); --! Variable to store the maximum value

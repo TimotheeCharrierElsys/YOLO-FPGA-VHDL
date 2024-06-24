@@ -1,8 +1,8 @@
 -----------------------------------------------------------------------------------
 --!     @file       maxpool2d
---!     @brief      This entity implements a convolution using maxpool2d_layer units
---!     @details    This entity takes an input matrix volume and applies convolution
---!                 using multiple kernels, producing an output matrix.
+--!     @brief      This entity implements a max pooling using maxpool2d_layer units
+--!     @details    This entity takes an input matrix volume and applies maxpool2d
+--!                 producing an output matrix.
 --!     @author     Timothée Charrier
 -----------------------------------------------------------------------------------
 
@@ -50,8 +50,8 @@ architecture maxpool2d_arch of maxpool2d is
     signal padded_input_data    : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Matrix volume with input padded on all channels
     signal sliced_input_volume  : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);             --! Sliced volume for maxpool2d_layer input
     signal maxpool2d_result     : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);                                                                    --! Output result of the maxpool2d_layer
-    signal maxpool2d_start      : std_logic;                                                                                                                    --! Signal to start convolution
-    signal maxpool2d_layer_done : std_logic;                                                                                                                    --! Signal indicating convolution layer completion
+    signal maxpool2d_start      : std_logic;                                                                                                                    --! Signal to start maxpool
+    signal maxpool2d_layer_done : std_logic;                                                                                                                    --! Signal indicating maxpooling layer completion
     signal row_index            : std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                                        --! Current row index
     signal col_index            : std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                                        --! Current column index
 
@@ -159,8 +159,8 @@ begin
     -------------------------------------------------------------------------------------
     -- PROCESS ASYNC (RESET ACTIVE LOW)
     -------------------------------------------------------------------------------------
-    --! Process handling synchronous and asynchronous operations of the convolution
-    conv_control : process (clock, reset_n)
+    --! Process handling synchronous and asynchronous operations of the maxpool2d
+    maxpool2d_control : process (clock, reset_n)
     begin
         if reset_n = '0' then
             -- Reset output register to zeros
@@ -175,7 +175,7 @@ begin
                 end if;
             end if;
         end if;
-    end process conv_control;
+    end process maxpool2d_control;
 
 end architecture;
 
