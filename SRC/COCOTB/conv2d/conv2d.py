@@ -39,7 +39,6 @@ class conv2d:
         self.stride = stride
         self.padding = padding
         self.conv2d_output = self.convolution2d()
-        self.maxpool2d_output = self.maxpool2d()
 
     def convolution2d(self, bias=0):
         tic = time.perf_counter_ns()
@@ -64,13 +63,13 @@ class conv2d:
 
         return conv
 
-    def maxpool2d(self, kernel_size=3, stride=1, padding=0):
+    def maxpool2d(self, input, kernel_size=3, stride=1, padding=0):
         # Add padding to the input array
         if padding > 0:
-            padded_input = np.pad(self.conv2d_output, ((
+            padded_input = np.pad(input, ((
                 padding, padding), (padding, padding)), mode='constant', constant_values=0)
         else:
-            padded_input = self.conv2d_output
+            padded_input = input
 
         # Get the dimensions of the padded input
         (h, w) = padded_input.shape
@@ -107,7 +106,7 @@ def reconstruct_image(file_path, image_width):
     with open(file_path, 'r') as file:
         for line in file:
             # Convert each line to a float and append to the data list
-            data.append(binary_to_signed_32bit(line.strip()))
+            data.append(binary_to_signed(line.strip()))
 
     file.close()
 
@@ -133,20 +132,8 @@ def reconstruct_image(file_path, image_width):
     return images
 
 
-def binary_to_signed_32bit(bin_str):
-    # Check if the binary string is 32 bits
-    if len(bin_str) != 32:
-        raise ValueError("The binary string must be exactly 32 bits long.")
-
-    # Check if the number is negative
-    if bin_str[0] == '1':
-        # Compute the two's complement
-        inverted_bin_str = ''.join('1' if b == '0' else '0' for b in bin_str)
-        neg_value = int(inverted_bin_str, 2) + 1
-        return -neg_value
-    else:
-        # The number is positive
-        return int(bin_str, 2)
+def binary_to_signed(bin_str):
+    return int(bin_str, 2)
 
 
 def plot_images(folder_path, filters):
