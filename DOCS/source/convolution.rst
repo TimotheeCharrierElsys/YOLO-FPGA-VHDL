@@ -55,7 +55,10 @@ The con2d architecture is based on conv2d_layer and volume_slicer entities.
 - `types_pkg.vhd`
 - `conv2d_layer.vhd`
 - `mac.vhd`
+- `pipeline.vhd`
 - `volume_slicer.vhd`
+
+The following image illustrates the architecture of maxpool2d, by applying a convolution operation with 4 filters to an RGB image.
 
 .. image:: fig/architecture-conv2d.drawio.svg
    :target: fig/architecture-conv2d.drawio.svg
