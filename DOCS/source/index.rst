@@ -18,6 +18,7 @@ YOLO HDL implementation!
   getting_started
   convolution
   activation_function
+  maxpool
   modules
 
 
