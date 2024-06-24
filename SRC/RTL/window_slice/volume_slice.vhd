@@ -65,7 +65,7 @@ begin
         begin
             for row in 0 to KERNEL_SIZE - 1 loop
                 for col in 0 to KERNEL_SIZE - 1 loop
-                    sliced_output_data(i)(row)(col) <= i_data(i)(current_row + (KERNEL_SIZE - 1) - row)(current_col + (KERNEL_SIZE - 1) - col);
+                    sliced_output_data(i)(row)(col) <= i_data(i)(current_row * STRIDE + (KERNEL_SIZE - 1) - row)(current_col * STRIDE + (KERNEL_SIZE - 1) - col);
                 end loop;
             end loop;
         end process;
