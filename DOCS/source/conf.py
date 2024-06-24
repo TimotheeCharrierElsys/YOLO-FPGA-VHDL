@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'YOLO implementation on FPGA'
+project = 'HDL CNN'
 copyright = '2024, Timothée CHARRIER'
 author = 'Timothée CHARRIER'
 
