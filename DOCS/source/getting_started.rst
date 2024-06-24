@@ -11,62 +11,50 @@ Open a CMD and run
 
 .. code-block:: bash
 
-   git clone https://github.com/TimotheeCharrierElsys/YOLO-FPGA-VHDL/tree/dev
+   git clone https://github.com/TimotheeCharrierElsys/YOLO-FPGA-VHDL.git
 
-Installing WSL2
-^^^^^^^^^^^^^^^
-
-.. hint::
-    Not required, only if needed or for Linux environment
-
-Open a PowerShell as administrator and run
+An go to `dev` branch
 
 .. code-block:: bash
 
-   wls --install
+   git checkout dev
 
-Then follow the instructions.
+Setup virtual environment
+"""""""""""""""""""""""""
 
-Installing dependencies
-"""""""""""""""""""""""
-
-Install GHDL
+Install package for virtual environement support:
 
 .. code-block:: bash
 
-    sudo apt install gtkwave ghdl
+    apt install python3.10-venv
 
-Install Python3 (after running a `sudo apt update` and `sudo apt upgrade`):
-
-.. code-block:: bash
-
-    sudo apt install python3-pip
-
-Then, cocotb can be installed by running
+Then create a virtual environement:
 
 .. code-block:: bash
-   
-    pip3 install cocotb
 
-You are now ready to go!
+   python3 -m venv .venv
 
-Installing dependencies for documentation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Open a bash terminal and run
+and the install the package for building the documentation
 
 .. code-block:: bash
 
    pip install -r requirements.txt
 
-Source code
------------
+You are now ready to go to build the documentation. Go to the ``/DOCS`` folder and run 
+
+.. code-block:: bash
+
+   make html
+
+Open the build ``DOCS/build/index.html``.
+
+Informations
+""""""""""""
 
 Synthesizable source code is found in the ``SRC/RTL`` folder.
 Testbench source code is found in the ``SRC/BENCH`` folder.
 
 The library ``types_pkg`` is required for all modules.
-
 
 .. warning::
     All files must be handled as VHDL-2008.
