@@ -15,11 +15,14 @@ The SiLU (Sigmoid Linear Unit) function is also known as the swish function:
 
 
 This non-linear function is very difficult to compute in hardware. For our project, we can use an approximation where sigmoid function is replaced
-with its piece-wise linear hard analog :math:`\frac{\text{ReLU6}(x+3)}{6}`, giving us our approximated SiLU function (also referred as hard-swish):
+with its piece-wise linear hard analog :math:`\frac{\text{ReLU6}(x+3)}{6}`, giving us our approximated SiLU function (also referred as Hardswish):
 
 .. math::
-
-    \text{hard-swish}(x) = x \frac{\text{ReLU6}(x+3)}{6}
+   \text{Hardswish}(x) = x \cdot \frac{\text{ReLU6}(x+3)}{6} = \begin{cases}
+   0                  & \text{if}~ x \le -3, \\
+   x                  & \text{if}~ x \ge +3, \\
+   x \cdot (x + 3) /6 & \text{otherwise}
+   \end{cases}
 
 The graph of the two functions is shown below:
 
@@ -43,7 +46,7 @@ The division by 6 is the main reason of the accuracy loss. It was implemented us
 
     \frac{1}{6} \approx \frac{2^{\text{N}}}{6} \gg \text{N} \text{ where N is a power of 2}
 
-The higher N, the better the computed accuracy. The following plot shows the absolute error between the **HDL implementation** and **hard-swish** functions:
+The higher N, the better the computed accuracy. The following plot shows the absolute error between the **HDL implementation** and **Hardswish** functions:
 
 .. image:: fig/hardswish_computed_vs_hardswish_abs_error_plot.svg
    :target: fig/hardswish_computed_vs_hardswish_abs_error_plot.svg
