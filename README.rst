@@ -1,44 +1,60 @@
-# Getting started
+Getting started
+===============
 
-## Installation guide
+Installation guide
+------------------
 
-### Cloning the repo
+Cloning the repo
+^^^^^^^^^^^^^^^^
 
 Open a terminal and run
 
-```bash
-git clone https://github.com/TimotheeCharrierElsys/YOLO-FPGA-VHDL.git
-```
+.. code-block:: bash
 
-And go to dev branch
+   git clone https://github.com/TimotheeCharrierElsys/YOLO-FPGA-VHDL.git
 
-```bash
-git checkout dev
-```
+An go to `dev` branch
 
-### Setup virtual environment
-Install package for virtual environment support:
+.. code-block:: bash
 
-```bash
-apt install python3.10-venv
-```
+   git checkout dev
+
+Setup virtual environment
+"""""""""""""""""""""""""
+
+Install package for virtual environement support:
+
+.. code-block:: bash
+
+    apt install python3.10-venv
 
 Then create a virtual environement at the root of the project:
 
-```bash
-python3 -m venv .venv
-```
+.. code-block:: bash
 
-and then install the package for building the documentation
+   python3 -m venv .venv
 
-```bash
-pip install -r requirements.txt
-```
+and the install the package for building the documentation
 
-You are now ready to build the documentation. Go to the ``DOCS`` folder and run
+.. code-block:: bash
 
-```bash
-make html
-```
+   pip install -r requirements.txt
 
-Open the built index in ``DOCS/build/index.html``.
+You are now ready to go to build the documentation. Go to the ``DOCS`` folder and run 
+
+.. code-block:: bash
+
+   make html
+
+Open the build ``DOCS/build/index.html``.
+
+Informations
+""""""""""""
+
+Synthesizable source code is found in the ``SRC/RTL`` folder.
+Testbench source code is found in the ``SRC/BENCH`` folder.
+
+The library ``types_pkg`` is required for all modules.
+
+.. warning::
+    All files must be handled as VHDL-2008.
