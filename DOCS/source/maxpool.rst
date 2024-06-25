@@ -40,7 +40,7 @@ used are: *Stride=1*, *Padding=1* and with a *Kernel Size=3*. The output size is
 Here is the output with the recombined channels:
 
 +-----------------------------------------+-----------------------------------------------+
-|     Original                            |             HDL Output                        |   
+|     Original                            |             HDL Output                        |
 +=========================================+===============================================+
 | .. image:: fig/maxpool/sv.png           | .. image:: fig/maxpool/maxpooled_sv.png       |
 +-----------------------------------------+-----------------------------------------------+

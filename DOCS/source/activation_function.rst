@@ -2,7 +2,7 @@ SiLU Activation function
 ===============================
 
 This document describes the implementation choices and considerations for implementing SiLU activation function in VHDL.
-See this `article <https://arxiv.org/pdf/1905.02244>`_ :cite:p:`howard2019searching` for more details.
+See this `article <https://arxiv.org/pdf/1905.02244>`__ :cite:p:`howard2019searching` for more details.
 
 1. **Overwiew**
 ---------------
@@ -45,8 +45,8 @@ The division by 6 is the main reason of the accuracy loss. It was implemented us
 
 The higher N, the better the computed accuracy. The following plot shows the absolute error between the **HDL implementation** and **hard-swish** functions:
 
-.. image:: fig/absolute_error_hardswish.svg
-   :target: fig/absolute_error_hardswish.svg
+.. image:: fig/hardswish_computed_vs_hardswish_abs_error_plot.svg
+   :target: fig/hardswish_computed_vs_hardswish_abs_error_plot.svg
    :alt: Diagram
 
 The error is higher on the polynomial part where the division is computed. The main advantage with this implementaion is that it only requires one addition, two multiplications
@@ -58,6 +58,6 @@ and one arithmetic shift as shown below:
 
 The following plot shows the absolute error between the **HDL implementation** and **SiLU** functions:
 
-.. image:: fig/absolute_error_silu.svg
-   :target: fig/absolute_error_silu.svg
+.. image:: fig/silu_hardswish_abs_error_plot.svg
+   :target: fig/silu_hardswish_abs_error_plot.svg
    :alt: Diagram
