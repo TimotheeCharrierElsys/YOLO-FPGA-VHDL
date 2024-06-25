@@ -174,6 +174,43 @@ def plot_images(folder_path, filters):
     plt.show()
 
 
+def i_data_to_vhdl_vector(img, output_path, bitwidth=16):
+    """
+    Convert the image pixels to a VHDL vector format.
+    Returns:
+        str: VHDL formatted string representing the image pixels.
+    """
+    rows, cols, _ = img.shape
+    print(rows, cols)
+
+    def pixel_to_vhdl(value, bitwidth):
+        return f"std_logic_vector(to_signed({value}, {bitwidth}))"
+
+    # Prepare VHDL data for each channel
+    vhdl_data = {'R': [], 'G': [], 'B': []}
+
+    for channel, channel_name in enumerate(['R', 'G', 'B']):
+        channel_data = []
+        for row in range(rows):
+            row_data = [pixel_to_vhdl(img[row, col, channel], bitwidth)
+                        for col in range(cols)]
+            channel_data.append(f"({', '.join(row_data)})")
+        vhdl_data[channel_name] = channel_data
+
+    # Generate VHDL formatted string
+    vhdl_string = ""
+    for i, channel_name in enumerate(['R', 'G', 'B']):
+        vhdl_string += f"i_data({i}) <= (\n"
+        vhdl_string += ",\n".join(vhdl_data[channel_name])
+        vhdl_string += "\n);\n"
+
+    # Save the output to a file
+    with open(output_path, 'w') as file:
+        file.write(vhdl_string)
+
+    print(f"VHDL i_data saved to {output_path}")
+
+
 def plot_image(img):
     files = os.listdir("output_images")
     for i, file in enumerate(files):
@@ -203,18 +240,7 @@ if __name__ == "__main__":
 
     # Show the result
     plt.figure(figsize=(4, 4))
-    plt.imshow(filter_ridge_conv2d_output)
-    plt.axis('off')
-    plt.tight_layout()
-    plt.show()
-
-    # Apply conv2d and maxpool2d
-    filter_ridge_maxpool2d_output = conv2d(
-        img, filters["filter_ridge"]).maxpool2d_output
-
-    # Show the result
-    plt.figure(figsize=(4, 4))
-    plt.imshow(filter_ridge_maxpool2d_output)
+    plt.imshow(filter_ridge_conv2d_output, cmap="gray")
     plt.axis('off')
     plt.tight_layout()
     plt.show()
