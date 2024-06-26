@@ -231,56 +231,6 @@ def plot_image(img):
                 f"./output_images/computed_{file}.png", bbox_inches='tight', pad_inches=0, dpi=1000)
 
 
-def plot_activation():
-    # Load the image
-    img_path = r"/home/tim/YOLO-FPGA-VHDL/SRC/COCOTB/conv2d/wolf.jpg"
-    img = plt.imread(img_path)
-
-    def hw(x):
-        if x <= -3 * 1024:
-            return 0
-        elif x <= 3 * 1024:
-            return x * (x + 3 * 1024) / (6*1024)
-        else:
-            return x
-
-    def SiLU(x):
-        return x * 1024/(1 + np.exp(-x))
-
-    # Vectorize the Hardswish function
-    vectorized_hw = np.vectorize(hw)
-    vectorized_SilU = np.vectorize(SiLU)
-
-    # Perform convolution
-    filter_ridge_conv2d_output = conv2d(
-        img, filters["filter_ridge"]).conv2d_output
-
-    # Apply the Hardswish activation function
-    output_act = vectorized_hw(filter_ridge_conv2d_output)
-
-    print('in')
-    print(filter_ridge_conv2d_output)
-    print("out")
-    print(output_act)
-
-    # Plot the original and the transformed images using subplots
-    plt.figure(figsize=(8, 4))  # Adjust the size to accommodate two subplots
-
-    # Original image
-    plt.subplot(1, 2, 1)
-    plt.imshow(filter_ridge_conv2d_output, cmap="gray")
-    plt.title("Original")
-    plt.axis('off')
-
-    # Image after activation
-    plt.subplot(1, 2, 2)
-    plt.imshow(output_act, cmap="gray")
-    plt.title("After Hardswish")
-    plt.axis('off')
-
-    plt.show()
-
-
 if __name__ == "__main__":
     img = plt.imread(
         r"/home/tim/YOLO-FPGA-VHDL/SRC/COCOTB/conv2d/wolf.jpg")
@@ -295,5 +245,3 @@ if __name__ == "__main__":
     plt.axis('off')
     plt.tight_layout()
     plt.show()
-
-    plot_activation()
