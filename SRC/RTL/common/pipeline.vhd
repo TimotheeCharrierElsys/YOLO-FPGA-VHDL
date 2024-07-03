@@ -39,26 +39,25 @@ architecture pipeline_arch of pipeline is
 begin
 
     -------------------------------------------------------------------------------------
-    -- GENERATE PROCESS
+    -- PROCESS
     -------------------------------------------------------------------------------------
     --! Process
     --! Handles the synchronous and asynchronous operations of the pipeline.
-    gen_pipeline : for i in 0 to N_STAGES - 1 generate
-        pipeline_control : process (clock, reset_n)
-        begin
-            if reset_n = '0' then
+    process (clock, reset_n)
+    begin
+        if reset_n = '0' then
+            for i in 0 to N_STAGES - 1 loop
                 pipeline_regs(i) <= '0';
-            elsif rising_edge(clock) then
-                if i_sys_enable = '1' then
-                    if i = 0 then
-                        pipeline_regs(i) <= i_data;
-                    else
-                        pipeline_regs(i) <= pipeline_regs(i - 1);
-                    end if;
-                end if;
+            end loop;
+        elsif rising_edge(clock) then
+            if i_sys_enable = '1' then
+                pipeline_regs(0) <= i_data;
+                for i in 1 to N_STAGES - 1 loop
+                    pipeline_regs(i) <= pipeline_regs(i - 1);
+                end loop;
             end if;
-        end process pipeline_control;
-    end generate;
+        end if;
+    end process;
 
     -- Output the last stage of the pipeline
     o_data <= pipeline_regs(N_STAGES - 1);
