@@ -4,9 +4,6 @@ from scipy.signal import convolve2d
 import random
 import os
 import time
-import torch
-from torch.nn import MaxPool2d
-import torchvision.transforms as transforms
 
 filters = {
     "filter_identity": [np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]) for _ in range(3)],
@@ -132,9 +129,12 @@ def reconstruct_image(file_path, image_width):
 
     return images
 
-
-def binary_to_signed(bin_str):
-    return int(bin_str, 2)
+def binary_to_signed(binary_str):
+    # Convert binary string to signed integer
+    if binary_str[0] == '1':  # If the sign bit is 1, the number is negative
+        return -((1 << len(binary_str)) - int(binary_str, 2))
+    else:
+        return int(binary_str, 2)
 
 
 def plot_images(folder_path, filters):
@@ -233,15 +233,23 @@ def plot_image(img):
 
 if __name__ == "__main__":
     img = plt.imread(
-        r"/home/tim/YOLO-FPGA-VHDL/SRC/COCOTB/conv2d/wolf.jpg")
+        r"C:\Users\UF523TCH\Documents\GIT\YOLO-FPGA-VHDL\SRC\COCOTB\conv2d\wolf.jpg")
 
     # Apply ridge filter to the image
-    filter_ridge_conv2d_output = conv2d(
-        img, filters["filter_ridge"]).conv2d_output
+    filter_edge_conv2d_output = conv2d(
+        img, filters["filter_edge"]).conv2d_output
 
     # Show the result
     plt.figure(figsize=(4, 4))
-    plt.imshow(filter_ridge_conv2d_output, cmap="gray")
+    plt.imshow(filter_edge_conv2d_output, cmap="gray")
     plt.axis('off')
     plt.tight_layout()
-    plt.show()
+    
+    images = reconstruct_image(r"C:\Users\UF523TCH\Documents\GIT\Modelsim\conv2d_output_results.txt", 64)
+    
+    for idx, img in enumerate(images):
+        plt.figure(figsize=(4, 4))
+        plt.imshow(img, cmap="gray")
+        plt.axis('off')
+        plt.tight_layout()
+        plt.show()
