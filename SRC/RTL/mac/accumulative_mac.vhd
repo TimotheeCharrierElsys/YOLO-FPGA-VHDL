@@ -43,6 +43,8 @@ begin
     --! Process
     --! Handles the synchronous and asynchronous operations of the MAC unit.
     process (clock, reset_n)
+        variable mult_result : std_logic_vector(2 * BITWIDTH - 1 downto 0); --! Multiplication result
+        variable sum_result  : std_logic_vector(2 * BITWIDTH downto 0);     --! Sum result with extra bit for overflow detection
     begin
         if reset_n = '0' then
             -- Reset output register to zeros
@@ -52,8 +54,19 @@ begin
                 if (i_clear = '1') then
                     mac_out <= (others => '0');
                 else
-                    -- Multiplication and addition
-                    mac_out <= std_logic_vector(signed(mac_out) + signed(i_multiplier1) * signed(i_multiplier2));
+                    -- Multiplication
+                    mult_result := std_logic_vector(signed(i_multiplier1) * signed(i_multiplier2));
+
+                    -- Addition with overflow detection
+                    sum_result := std_logic_vector(resize(signed(mac_out), 2 * BITWIDTH + 1) + resize(signed(mult_result), 2 * BITWIDTH + 1));
+
+                    -- Check for overflow and handle it
+                    if sum_result(2 * BITWIDTH) /= sum_result(2 * BITWIDTH - 1) then
+                        -- Overflow occurred, handle accordingly (e.g., saturate or wrap around)
+                        mac_out <= (others => '1');
+                    else
+                        mac_out <= sum_result(2 * BITWIDTH - 1 downto 0);
+                    end if;
                 end if;
             end if;
         end if;
