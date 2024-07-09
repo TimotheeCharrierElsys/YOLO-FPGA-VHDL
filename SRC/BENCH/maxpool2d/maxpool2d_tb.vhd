@@ -1,3 +1,10 @@
+-----------------------------------------------------------------------------------
+--!     @file    maxpool2d_tb
+--!     @brief        This testbench verifies the functionality of the maxpool2d entity
+--!     @details      It initializes the inputs, applies test vectors, and checks the outputs.
+--!     @author       Timothée Charrier
+-----------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -11,9 +18,10 @@ entity maxpool2d_tb is
 end;
 
 architecture maxpool2d_tb_arch of maxpool2d_tb is
-    -- Clock period
-    constant i_clk_period : time := 5 ns;
-    -- Generics
+    -------------------------------------------------------------------------------------
+    -- CONSTANTS
+    -------------------------------------------------------------------------------------
+    constant i_clk_period   : time    := 5 ns;
     constant BITWIDTH       : integer := 16;
     constant INPUT_SIZE     : integer := 64;
     constant CHANNEL_NUMBER : integer := 3;
@@ -21,7 +29,9 @@ architecture maxpool2d_tb_arch of maxpool2d_tb is
     constant PADDING        : integer := 1;
     constant STRIDE         : integer := 1;
 
-    -- Ports
+    -------------------------------------------------------------------------------------
+    -- SIGNALS
+    -------------------------------------------------------------------------------------
     signal clock        : std_logic                                                                                                      := '0';
     signal reset_n      : std_logic                                                                                                      := '0';
     signal i_sys_enable : std_logic                                                                                                      := '0';
@@ -29,10 +39,11 @@ architecture maxpool2d_tb_arch of maxpool2d_tb is
     signal i_data       : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0) := (others => (others => (others => (others => '0'))));
     signal o_data       : t_volume(CHANNEL_NUMBER - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)(BITWIDTH - 1 downto 0);
     signal o_data_valid : std_logic;
+    file output_file    : text;
 
-    -- File variables
-    file output_file : text;
-
+    -------------------------------------------------------------------------------------
+    -- COMPONENTS
+    -------------------------------------------------------------------------------------
     component maxpool2d
         generic (
             BITWIDTH       : integer;
@@ -54,7 +65,9 @@ architecture maxpool2d_tb_arch of maxpool2d_tb is
     end component;
 
 begin
-
+    -------------------------------------------------------------------------------------
+    -- UNIT UNDER TEST (UUT)
+    -------------------------------------------------------------------------------------
     UUT : maxpool2d
     generic map(
         BITWIDTH       => BITWIDTH,
@@ -88,25 +101,6 @@ begin
         wait for i_clk_period;
         reset_n      <= '1';
         i_sys_enable <= '1';
-
-        -- For smaller verifications
-        -- i_data(0) <= (
-        -- (std_logic_vector(to_signed(12, 16)), std_logic_vector(to_signed(-5, 16)), std_logic_vector(to_signed(7, 16))),
-        -- (std_logic_vector(to_signed(3, 16)), std_logic_vector(to_signed(-20, 16)), std_logic_vector(to_signed(9, 16))),
-        -- (std_logic_vector(to_signed(-15, 16)), std_logic_vector(to_signed(25, 16)), std_logic_vector(to_signed(14, 16)))
-        -- );
-
-        -- i_data(1) <= (
-        -- (std_logic_vector(to_signed(-11, 16)), std_logic_vector(to_signed(6, 16)), std_logic_vector(to_signed(-7, 16))),
-        -- (std_logic_vector(to_signed(18, 16)), std_logic_vector(to_signed(-22, 16)), std_logic_vector(to_signed(13, 16))),
-        -- (std_logic_vector(to_signed(5, 16)), std_logic_vector(to_signed(-9, 16)), std_logic_vector(to_signed(20, 16)))
-        -- );
-
-        -- i_data(2) <= (
-        -- (std_logic_vector(to_signed(8, 16)), std_logic_vector(to_signed(-4, 16)), std_logic_vector(to_signed(10, 16))),
-        -- (std_logic_vector(to_signed(-14, 16)), std_logic_vector(to_signed(19, 16)), std_logic_vector(to_signed(-21, 16))),
-        -- (std_logic_vector(to_signed(16, 16)), std_logic_vector(to_signed(-3, 16)), std_logic_vector(to_signed(23, 16)))
-        -- );
 
         i_data(0) <= (
         (std_logic_vector(to_signed(185, 16)), std_logic_vector(to_signed(187, 16)), std_logic_vector(to_signed(187, 16)), std_logic_vector(to_signed(141, 16)), std_logic_vector(to_signed(185, 16)), std_logic_vector(to_signed(198, 16)), std_logic_vector(to_signed(122, 16)), std_logic_vector(to_signed(130, 16)), std_logic_vector(to_signed(64, 16)), std_logic_vector(to_signed(74, 16)), std_logic_vector(to_signed(59, 16)), std_logic_vector(to_signed(63, 16)), std_logic_vector(to_signed(62, 16)), std_logic_vector(to_signed(63, 16)), std_logic_vector(to_signed(66, 16)), std_logic_vector(to_signed(64, 16)), std_logic_vector(to_signed(66, 16)), std_logic_vector(to_signed(71, 16)), std_logic_vector(to_signed(51, 16)), std_logic_vector(to_signed(69, 16)), std_logic_vector(to_signed(53, 16)), std_logic_vector(to_signed(64, 16)), std_logic_vector(to_signed(71, 16)), std_logic_vector(to_signed(67, 16)), std_logic_vector(to_signed(53, 16)), std_logic_vector(to_signed(74, 16)), std_logic_vector(to_signed(61, 16)), std_logic_vector(to_signed(55, 16)), std_logic_vector(to_signed(72, 16)), std_logic_vector(to_signed(45, 16)), std_logic_vector(to_signed(69, 16)), std_logic_vector(to_signed(60, 16)), std_logic_vector(to_signed(73, 16)), std_logic_vector(to_signed(59, 16)), std_logic_vector(to_signed(63, 16)), std_logic_vector(to_signed(56, 16)), std_logic_vector(to_signed(56, 16)), std_logic_vector(to_signed(65, 16)), std_logic_vector(to_signed(54, 16)), std_logic_vector(to_signed(63, 16)), std_logic_vector(to_signed(76, 16)), std_logic_vector(to_signed(56, 16)), std_logic_vector(to_signed(70, 16)), std_logic_vector(to_signed(71, 16)), std_logic_vector(to_signed(57, 16)), std_logic_vector(to_signed(73, 16)), std_logic_vector(to_signed(53, 16)), std_logic_vector(to_signed(65, 16)), std_logic_vector(to_signed(80, 16)), std_logic_vector(to_signed(69, 16)), std_logic_vector(to_signed(63, 16)), std_logic_vector(to_signed(52, 16)), std_logic_vector(to_signed(74, 16)), std_logic_vector(to_signed(59, 16)), std_logic_vector(to_signed(67, 16)), std_logic_vector(to_signed(64, 16)), std_logic_vector(to_signed(69, 16)), std_logic_vector(to_signed(62, 16)), std_logic_vector(to_signed(57, 16)), std_logic_vector(to_signed(60, 16)), std_logic_vector(to_signed(68, 16)), std_logic_vector(to_signed(71, 16)), std_logic_vector(to_signed(67, 16)), std_logic_vector(to_signed(62, 16))),
