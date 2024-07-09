@@ -1,7 +1,6 @@
 -----------------------------------------------------------------------------------
 --!     @file       mean
---!     @brief      This entity implements a pipelined fully connected layer.
---!                 It performs multiplication and then additions
+--!     @brief      This entity implements a layer that computes the mean channel-wise.
 --!     @author     Timothée Charrier
 -----------------------------------------------------------------------------------
 
@@ -14,7 +13,6 @@ library LIB_RTL;
 use LIB_RTL.TYPES_PKG.all;
 
 --! Entity mean
---! This entity implements a full connected layer layer using an adder tree.
 entity mean is
     generic (
         BITWIDTH                         : integer := 16; --! Bit width of each operand
@@ -43,12 +41,11 @@ architecture mean_arch of mean is
     -------------------------------------------------------------------------------------
     -- CONSTANTS
     -------------------------------------------------------------------------------------
-    constant DIVISION_SCALE_FACTOR : integer := 2 ** DIVISION_SCALE_FACTOR_POWER_OF_2;
-    constant MEAN_DIVISION_FACTOR  : integer := DIVISION_SCALE_FACTOR / (MATRIX_SIZE * MATRIX_SIZE);
-
-    constant N_ADDITION_REG        : integer := 1;                             --! Number of addition registers in adder_tree.
-    constant N_OUTPUT_REG          : integer := 1;                             --! Number of output registers.
-    constant DFF_DELAY_UNPIPELINED : integer := N_ADDITION_REG + N_OUTPUT_REG; --! Total delay when not pipelined
+    constant DIVISION_SCALE_FACTOR : integer := 2 ** DIVISION_SCALE_FACTOR_POWER_OF_2;               --! Power of two to scale the data for division
+    constant MEAN_DIVISION_FACTOR  : integer := DIVISION_SCALE_FACTOR / (MATRIX_SIZE * MATRIX_SIZE); --! Value to multiply (then shift) for division
+    constant N_ADDITION_REG        : integer := 1;                                                   --! Number of addition registers in adder_tree.
+    constant N_OUTPUT_REG          : integer := 1;                                                   --! Number of output registers.
+    constant DFF_DELAY_UNPIPELINED : integer := N_ADDITION_REG + N_OUTPUT_REG;                       --! Total delay when not pipelined
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
@@ -65,11 +62,11 @@ architecture mean_arch of mean is
             BITWIDTH : integer
         );
         port (
-            clock        : in std_logic;                                    --! Clock signal
-            reset_n      : in std_logic;                                    --! Reset signal, active at low state
-            i_sys_enable : in std_logic;                                    --! Reset signal, active at low state
-            i_data       : in t_vec(0 to N_OPD - 1)(BITWIDTH - 1 downto 0); --! Input data vector
-            o_data       : out std_logic_vector(BITWIDTH - 1 downto 0)      --! Output data
+            clock        : in std_logic;
+            reset_n      : in std_logic;
+            i_sys_enable : in std_logic;
+            i_data       : in t_vec(0 to N_OPD - 1)(BITWIDTH - 1 downto 0);
+            o_data       : out std_logic_vector(BITWIDTH - 1 downto 0)
         );
     end component;
 
@@ -88,6 +85,9 @@ architecture mean_arch of mean is
 
 begin
 
+    -------------------------------------------------------------------------------------
+    -- COMBINATIONAL PROCESS TO FLATTEN THE DATAS
+    -------------------------------------------------------------------------------------
     comb_proc : process (i_volume)
     begin
         for c in 0 to CHANNEL_NUMBER - 1 loop
