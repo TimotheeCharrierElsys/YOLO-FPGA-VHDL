@@ -46,7 +46,7 @@ begin
     process (clock, reset_n)
     begin
         if reset_n = '0' then
-            pipeline_regs(i) <= (others => '0');
+            pipeline_regs <= (others => '0');
 
         elsif rising_edge(clock) then
             if i_sys_enable = '1' then
