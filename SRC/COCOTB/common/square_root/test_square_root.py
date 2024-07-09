@@ -42,7 +42,7 @@ async def reset_test(dut):
 @cocotb.test()
 async def computation_test(dut):
 
-   # Start the clock
+    # Start the clock
     clock = Clock(dut.clock, 10, units="ns")
     cocotb.start_soon(clock.start(start_high=False))
 
@@ -50,12 +50,13 @@ async def computation_test(dut):
     await reset_dut(dut)
     assert dut.o_data.value == 0, "Output was not reset correctly"
 
+    # Enable the system
+    dut.i_sys_enable.value = 1
+
+    # Test for x > 1
     X = np.arange(0, 65534)
     expected_output = np.sqrt(X)
     gotten_output = []
-
-    # Enable the system
-    dut.i_sys_enable.value = 1
 
     for i in X:
         dut.i_data.value = int(i)
@@ -63,6 +64,26 @@ async def computation_test(dut):
 
         output_value = dut.o_data.value.integer
         gotten_output.append(output_value)
+
+    # Plot the results
+    plt.figure()
+    plt.plot(X, expected_output, label='Expected')
+    plt.plot(X, gotten_output, label='Gotten')
+    plt.legend()
+    plt.show()
+
+    # Plot absolute error
+    abs_error = np.abs(expected_output - gotten_output)
+    plt.figure()
+    plt.plot(X, abs_error, label='Absolute Error')
+    plt.legend()
+    plt.show()
+
+
+def test_scale_factor():
+    X = np.linspace(0, 65535, 100000)
+    expected_output = np.sqrt(X)
+    gotten_output = np.sqrt(X * 1e6) / 1024
 
     plt.plot(X, expected_output, label='Expected')
     plt.plot(X, gotten_output, label='gotten')

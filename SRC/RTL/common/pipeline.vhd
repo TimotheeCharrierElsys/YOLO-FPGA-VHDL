@@ -2,7 +2,7 @@
 --!     @file       pipeline
 --!     @brief      This entity implements a register pipeline
 --!                 It delays the input by the constant value N_STAGES
---!     @author     Timothée Charrier
+--!     @author     TimothÃ©e Charrier
 -----------------------------------------------------------------------------------
 
 library IEEE;
@@ -46,9 +46,8 @@ begin
     process (clock, reset_n)
     begin
         if reset_n = '0' then
-            for i in 0 to N_STAGES - 1 loop
-                pipeline_regs(i) <= '0';
-            end loop;
+            pipeline_regs <= (others => '0');
+
         elsif rising_edge(clock) then
             if i_sys_enable = '1' then
                 pipeline_regs(0) <= i_data;
