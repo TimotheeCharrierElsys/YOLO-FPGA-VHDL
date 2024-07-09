@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------------
 --!     @file    maxpool2d_layer_tb
---!     @brief        This testbench verifies the functionality of the conv layer
+--!     @brief        This testbench verifies the functionality of the maxpool2d layer
 --!     @details      It initializes the inputs, applies test vectors, and checks the outputs.
 --!     @author       Timothée Charrier
 -----------------------------------------------------------------------------------
@@ -116,8 +116,9 @@ begin
         i_data_valid <= '1';
         wait for i_clk_period;
         i_data_valid <= '0';
+        wait for i_clk_period;
         -- Check the output
-        assert o_data(0) = std_logic_vector(to_signed(40 - 2, BITWIDTH))
+        assert o_data(0) = std_logic_vector(to_signed(25 - 2, BITWIDTH))
         report "Test failed: output does not match expected output"
             severity error;
         assert o_data(1) = std_logic_vector(to_signed(40 - 2, BITWIDTH))
@@ -140,6 +141,7 @@ begin
         wait for i_clk_period;
         i_data_valid <= '0';
 
+        wait for i_clk_period;
         assert o_data(0) = std_logic_vector(to_signed(100 - 2, BITWIDTH))
         report "Test failed: output does not match expected output"
             severity error;
