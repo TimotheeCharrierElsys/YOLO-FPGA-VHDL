@@ -133,6 +133,9 @@ begin
         o_data       => o_mean_done
     );
 
+    -------------------------------------------------------------------------------------
+    -- PROCESS TO HANDLE SYNCHRONOUS AND ASYNCHRONOUS OPERATIONS
+    -------------------------------------------------------------------------------------
     process (clock, reset_n)
         variable mean_division : t_computation_signed; --! Variable to store the scaled division
     begin
