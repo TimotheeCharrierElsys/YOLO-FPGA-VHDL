@@ -19,6 +19,7 @@ YOLO HDL implementation
   convolution
   activation_function
   maxpool
+  batchnorm2d
   modules
 
 

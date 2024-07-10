@@ -34,6 +34,7 @@ be quantified to understand the impact on the overall performance of the neural 
 
 2. **Hardware implementation**
 ------------------------------
+.. _silu-computation-label:
 
 The Hardswish function is implemented using `std_logic_vector`. These approximations, while small, can accumulate over multiple computations and potentially 
 affect the final output of the neural network. But calculating it without this approximation is very complex and resource-intensive. To avoid using floating point values,
