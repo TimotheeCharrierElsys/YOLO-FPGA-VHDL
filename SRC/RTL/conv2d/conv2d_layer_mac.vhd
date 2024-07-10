@@ -122,7 +122,6 @@ begin
     -- PROCESS TO HANDLE SYNCHRONOUS AND ASYNCHRONOUS OPERATIONS
     -------------------------------------------------------------------------------------
     counter_control : process (clock, reset_n)
-        variable sum : signed(2 * BITWIDTH - 1 downto 0); --! Variable to accumulate the sum of MAC outputs.
     begin
         if reset_n = '0' then
             -- Reset counters  to initial states.
