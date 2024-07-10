@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------------
 --!     @file    mean_tb
---!     @brief        This testbench verifies the functionality of the pipelined mac 3*3
+--!     @brief        This testbench verifies the functionality of the mean module
 --!     @details      It initializes the inputs, applies test vectors, and checks the outputs.
 --!     @author       Timothée Charrier
 -----------------------------------------------------------------------------------
