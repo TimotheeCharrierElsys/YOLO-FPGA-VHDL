@@ -102,7 +102,7 @@ async def computation_test(dut):
         gotten_output.append(output_value)
 
         # Calculate expected output
-        expected_value = silu(i/1024)
+        expected_value = hardswish(i)
         Y.append(expected_value)
 
         # Calculate absolute error

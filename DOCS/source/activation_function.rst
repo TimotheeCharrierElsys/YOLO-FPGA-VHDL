@@ -4,7 +4,7 @@ SiLU Activation function
 This document describes the implementation choices and considerations for implementing SiLU activation function in VHDL.
 See this `article <https://arxiv.org/pdf/1905.02244>`__ :cite:p:`howard2019searching` for more details.
 
-1. **Overwiew**
+**1. Overwiew**
 ---------------
 
 The SiLU (Sigmoid Linear Unit) function is also known as the swish function:
@@ -32,7 +32,7 @@ The graph of the two functions is shown below:
 This approximation, however, leads to slightly different results within this interval. The difference between the actual and approximated values needs to
 be quantified to understand the impact on the overall performance of the neural network.
 
-2. **Hardware implementation**
+**2. Hardware implementation**
 ------------------------------
 .. _silu-computation-label:
 
