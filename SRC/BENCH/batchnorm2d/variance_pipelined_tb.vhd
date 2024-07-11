@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------
---!     @file    variance_tb
+--!     @file    variance_pipelined_tb
 --!     @brief        This testbench verifies the functionality of the variance module
 --!     @details      It initializes the inputs, applies test vectors, and checks the outputs.
 --!     @author       Timothée Charrier
@@ -12,10 +12,10 @@ use IEEE.NUMERIC_STD.all;
 library LIB_RTL;
 use LIB_RTL.types_pkg.all;
 
-entity variance_tb is
+entity variance_pipelined_tb is
 end entity;
 
-architecture variance_tb_arch of variance_tb is
+architecture variance_pipelined_tb_arch of variance_pipelined_tb is
     -------------------------------------------------------------------------------------
     -- CONSTANTS
     -------------------------------------------------------------------------------------
@@ -150,10 +150,10 @@ begin
 
 end architecture;
 
-configuration variance_tb_conf of variance_tb is
-    for variance_tb_arch
+configuration variance_pipelined_tb_conf of variance_pipelined_tb is
+    for variance_pipelined_tb_arch
         for UUT : variance
-            use configuration LIB_RTL.variance_conf;
+            use configuration LIB_RTL.variance_pipelined_conf;
         end for;
     end for;
-end configuration variance_tb_conf;
+end configuration variance_pipelined_tb_conf;

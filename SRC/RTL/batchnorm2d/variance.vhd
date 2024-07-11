@@ -17,17 +17,20 @@ use LIB_RTL.TYPES_PKG.all;
 entity variance is
     generic (
         BITWIDTH       : integer := 16; --! Bit width of each operand
-        MATRIX_SIZE    : integer := 3;  --! Input Matrix Size (squared)
+        INPUT_SIZE     : integer := 3;  --! Input Matrix Size (squared)
         CHANNEL_NUMBER : integer := 3   --! Number of channels in the input
     );
     port (
-        clock           : in std_logic;                                                                                                        --! Clock signal
-        reset_n         : in std_logic;                                                                                                        --! Reset signal, active low
-        i_sys_enable    : in std_logic;                                                                                                        --! Global enable signal, active high
-        i_volume        : in t_volume(CHANNEL_NUMBER - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input volume
-        i_volume_valid  : in std_logic;                                                                                                        --! Input volume valid signal
-        o_variance      : out t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                                   --! Channel-wise output variance
-        o_variance_done : out std_logic                                                                                                        --! Output valid signal
+        clock           : in std_logic;                                                                                                      --! Clock signal
+        reset_n         : in std_logic;                                                                                                      --! Reset signal, active low
+        i_sys_enable    : in std_logic;                                                                                                      --! Global enable signal, active high
+        i_volume        : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input volume
+        i_volume_valid  : in std_logic;                                                                                                      --! Input volume valid signal
+        o_mean          : out t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);                                                     --! Channel-wise output mean
+        o_mean_done     : out std_logic;                                                                                                     --! Output mean valid signal
+        o_variance      : out t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                                 --! Channel-wise output variance
+        o_variance_done : out std_logic                                                                                                      --! Output variance valid signal
+
     );
 end variance;
 
@@ -36,9 +39,9 @@ architecture variance_arch of variance is
     -------------------------------------------------------------------------------------
     -- CONSTANTS
     -------------------------------------------------------------------------------------
-    constant DIVISION_SCALE_FACTOR_POWER_OF_2 : integer := 10;                                                  --! Power of 2 scaling factor for division
-    constant DIVISION_SCALE_FACTOR            : integer := 2 ** DIVISION_SCALE_FACTOR_POWER_OF_2;               --! Scale factor for division
-    constant VARIANCE_DIVISION_FACTOR         : integer := DIVISION_SCALE_FACTOR / (MATRIX_SIZE * MATRIX_SIZE); --! Variance scaling factor
+    constant DIVISION_SCALE_FACTOR_POWER_OF_2 : integer := 10;                                                --! Power of 2 scaling factor for division
+    constant DIVISION_SCALE_FACTOR            : integer := 2 ** DIVISION_SCALE_FACTOR_POWER_OF_2;             --! Scale factor for division
+    constant VARIANCE_DIVISION_FACTOR         : integer := DIVISION_SCALE_FACTOR / (INPUT_SIZE * INPUT_SIZE); --! Variance scaling factor
 
     -------------------------------------------------------------------------------------
     -- TYPES
@@ -53,8 +56,8 @@ architecture variance_arch of variance is
     signal r_mean_done_previous_state : std_logic;                                                 --! Previous state of mean done flag
     signal r_start_computation        : std_logic;                                                 --! Flag to start variance computation
     signal r_update_counter           : std_logic;                                                 --! Flag to update the position counters
-    signal r_count_row                : integer range 0 to MATRIX_SIZE - 1;                        --! Counter for row position within the kernel
-    signal r_count_col                : integer range 0 to MATRIX_SIZE - 1;                        --! Counter for column position within the kernel
+    signal r_count_row                : integer range 0 to INPUT_SIZE - 1;                         --! Counter for row position within the kernel
+    signal r_count_col                : integer range 0 to INPUT_SIZE - 1;                         --! Counter for column position within the kernel
     signal r_diff                     : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0); --! Difference between input value and mean
 
     -------------------------------------------------------------------------------------
@@ -63,7 +66,7 @@ architecture variance_arch of variance is
     component mean
         generic (
             BITWIDTH                         : integer;
-            MATRIX_SIZE                      : integer;
+            INPUT_SIZE                       : integer;
             CHANNEL_NUMBER                   : integer;
             DIVISION_SCALE_FACTOR_POWER_OF_2 : integer
         );
@@ -71,7 +74,7 @@ architecture variance_arch of variance is
             clock          : in std_logic;
             reset_n        : in std_logic;
             i_sys_enable   : in std_logic;
-            i_volume       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_volume       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_volume_valid : in std_logic;
             o_mean         : out t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
             o_mean_done    : out std_logic
@@ -86,7 +89,7 @@ begin
     mean_inst : mean
     generic map(
         BITWIDTH                         => BITWIDTH,
-        MATRIX_SIZE                      => MATRIX_SIZE,
+        INPUT_SIZE                       => INPUT_SIZE,
         CHANNEL_NUMBER                   => CHANNEL_NUMBER,
         DIVISION_SCALE_FACTOR_POWER_OF_2 => DIVISION_SCALE_FACTOR_POWER_OF_2
     )
@@ -99,6 +102,9 @@ begin
         o_mean         => r_channel_mean,
         o_mean_done    => r_mean_done
     );
+
+    o_mean      <= r_channel_mean;
+    o_mean_done <= r_mean_done;
 
     -------------------------------------------------------------------------------------
     -- PROCESS TO HANDLE SYNCHRONOUS AND ASYNCHRONOUS OPERATIONS
@@ -134,9 +140,9 @@ begin
                 if (r_start_computation = '1') then
                     if (r_update_counter = '1') then
                         -- Update position counters
-                        if r_count_col = MATRIX_SIZE - 1 then
+                        if r_count_col = INPUT_SIZE - 1 then
                             r_count_col <= 0;
-                            if r_count_row = MATRIX_SIZE - 1 then
+                            if r_count_row = INPUT_SIZE - 1 then
                                 r_count_row      <= 0;
                                 r_update_counter <= '0';
                             else

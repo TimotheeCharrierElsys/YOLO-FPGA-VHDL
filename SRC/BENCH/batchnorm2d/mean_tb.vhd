@@ -22,20 +22,20 @@ architecture mean_tb_arch of mean_tb is
     constant i_clk_period                     : time    := 10 ns; --! Clock period
     constant WAIT_COUNT                       : integer := 8;     --! Number clock tics to wait
     constant BITWIDTH                         : integer := 16;    --! Bit BITWIDTH of each operand
-    constant MATRIX_SIZE                      : integer := 3;     --! Kernel Size
-    constant DIVISION_SCALE_FACTOR_POWER_OF_2 : integer := 10;    --! Scale factor to compute the division by MATRIX_SIZE * MATRIX_SIZE
+    constant INPUT_SIZE                       : integer := 3;     --! Kernel Size
+    constant DIVISION_SCALE_FACTOR_POWER_OF_2 : integer := 10;    --! Scale factor to compute the division by INPUT_SIZE * INPUT_SIZE
     constant CHANNEL_NUMBER                   : integer := 3;
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal clock          : std_logic := '0';                                                                                                 --! Clock signal
-    signal reset_n        : std_logic := '1';                                                                                                 --! Reset signal, active at low state
-    signal i_sys_enable   : std_logic := '0';                                                                                                 --! Enable signal, active at high state
-    signal i_volume       : t_volume(CHANNEL_NUMBER - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input volume
-    signal i_volume_valid : std_logic := '0';                                                                                                 --! Input volume valid signal
-    signal o_mean         : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);                                                        --! Channel-wise output mean
-    signal o_mean_done    : std_logic;                                                                                                        --! Output valid signal
+    signal clock          : std_logic := '0';                                                                                               --! Clock signal
+    signal reset_n        : std_logic := '1';                                                                                               --! Reset signal, active at low state
+    signal i_sys_enable   : std_logic := '0';                                                                                               --! Enable signal, active at high state
+    signal i_volume       : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input volume
+    signal i_volume_valid : std_logic := '0';                                                                                               --! Input volume valid signal
+    signal o_mean         : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);                                                      --! Channel-wise output mean
+    signal o_mean_done    : std_logic;                                                                                                      --! Output valid signal
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -43,7 +43,7 @@ architecture mean_tb_arch of mean_tb is
     component mean
         generic (
             BITWIDTH                         : integer;
-            MATRIX_SIZE                      : integer;
+            INPUT_SIZE                       : integer;
             CHANNEL_NUMBER                   : integer;
             DIVISION_SCALE_FACTOR_POWER_OF_2 : integer
         );
@@ -51,7 +51,7 @@ architecture mean_tb_arch of mean_tb is
             clock          : in std_logic;
             reset_n        : in std_logic;
             i_sys_enable   : in std_logic;
-            i_volume       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(MATRIX_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_volume       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_volume_valid : in std_logic;
             o_mean         : out t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
             o_mean_done    : out std_logic
@@ -65,7 +65,7 @@ begin
     UUT : mean
     generic map(
         BITWIDTH                         => BITWIDTH,
-        MATRIX_SIZE                      => MATRIX_SIZE,
+        INPUT_SIZE                       => INPUT_SIZE,
         CHANNEL_NUMBER                   => CHANNEL_NUMBER,
         DIVISION_SCALE_FACTOR_POWER_OF_2 => DIVISION_SCALE_FACTOR_POWER_OF_2
     )
