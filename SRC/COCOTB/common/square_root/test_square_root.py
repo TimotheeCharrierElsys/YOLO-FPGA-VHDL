@@ -32,10 +32,13 @@ async def reset_test(dut):
     # Input data
     dut.i_sys_enable.value = 0
     dut.i_data.value = 0
+    dut.i_data_valid.value  = 0
 
     # Apply reset and check output
     await reset_dut(dut)
     assert dut.o_data.value == 0, "Output was not reset correctly"
+
+    assert dut.o_data_valid.value == 0, "Output valid was not reset correctly"
     dut._log.info("Reset test passed.")
 
 
@@ -60,6 +63,9 @@ async def computation_test(dut):
 
     for i in X:
         dut.i_data.value = int(i)
+        dut.i_data_valid.value = 1
+        await RisingEdge(dut.clock)
+        dut.i_data_valid.value = 0
         await RisingEdge(dut.clock)
 
         output_value = dut.o_data.value.integer
