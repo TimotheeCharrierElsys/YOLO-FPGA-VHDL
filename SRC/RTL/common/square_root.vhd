@@ -16,17 +16,57 @@ entity square_root is
     generic (
         BITWIDTH : integer := 16);
     port (
-        clock        : in std_logic;                                  --! Clock signal
-        reset_n      : in std_logic;                                  --! Reset signal, active low
-        i_sys_enable : in std_logic;                                  --! Global enable signal, active high
-        i_data       : in std_logic_vector (BITWIDTH - 1 downto 0);   --! Input data
-        o_data       : out std_logic_vector (BITWIDTH/2 - 1 downto 0) --! Output data
+        clock        : in std_logic;                                   --! Clock signal
+        reset_n      : in std_logic;                                   --! Reset signal, active low
+        i_sys_enable : in std_logic;                                   --! Global enable signal, active high
+        i_data       : in std_logic_vector (BITWIDTH - 1 downto 0);    --! Input data
+        i_data_valid : in std_logic;                                   --! Input data valid signal
+        o_data       : out std_logic_vector (BITWIDTH/2 - 1 downto 0); --! Output data
+        o_data_valid : out std_logic                                   --! Output data valid signal
     );
 end square_root;
 
 architecture square_root_arch of square_root is
 
+    -------------------------------------------------------------------------------------
+    -- CONSTANTS
+    -------------------------------------------------------------------------------------
+    constant N_OPERATIONS_REG : integer := 1;                               --! Number of operations registers.
+    constant N_OUTPUT_REG     : integer := 1;                               --! Number of output registers.
+    constant DFF_DELAY        : integer := N_OPERATIONS_REG + N_OUTPUT_REG; --! Total delay due to flip-flops when pipelined.
+
+    -------------------------------------------------------------------------------------
+    -- COMPONENTS
+    -------------------------------------------------------------------------------------
+    component pipeline
+        generic (
+            N_STAGES : integer
+        );
+        port (
+            clock        : in std_logic;
+            reset_n      : in std_logic;
+            i_sys_enable : in std_logic;
+            i_data       : in std_logic;
+            o_data       : out std_logic
+        );
+    end component;
+
 begin
+
+    -------------------------------------------------------------------------------------
+    -- pipeline INSTANTIATION
+    -------------------------------------------------------------------------------------
+    pipeline_inst : pipeline
+    generic map(
+        N_STAGES => DFF_DELAY
+    )
+    port map(
+        clock        => clock,
+        reset_n      => reset_n,
+        i_sys_enable => i_sys_enable,
+        i_data       => i_data_valid,
+        o_data       => o_data_valid
+    );
 
     --! Process
     --! Handles the output update

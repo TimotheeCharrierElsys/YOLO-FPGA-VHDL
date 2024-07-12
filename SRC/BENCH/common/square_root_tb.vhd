@@ -29,7 +29,9 @@ architecture square_root_tb_arch of square_root_tb is
     signal reset_n      : std_logic := '0';
     signal i_sys_enable : std_logic := '0';
     signal i_data       : std_logic_vector(BITWIDTH - 1 downto 0);
+    signal i_data_valid : std_logic := '0';
     signal o_data       : std_logic_vector(BITWIDTH/2 - 1 downto 0);
+    signal o_data_valid : std_logic;
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -43,7 +45,9 @@ architecture square_root_tb_arch of square_root_tb is
             reset_n      : in std_logic;
             i_sys_enable : in std_logic;
             i_data       : in std_logic_vector (BITWIDTH - 1 downto 0);
-            o_data       : out std_logic_vector (BITWIDTH/2 - 1 downto 0)
+            i_data_valid : in std_logic;
+            o_data       : out std_logic_vector (BITWIDTH/2 - 1 downto 0);
+            o_data_valid : out std_logic
         );
     end component;
 
@@ -61,7 +65,9 @@ begin
         reset_n      => reset_n,
         i_sys_enable => i_sys_enable,
         i_data       => i_data,
-        o_data       => o_data
+        i_data_valid => i_data_valid,
+        o_data       => o_data,
+        o_data_valid => o_data_valid
     );
 
     -- Clock generation
@@ -82,8 +88,11 @@ begin
         wait for clock_period/2;
 
         for i in 0 to 65534 loop
-            i_data <= std_logic_vector(to_signed(i, BITWIDTH));
+            i_data       <= std_logic_vector(to_signed(i, BITWIDTH));
+            i_data_valid <= '1';
             wait for clock_period;
+            i_data_valid <= '0';
+            wait until o_data_valid = '1';
         end loop;
 
         wait;
