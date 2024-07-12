@@ -8,9 +8,6 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
 
-library LIB_RTL;
-use LIB_RTL.TYPES_PKG.all;
-
 --! Entity batchnorm2d
 entity batchnorm2d is
     generic (
@@ -28,7 +25,7 @@ entity batchnorm2d is
         i_bias       : in std_logic_vector(BITWIDTH - 1 downto 0);  --! Input bias value
         i_valid      : in std_logic;                                --! Input valid signal
         o_data       : out std_logic_vector(BITWIDTH - 1 downto 0); --! Channel-wise output data
-        o_data_done  : out std_logic                                --! Output valid signal
+        o_data_valid : out std_logic                                --! Output valid signal
     );
 end batchnorm2d;
 
@@ -98,7 +95,7 @@ begin
         reset_n      => reset_n,
         i_sys_enable => i_sys_enable,
         i_data       => i_valid,
-        o_data       => o_data_done
+        o_data       => o_data_valid
     );
 
     -------------------------------------------------------------------------------------
@@ -133,6 +130,8 @@ begin
         elsif rising_edge(clock) then
             if i_sys_enable = '1' then
                 if i_valid = '1' then
+                    r_end_computation_part <= '0';
+                    r_square_root_i_valid  <= '0';
                     -- Compute i_data - i_mean (x_{cij} - µ_{i})
                     r_numerator <= std_logic_vector(signed(i_data) - signed(i_mean));
 
@@ -152,6 +151,7 @@ begin
                     r_division <= std_logic_vector(signed(r_numerator) / signed(r_denominator_pos));
 
                     r_end_computation_part <= '1';
+                    r_square_root_i_valid  <= '0';
 
                 elsif r_end_computation_part = '1' then
                     -- Compute r_division * i_weight
@@ -160,9 +160,7 @@ begin
                     -- Compute v_mult_add + i_bias
                     v_mult_add := std_logic_vector(signed(v_mult_add) + signed(i_bias));
 
-                    o_data <= std_logic_vector(v_mult_add(o_data'range));
-                else
-                    r_square_root_i_valid  <= '0';
+                    o_data                 <= std_logic_vector(v_mult_add(o_data'range));
                     r_end_computation_part <= '0';
                 end if;
             end if;

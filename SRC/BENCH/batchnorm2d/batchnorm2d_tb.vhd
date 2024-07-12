@@ -36,7 +36,7 @@ architecture batchnorm2d_tb_arch of batchnorm2d_tb is
     signal i_bias       : std_logic_vector(BITWIDTH - 1 downto 0) := (others => '0');
     signal i_valid      : std_logic                               := '0';
     signal o_data       : std_logic_vector(BITWIDTH - 1 downto 0);
-    signal o_data_done  : std_logic;
+    signal o_data_valid : std_logic;
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -57,7 +57,7 @@ architecture batchnorm2d_tb_arch of batchnorm2d_tb is
             i_bias       : in std_logic_vector(BITWIDTH - 1 downto 0);
             i_valid      : in std_logic;
             o_data       : out std_logic_vector(BITWIDTH - 1 downto 0);
-            o_data_done  : out std_logic
+            o_data_valid : out std_logic
         );
     end component;
 
@@ -81,7 +81,7 @@ begin
         i_bias       => i_bias,
         i_valid      => i_valid,
         o_data       => o_data,
-        o_data_done  => o_data_done
+        o_data_valid => o_data_valid
     );
 
     -- Clock generation
@@ -111,7 +111,7 @@ begin
         wait for i_clk_period;
         i_valid <= '0';
 
-        wait until o_data_done = '1';
+        wait until o_data_valid = '1';
         -- Finish the simulation
         wait;
     end process stimulus;
