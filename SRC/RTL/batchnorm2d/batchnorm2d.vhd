@@ -34,7 +34,7 @@ architecture batchnorm2d_arch of batchnorm2d is
     -------------------------------------------------------------------------------------
     -- CONSTANTS
     -------------------------------------------------------------------------------------
-    constant N_OPERATIONS_REG    : integer                                   := 4;                               --! Number of operations registers.
+    constant N_OPERATIONS_REG    : integer                                   := 6;                               --! Number of operations registers.
     constant N_OUTPUT_REG        : integer                                   := 1;                               --! Number of output registers.
     constant DFF_DELAY_PIPELINED : integer                                   := N_OPERATIONS_REG + N_OUTPUT_REG; --! Total delay due to flip-flops when pipelined.
     constant ZERO_CONSTANT       : std_logic_vector(BITWIDTH/2 - 1 downto 0) := (others => '0');
@@ -139,7 +139,9 @@ begin
                     r_denominator         <= std_logic_vector(signed(i_var) + to_signed(EPSILON, BITWIDTH));
                     r_square_root_i_valid <= '1';
 
-                elsif r_square_root_o_valid = '1' then
+                end if;
+
+                if r_square_root_o_valid = '1' then
                     -- Ensure r_square_root_result is > 0
                     if r_square_root_result = ZERO_CONSTANT then
                         r_denominator_pos := std_logic_vector(to_unsigned(1, BITWIDTH/2));
@@ -153,7 +155,9 @@ begin
                     r_end_computation_part <= '1';
                     r_square_root_i_valid  <= '0';
 
-                elsif r_end_computation_part = '1' then
+                end if;
+
+                if r_end_computation_part = '1' then
                     -- Compute r_division * i_weight
                     v_mult_add := std_logic_vector(signed(r_division) * signed(i_weight));
 
