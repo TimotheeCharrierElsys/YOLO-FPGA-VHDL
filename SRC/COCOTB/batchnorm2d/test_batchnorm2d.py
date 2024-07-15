@@ -76,7 +76,7 @@ async def computation_test(dut):
     input_tensor = torch.randint(low, high, shape).float()
     torch_channel_mean = torch.mean(input_tensor, dim=(2, 3))
     # torch_channel_var = torch.var(input_tensor, dim=(2, 3), unbiased=False)
-    torch_channel_var = torch.tensor([[1,1,1,1]])
+    torch_channel_var = torch.tensor([[1, 1, 1, 1]])
 
     shape_w_b = (1, 4, 32, 32)
     low_w_b = -10
@@ -89,6 +89,12 @@ async def computation_test(dut):
 
     output_expected = []
     output_gotten = []
+    combined_results = []
+
+    confidence_rate = 0.90
+    count_within = 0
+    count_outside = 0
+    total_error = 0
 
     for C in range(shape[1]):
         for row in range(shape[2]):
@@ -102,20 +108,54 @@ async def computation_test(dut):
                 await RisingEdge(dut.clock)
                 dut.i_valid.value = 0
 
-                output_expected.append(batchnorm2d(input_tensor[0][C][row][col].item(),
-                                                   torch_channel_mean[0][C].item(),
-                                                   torch_channel_var[0][C].item(),
-                                                   w_tensor[0][C][row][col].item(),
-                                                   b_tensor[0][C][row][col].item()))
-
-                # Wait a few clock cycles to allow the DUT to process
-                for _ in range(6):
+                # Wait for o_data_valid to become high
+                while not dut.o_data_valid.value:
                     await RisingEdge(dut.clock)
-                output_gotten.append(dut.o_data.value.signed_integer)
-                print(f"Expected={output_expected[-1]}, Gotten = {output_gotten[-1]}")
-                
+
+                # Read the output and compare with the expected value
+                expected = batchnorm2d(input_tensor[0][C][row][col].item(),
+                                       torch_channel_mean[0][C].item(),
+                                       torch_channel_var[0][C].item(),
+                                       w_tensor[0][C][row][col].item(),
+                                       b_tensor[0][C][row][col].item())
+
+                output = dut.o_data.value.signed_integer
+
+                output_expected.append(expected)
+                output_gotten.append(output)
+
+                # Check if the output is within the confidence rate
+                lower_bound = expected * (1 - confidence_rate)
+                upper_bound = expected * (1 + confidence_rate)
+
+                within_confidence = lower_bound <= output <= upper_bound
+                if within_confidence:
+                    count_within += 1
+                else:
+                    count_outside += 1
+
+                combined_results.append((expected, output))
+
+    # Sort the combined results based on expected values
+    combined_results.sort(key=lambda x: x[0])
+
+    # Separate the sorted values back into their respective lists
+    output_expected_sorted = [result[0] for result in combined_results]
+    output_gotten_sorted = [result[1] for result in combined_results]
+
+    # Calculate the average error
+    total_error = 0
+    for expected, output in zip(output_expected_sorted, output_gotten_sorted):
+        total_error += abs(expected - output)
+
+    average_error = total_error / len(combined_results)
+
+    dut._log.info(
+        f"Test passed with {count_within} confidence rate and {count_outside} outside.\n Average Error = {average_error}")
+
     # Plot the results
-    plot_results(output_expected, output_gotten)
+    plot_results(output_expected_sorted, output_gotten_sorted)
+
 
 def plot_results(output_expected, output_gotten):
     plt.figure(figsize=(12, 6))
@@ -130,7 +170,8 @@ def plot_results(output_expected, output_gotten):
     plt.legend()
 
     # Plot difference
-    differences = [expected - gotten for expected, gotten in zip(output_expected, output_gotten)]
+    differences = [expected - gotten for expected,
+                   gotten in zip(output_expected, output_gotten)]
     plt.subplot(1, 2, 2)
     plt.plot(differences, label='Difference')
     plt.xlabel('Sample Index')
@@ -140,4 +181,3 @@ def plot_results(output_expected, output_gotten):
 
     plt.tight_layout()
     plt.show()
-    
