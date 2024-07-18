@@ -19,45 +19,49 @@ architecture batchnorm2d_tb_arch of batchnorm2d_tb is
     -------------------------------------------------------------------------------------
     -- CONSTANTS
     -------------------------------------------------------------------------------------
-    constant i_clk_period : time    := 10 ns; --! Clock period
-    constant BITWIDTH     : integer := 16;
-    constant EPSILON      : integer := 0;
+    constant i_clk_period   : time    := 10 ns; --! Clock period
+    constant BITWIDTH       : integer := 16;    --! Bit width of each operand
+    constant INPUT_SIZE     : integer := 3;     --! Width and Height of the input
+    constant CHANNEL_NUMBER : integer := 3;     --! Number of channels in the input
+    constant EPSILON        : integer := 0;     --! A small value  added for numerical stability.
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal clock        : std_logic                               := '0';
-    signal reset_n      : std_logic                               := '0';
-    signal i_sys_enable : std_logic                               := '0';
-    signal i_data       : std_logic_vector(BITWIDTH - 1 downto 0) := (others => '0');
-    signal i_mean       : std_logic_vector(BITWIDTH - 1 downto 0) := (others => '0');
-    signal i_var        : std_logic_vector(BITWIDTH - 1 downto 0) := (others => '0');
-    signal i_weight     : std_logic_vector(BITWIDTH - 1 downto 0) := (others => '0');
-    signal i_bias       : std_logic_vector(BITWIDTH - 1 downto 0) := (others => '0');
-    signal i_valid      : std_logic                               := '0';
-    signal o_data       : std_logic_vector(BITWIDTH - 1 downto 0);
-    signal o_data_done  : std_logic;
+    signal clock          : std_logic := '0';
+    signal reset_n        : std_logic := '0';
+    signal i_sys_enable   : std_logic := '0';
+    signal i_data_valid   : std_logic := '0';
+    signal i_data         : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+    signal i_running_mean : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
+    signal i_running_var  : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
+    signal i_weight       : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
+    signal i_bias         : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
+    signal o_data         : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
+    signal o_data_valid   : std_logic;
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
     -------------------------------------------------------------------------------------
     component batchnorm2d
         generic (
-            BITWIDTH : integer;
-            EPSILON  : integer
+            BITWIDTH       : integer;
+            INPUT_SIZE     : integer;
+            CHANNEL_NUMBER : integer;
+            EPSILON        : integer
         );
         port (
-            clock        : in std_logic;
-            reset_n      : in std_logic;
-            i_sys_enable : in std_logic;
-            i_data       : in std_logic_vector(BITWIDTH - 1 downto 0);
-            i_mean       : in std_logic_vector(BITWIDTH - 1 downto 0);
-            i_var        : in std_logic_vector(BITWIDTH - 1 downto 0);
-            i_weight     : in std_logic_vector(BITWIDTH - 1 downto 0);
-            i_bias       : in std_logic_vector(BITWIDTH - 1 downto 0);
-            i_valid      : in std_logic;
-            o_data       : out std_logic_vector(BITWIDTH - 1 downto 0);
-            o_data_done  : out std_logic
+            clock          : in std_logic;
+            reset_n        : in std_logic;
+            i_sys_enable   : in std_logic;
+            i_data         : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_running_mean : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_running_var  : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_weight       : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_bias         : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_data_valid   : in std_logic;
+            o_data         : out t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
+            o_data_valid   : out std_logic
         );
     end component;
 
@@ -67,21 +71,23 @@ begin
     -------------------------------------------------------------------------------------
     UUT : batchnorm2d
     generic map(
-        BITWIDTH => BITWIDTH,
-        EPSILON  => EPSILON
+        BITWIDTH       => BITWIDTH,
+        INPUT_SIZE     => INPUT_SIZE,
+        CHANNEL_NUMBER => CHANNEL_NUMBER,
+        EPSILON        => EPSILON
     )
     port map(
-        clock        => clock,
-        reset_n      => reset_n,
-        i_sys_enable => i_sys_enable,
-        i_data       => i_data,
-        i_mean       => i_mean,
-        i_var        => i_var,
-        i_weight     => i_weight,
-        i_bias       => i_bias,
-        i_valid      => i_valid,
-        o_data       => o_data,
-        o_data_done  => o_data_done
+        clock          => clock,
+        reset_n        => reset_n,
+        i_sys_enable   => i_sys_enable,
+        i_data         => i_data,
+        i_running_mean => i_running_mean,
+        i_running_var  => i_running_var,
+        i_weight       => i_weight,
+        i_bias         => i_bias,
+        i_data_valid   => i_data_valid,
+        o_data         => o_data,
+        o_data_valid   => o_data_valid
     );
 
     -- Clock generation
@@ -101,17 +107,31 @@ begin
         i_sys_enable <= '1';
 
         -- Set values
-        i_data   <= std_logic_vector(to_unsigned(150, BITWIDTH));
-        i_mean   <= std_logic_vector(to_signed(100, BITWIDTH));
-        i_var    <= std_logic_vector(to_signed(60, BITWIDTH));
-        i_weight <= std_logic_vector(to_signed(3, BITWIDTH));
-        i_bias   <= std_logic_vector(to_signed(1, BITWIDTH));
+        i_data(0) <= (
+        (std_logic_vector(to_signed(100, BITWIDTH)), std_logic_vector(to_signed(200, BITWIDTH)), std_logic_vector(to_signed(300, BITWIDTH))),
+        (std_logic_vector(to_signed(400, BITWIDTH)), std_logic_vector(to_signed(500, BITWIDTH)), std_logic_vector(to_signed(600, BITWIDTH))),
+        (std_logic_vector(to_signed(700, BITWIDTH)), std_logic_vector(to_signed(800, BITWIDTH)), std_logic_vector(to_signed(900, BITWIDTH))));
 
-        i_valid <= '1';
+        i_data(1) <= (
+        (std_logic_vector(to_signed(1000, BITWIDTH)), std_logic_vector(to_signed(1200, BITWIDTH)), std_logic_vector(to_signed(2300, BITWIDTH))),
+        (std_logic_vector(to_signed(400, BITWIDTH)), std_logic_vector(to_signed(8500, BITWIDTH)), std_logic_vector(to_signed(3600, BITWIDTH))),
+        (std_logic_vector(to_signed(4700, BITWIDTH)), std_logic_vector(to_signed(5800, BITWIDTH)), std_logic_vector(to_signed(4900, BITWIDTH))));
+
+        i_data(2) <= (
+        (std_logic_vector(to_signed(100, BITWIDTH)), std_logic_vector(to_signed(110, BITWIDTH)), std_logic_vector(to_signed(120, BITWIDTH))),
+        (std_logic_vector(to_signed(130, BITWIDTH)), std_logic_vector(to_signed(140, BITWIDTH)), std_logic_vector(to_signed(150, BITWIDTH))),
+        (std_logic_vector(to_signed(160, BITWIDTH)), std_logic_vector(to_signed(170, BITWIDTH)), std_logic_vector(to_signed(180, BITWIDTH))));
+
+        i_running_mean <= (others => std_logic_vector(to_unsigned(100, BITWIDTH)));
+        i_running_var  <= (others => std_logic_vector(to_unsigned(50, BITWIDTH)));
+        i_weight       <= (others => std_logic_vector(to_signed(3, BITWIDTH)));
+        i_bias         <= (others => std_logic_vector(to_signed(1, BITWIDTH)));
+
+        i_data_valid <= '1';
         wait for i_clk_period;
-        i_valid <= '0';
+        i_data_valid <= '0';
 
-        wait until o_data_done = '1';
+        wait until o_data_valid = '1';
         -- Finish the simulation
         wait;
     end process stimulus;
