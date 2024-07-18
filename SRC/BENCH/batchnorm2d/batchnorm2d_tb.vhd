@@ -132,6 +132,7 @@ begin
         i_data_valid <= '0';
 
         wait until o_data_valid = '1';
+        wait until o_data_valid = '1';
         -- Finish the simulation
         wait;
     end process stimulus;
