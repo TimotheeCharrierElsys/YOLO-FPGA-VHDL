@@ -31,7 +31,7 @@ architecture silu_activation_tb_arch of silu_activation_tb is
     signal reset_n      : std_logic := '0';
     signal i_sys_enable : std_logic := '0';
     signal i_data       : std_logic_vector(BITWIDTH - 1 downto 0);
-    signal o_data       : std_logic_vector(2 * BITWIDTH - 1 downto 0);
+    signal o_data       : std_logic_vector(BITWIDTH - 1 downto 0);
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -47,7 +47,7 @@ architecture silu_activation_tb_arch of silu_activation_tb is
             reset_n      : in std_logic;
             i_sys_enable : in std_logic;
             i_data       : in std_logic_vector(BITWIDTH - 1 downto 0);
-            o_data       : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
+            o_data       : out std_logic_vector(BITWIDTH - 1 downto 0)
         );
     end component;
 begin

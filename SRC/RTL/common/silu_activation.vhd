@@ -15,15 +15,15 @@ use IEEE.NUMERIC_STD.all;
 entity silu_activation is
     generic (
         BITWIDTH                         : integer := 16; --! Bit width of each operand
-        SCALE_FACTOR_POWER_OF_2          : integer := 10; --! Scale factor for integer computation power (e.g., 10 -> 2**10)
+        SCALE_FACTOR_POWER_OF_2          : integer := 12; --! Scale factor for integer computation power (e.g., 10 -> 2**10)
         DIVISION_SCALE_FACTOR_POWER_OF_2 : integer := 10  --! Scale factor to compute the division by 6
     );
     port (
-        clock        : in std_logic;                                   --! Clock signal
-        reset_n      : in std_logic;                                   --! Reset signal, active low
-        i_sys_enable : in std_logic;                                   --! Global enable signal, active high
-        i_data       : in std_logic_vector(BITWIDTH - 1 downto 0);     --! Input data
-        o_data       : out std_logic_vector(2 * BITWIDTH - 1 downto 0) --! Output data
+        clock        : in std_logic;                               --! Clock signal
+        reset_n      : in std_logic;                               --! Reset signal, active low
+        i_sys_enable : in std_logic;                               --! Global enable signal, active high
+        i_data       : in std_logic_vector(BITWIDTH - 1 downto 0); --! Input data
+        o_data       : out std_logic_vector(BITWIDTH - 1 downto 0) --! Output data
     );
 end silu_activation;
 
@@ -39,8 +39,10 @@ architecture silu_activation_arch of silu_activation is
     constant RELU6_POSITIVE_THRESHOLD     : integer := 6 * 2 ** SCALE_FACTOR_POWER_OF_2;
     constant HARDSWISH_DIVISION_FACTOR    : integer := DIVISION_SCALE_FACTOR / 6;
 
+    -------------------------------------------------------------------------------------
+    -- SIGNALS
+    -------------------------------------------------------------------------------------
     signal i_data_signed : signed(BITWIDTH - 1 downto 0);
-    signal o_data_signed : signed(3 * BITWIDTH - 1 downto 0);
 
 begin
 
@@ -61,7 +63,7 @@ begin
             hardswish_addition       := (others => '0');
             hardswish_multiplication := (others => '0');
             hardswish_division       := (others => '0');
-            o_data_signed <= (others            => '0');
+            o_data                   <= (others => '0');
 
         elsif rising_edge(clock) then
             if i_sys_enable = '1' then
@@ -81,13 +83,12 @@ begin
                     hardswish_division := SHIFT_RIGHT(hardswish_division, DIVISION_SCALE_FACTOR_POWER_OF_2 + SCALE_FACTOR_POWER_OF_2);
 
                 else -- Test if x > 3
-                    hardswish_division := resize(i_data_signed, 3 * BITWIDTH);
+                    hardswish_division := resize(i_data_signed, 3 * BITWIDTH) + 1; -- +1 fix the reisze offset
                 end if;
-                o_data_signed <= hardswish_division;
+
+                -- Update Output
+                o_data <= std_logic_vector(resize(hardswish_division, BITWIDTH));
             end if;
         end if;
     end process;
-
-    -- Output update
-    o_data <= std_logic_vector(resize(o_data_signed, 2 * BITWIDTH));
 end architecture;
