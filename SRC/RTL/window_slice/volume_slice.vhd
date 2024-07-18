@@ -48,10 +48,10 @@ architecture volume_slice_arch of volume_slice is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal current_row               : integer range 0 to OUTPUT_SIZE - 1 := 0;                                                                          --! Current row counter for slicing
-    signal current_col               : integer range 0 to OUTPUT_SIZE - 1 := 0;                                                                          --! Current column counter for slicing
-    signal start_processing          : std_logic                          := '0';                                                                        --! Signal to start processing
-    signal data_valid_previous_state : std_logic                          := '0';                                                                        --! Previous state of the data_valid signal
+    signal current_row               : integer range 0 to OUTPUT_SIZE - 1;                                                                               --! Current row counter for slicing
+    signal current_col               : integer range 0 to OUTPUT_SIZE - 1;                                                                               --! Current column counter for slicing
+    signal start_processing          : std_logic;                                                                                                        --! Signal to start processing
+    signal data_valid_previous_state : std_logic;                                                                                                        --! Previous state of the data_valid signal
     signal sliced_output_data        : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Buffer for output data
     signal o_done_previous_state     : std_logic;                                                                                                        --! Signal to delay the o_done to deal with the (0,0) index when conv is done
 
