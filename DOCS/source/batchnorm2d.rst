@@ -42,4 +42,26 @@ Then, we compute channel-wise the variance, where the variance is:
 
 .. math::
 
-    \operatorname{Var}(X) = \frac{1}{n} \sum_{i=1}^n(x_i - \mathrm{E}[X])^2
+    \operatorname{Var}[X] = \frac{1}{n} \sum_{i=1}^n(x_i - \mathrm{E}[X])^2
+
+**3. Square Root Hardware Implementation**
+------------------------------------------
+
+A square root implementation was found on `Stack Overflow <https://stackoverflow.com/questions/40779152/how-to-find-square-root-number-in-vhdl>`__ using Mr. Crenshaw's algorithm. This leads to an implementation using only addition/substraction and arithmetic shifts.
+The higher the bit width, the heavier the computation.
+
+.. code-block:: vhdl
+    :caption: Algorithm used for efficient square root
+
+    vone := to_unsigned(2 ** (BITWIDTH - 2), BITWIDTH);
+    vop  := unsigned(i_data);
+    vres := (others => '0');
+    while (vone /= 0) loop
+        if (vop >= vres + vone) then
+            vop  := vop - (vres + vone);
+            vres := vres/2 + vone;
+        else
+            vres := vres/2;
+        end if;
+        vone := vone/4;
+    end loop;
