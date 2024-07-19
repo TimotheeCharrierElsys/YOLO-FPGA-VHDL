@@ -12,6 +12,14 @@ def batchnorm2d(data, mean, var, weight, bias, epsilon=0):
     return (data-mean)/(np.sqrt(var+epsilon))*weight + bias
 
 
+def relu6(x):
+    return np.minimum(np.maximum(x, 0), 6 * 1024)
+
+
+def hardswish(x_prime):
+    return x_prime * relu6(x_prime + 3 * 1024) / (6 * 1024)
+
+
 async def reset_dut(dut):
     """Reset the DUT."""
     dut.reset_n.value = 0
@@ -118,6 +126,8 @@ async def computation_test(dut):
                                        torch_channel_var[0][C].item(),
                                        w_tensor[0][C][row][col].item(),
                                        b_tensor[0][C][row][col].item())
+                
+                expected = hardswish(expected)
 
                 output = dut.o_data.value.signed_integer
 

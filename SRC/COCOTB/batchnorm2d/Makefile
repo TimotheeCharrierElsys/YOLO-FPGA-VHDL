@@ -1,5 +1,5 @@
-TOPLEVEL            := batchnorm2d
-MODULE              := test_batchnorm2d
+TOPLEVEL            := batchnorm2d_layer
+MODULE              := test_batchnorm2d_layer
 WAVE_FILE           := $(MODULE)_wave.vcd
 
 COCOTB_LOG_LEVEL    := DEBUG
@@ -21,7 +21,8 @@ export PYTHONPATH   := $(PWD)/../model:$(PYTHONPATH)
 ifeq ($(TOPLEVEL_LANG),vhdl)
     VHDL_SOURCES    =   /home/tim/YOLO-FPGA-VHDL/SRC/RTL/common/pipeline.vhd \
                         /home/tim/YOLO-FPGA-VHDL/SRC/RTL/common/square_root.vhd \
-                        /home/tim/YOLO-FPGA-VHDL/SRC/RTL/batchnorm2d/batchnorm2d.vhd 
+                        /home/tim/YOLO-FPGA-VHDL/SRC/RTL/common/silu_activation.vhd \
+                        /home/tim/YOLO-FPGA-VHDL/SRC/RTL/batchnorm2d/batchnorm2d_layer.vhd 
 else
     $(error A valid value (vhdl) was not provided for TOPLEVEL_LANG=$(TOPLEVEL_LANG))
 endif
