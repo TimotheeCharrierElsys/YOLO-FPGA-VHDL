@@ -16,10 +16,11 @@ YOLO HDL implementation
   :name: mastertoc
 
   getting_started
-  convolution
+  conv2d
   activation_function
   maxpool
   batchnorm2d
+  conv
   modules
 
 

@@ -27,7 +27,7 @@ with its piece-wise linear hard analog :math:`\frac{\text{ReLU6}(x+3)}{6}`, givi
 The graph of the two functions is shown below:
 
 .. raw:: html
-   :file: silu_hardswish_plot.html
+   :file: html/activation_function/silu_hardswish_plot.html
 
 This approximation, however, leads to slightly different results within this interval. The difference between the actual and approximated values needs to
 be quantified to understand the impact on the overall performance of the neural network.
@@ -49,7 +49,7 @@ The division by 6 is the main reason of the accuracy loss. It was implemented us
 The higher N, the better the computed accuracy. The following plot shows the absolute error between the **HDL implementation** and **Hardswish** functions:
 
 .. raw:: html
-   :file: hardswish_computed_vs_hardswish_abs_error_plot.html
+   :file: html/activation_function/hardswish_computed_vs_hardswish_abs_error_plot.html
 
 The error is higher on the polynomial part where the division is computed. The main advantage with this implementaion is that it only requires one addition, two multiplications
 and one arithmetic shift as shown below:
@@ -61,4 +61,4 @@ and one arithmetic shift as shown below:
 The following plot shows the absolute error between the **HDL implementation** and **SiLU** functions:
 
 .. raw:: html
-   :file: silu_hardswish_abs_error_plot.html
+   :file: html/activation_function/silu_hardswish_abs_error_plot.html

@@ -1,5 +1,5 @@
-Convolution 2D Layer Architectures
-==================================
+Convolution 2D
+==============
 
 This document describes the three different architectures available for the `conv2d_layer` entity, which implements a convolution layer using various methods. Each architecture has unique characteristics and dependencies.
 
