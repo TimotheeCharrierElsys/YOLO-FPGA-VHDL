@@ -37,7 +37,7 @@ architecture batchnorm2d_tb_arch of batchnorm2d_tb is
     signal i_running_var  : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
     signal i_weight       : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
     signal i_bias         : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
-    signal o_data         : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
+    signal o_data         : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
     signal o_data_valid   : std_logic;
 
     -------------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ architecture batchnorm2d_tb_arch of batchnorm2d_tb is
             i_weight       : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_bias         : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_data_valid   : in std_logic;
-            o_data         : out t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
+            o_data         : out t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             o_data_valid   : out std_logic
         );
     end component;

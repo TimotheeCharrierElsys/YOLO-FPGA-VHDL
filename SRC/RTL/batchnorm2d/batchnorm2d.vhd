@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------------
 --!	@file		batchnorm2d
 --!	@brief		This entity implements the batchnorm2d module using batchnorm2d_layers
+--!	            It also compute SiLU activation function at the end for ressources sharing purposes.
 --!	@author		Timothée Charrier
 -----------------------------------------------------------------------------------
 
@@ -22,17 +23,17 @@ entity batchnorm2d is
         EPSILON        : integer := 0   --! A small value  added for numerical stability
     );
     port (
-        clock          : in std_logic;                                                                                                           --! Clock signal
-        reset_n        : in std_logic;                                                                                                           --! Reset signal, active low
-        i_sys_enable   : in std_logic;                                                                                                           --! System enable signal, active high                                                                                                                                                     
-        i_data         : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);      --! Input data (CHANNEL_NUMBER x (INPUT_SIZE x INPUT_SIZE x BITWIDTH) bits)
-        i_running_mean : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);                                                           --! Input mean vector
-        i_running_var  : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);                                                           --! Input variance vector
-        i_weight       : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);                                                           --! Input weight vector
-        i_bias         : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);                                                           --! Input bias vector
-        i_data_valid   : in std_logic;                                                                                                           --! Data valid signal, active high
-        o_data         : out t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Output data
-        o_data_valid   : out std_logic                                                                                                           --! Output valid signal
+        clock          : in std_logic;                                                                                                       --! Clock signal
+        reset_n        : in std_logic;                                                                                                       --! Reset signal, active low
+        i_sys_enable   : in std_logic;                                                                                                       --! System enable signal, active high                                                                                                                                                     
+        i_data         : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);  --! Input data (CHANNEL_NUMBER x (INPUT_SIZE x INPUT_SIZE x BITWIDTH) bits)
+        i_running_mean : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);                                                       --! Input mean vector
+        i_running_var  : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);                                                       --! Input variance vector
+        i_weight       : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);                                                       --! Input weight vector
+        i_bias         : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);                                                       --! Input bias vector
+        i_data_valid   : in std_logic;                                                                                                       --! Data valid signal, active high
+        o_data         : out t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Output data
+        o_data_valid   : out std_logic                                                                                                       --! Output valid signal
     );
 end batchnorm2d;
 
@@ -41,10 +42,10 @@ architecture batchnorm2d_arch of batchnorm2d is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal r_o_data       : t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Signal Output Data Registers
-    signal r_o_data_valid : std_logic_vector(CHANNEL_NUMBER - 1 downto 0);                 --! Signal Output valid signal
-    signal current_row    : integer range 0 to INPUT_SIZE - 1;                             --! Current row index
-    signal current_col    : integer range 0 to INPUT_SIZE - 1;                             --! Current column index
+    signal r_o_data       : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0); --! Signal Output Data Registers
+    signal r_o_data_valid : std_logic_vector(CHANNEL_NUMBER - 1 downto 0);             --! Signal Output valid signal
+    signal current_row    : integer range 0 to INPUT_SIZE - 1;                         --! Current row index
+    signal current_col    : integer range 0 to INPUT_SIZE - 1;                         --! Current column index
 
     signal start_processing          : std_logic; --! Signal to start processing
     signal data_valid_previous_state : std_logic; --! Previous state of the data_valid signal
@@ -69,7 +70,7 @@ architecture batchnorm2d_arch of batchnorm2d is
             i_weight     : in std_logic_vector(BITWIDTH - 1 downto 0);
             i_bias       : in std_logic_vector(BITWIDTH - 1 downto 0);
             i_valid      : in std_logic;
-            o_data       : out std_logic_vector(2 * BITWIDTH - 1 downto 0);
+            o_data       : out std_logic_vector(BITWIDTH - 1 downto 0);
             o_data_valid : out std_logic
         );
     end component;
