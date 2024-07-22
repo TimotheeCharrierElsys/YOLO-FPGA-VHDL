@@ -1,6 +1,6 @@
 # Directories
-SRC_DIR			:= /home/tim/YOLO-FPGA-VHDL/SRC/RTL
-BENCH_DIR		:= /home/tim/YOLO-FPGA-VHDL/SRC/BENCH
+SRC_DIR			:= ./RTL
+BENCH_DIR		:= ./BENCH
 BUILD_DIR		:= build
 
 # Files
@@ -43,10 +43,16 @@ compile:
 	@echo "Compiling VHDL sources..."
 	$(GHDL_CMD) -a $(GHDL_FLAGS)  $(SOURCES) $(TESTBENCH)
 	$(GHDL_CMD) -e $(GHDL_FLAGS) $(TOPLEVEL)
+	@mv *.o lib_rtl-obj08.cf $(BUILD_DIR)
+	@cd $(BUILD_DIR)
 
 simulate: compile
 	@echo "Starting simulation..."
 	$(GHDL_CMD) -r $(GHDL_FLAGS) $(TOPLEVEL) --wave=$(BUILD_DIR)/$(WAVE_FILE) --stop-time=$(S_TIME) --max-stack-alloc=0
+	@mv $(TOPLEVEL) $(BUILD_DIR)
+
+wave: 
+	gtkwave $(BUILD_DIR)/$(WAVE_FILE)&
 
 clean:
-	@rm -rf $(BUILD_DIR) lib_rtl-obj08.cf $(WAVE_FILE) $(WAVE_FILE) *.o conv_output_results.txt
+	@rm -rf $(BUILD_DIR)
