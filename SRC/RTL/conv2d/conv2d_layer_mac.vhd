@@ -42,9 +42,11 @@ architecture conv2d_layer_mac_arch of conv2d_layer_mac is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal r_results   : t_vec(CHANNEL_NUMBER downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel.
-    signal r_count_row : integer range 0 to KERNEL_SIZE - 1;                        --! Counter to track the current position within the kernel.
-    signal r_count_col : integer range 0 to KERNEL_SIZE - 1;                        --! Counter to track the current position within the kernel.
+    signal r_results                : t_vec(CHANNEL_NUMBER downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel.
+    signal current_row              : integer range 0 to KERNEL_SIZE - 1;                        --! Counter to track the current position within the kernel.
+    signal current_col              : integer range 0 to KERNEL_SIZE - 1;                        --! Counter to track the current position within the kernel.
+    signal intermediate_multiplier1 : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0); --! Intermediate signal to avoid static 
+    signal intermediate_multiplier2 : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0); --! Intermediate signal
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -95,8 +97,8 @@ begin
             reset_n       => reset_n,
             i_sys_enable  => i_sys_enable,
             i_clear       => i_valid,
-            i_multiplier1 => i_data(i)(r_count_row)(r_count_col),
-            i_multiplier2 => i_kernels(i)(r_count_row)(r_count_col),
+            i_multiplier1 => intermediate_multiplier1(i),
+            i_multiplier2 => intermediate_multiplier2(i),
             o_result      => r_results(i)
         );
 
@@ -118,6 +120,15 @@ begin
     -- Add bias to r_result last position
     r_results(CHANNEL_NUMBER) <= std_logic_vector(resize(signed(i_bias), 2 * BITWIDTH));
 
+    -- Process to update the intermediate signals
+    process (all)
+    begin
+        for i in 0 to CHANNEL_NUMBER - 1 loop
+            intermediate_multiplier1(i) <= i_data(i)(current_col)(current_row);
+            intermediate_multiplier2(i) <= i_kernels(i)(current_col)(current_row);
+        end loop;
+    end process;
+
     -------------------------------------------------------------------------------------
     -- PROCESS TO HANDLE SYNCHRONOUS AND ASYNCHRONOUS OPERATIONS
     -------------------------------------------------------------------------------------
@@ -125,22 +136,22 @@ begin
     begin
         if reset_n = '0' then
             -- Reset counters  to initial states.
-            r_count_row <= 0;
-            r_count_col <= 0;
+            current_row <= 0;
+            current_col <= 0;
 
         elsif rising_edge(clock) then
             if i_sys_enable = '1' then
 
                 -- Update counter signals.
-                if r_count_col = KERNEL_SIZE - 1 then
-                    r_count_col <= 0;
-                    if r_count_row = KERNEL_SIZE - 1 then
-                        r_count_row <= 0;
+                if current_col = KERNEL_SIZE - 1 then
+                    current_col <= 0;
+                    if current_row = KERNEL_SIZE - 1 then
+                        current_row <= 0;
                     else
-                        r_count_row <= r_count_row + 1;
+                        current_row <= current_row + 1;
                     end if;
                 else
-                    r_count_col <= r_count_col + 1;
+                    current_col <= current_col + 1;
                 end if;
             end if;
 

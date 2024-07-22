@@ -42,10 +42,11 @@ architecture batchnorm2d_arch of batchnorm2d is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal r_o_data       : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0); --! Signal Output Data Registers
-    signal r_o_data_valid : std_logic_vector(CHANNEL_NUMBER - 1 downto 0);             --! Signal Output valid signal
-    signal current_row    : integer range 0 to INPUT_SIZE - 1;                         --! Current row index
-    signal current_col    : integer range 0 to INPUT_SIZE - 1;                         --! Current column index
+    signal r_o_data          : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0); --! Signal Output Data Registers
+    signal r_o_data_valid    : std_logic_vector(CHANNEL_NUMBER - 1 downto 0);             --! Signal Output valid signal
+    signal current_row       : integer range 0 to INPUT_SIZE - 1;                         --! Current row index
+    signal current_col       : integer range 0 to INPUT_SIZE - 1;                         --! Current column index
+    signal intermediate_data : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0); --! Intermediate signal
 
     signal start_processing          : std_logic; --! Signal to start processing
     signal data_valid_previous_state : std_logic; --! Previous state of the data_valid signal
@@ -92,7 +93,7 @@ begin
             clock        => clock,
             reset_n      => reset_n,
             i_sys_enable => i_sys_enable,
-            i_data       => i_data(i)(current_col)(current_row),
+            i_data       => intermediate_data(i),
             i_mean       => i_running_mean(i),
             i_var        => i_running_var(i),
             i_weight     => i_weight(i),
@@ -102,6 +103,14 @@ begin
             o_data_valid => r_o_data_valid(i)
         );
     end generate gen_batchnorm2d_layer;
+
+    -- Process to update the intermediate signals
+    process (all)
+    begin
+        for i in 0 to CHANNEL_NUMBER - 1 loop
+            intermediate_data(i) <= i_data(i)(current_col)(current_row);
+        end loop;
+    end process;
 
     -------------------------------------------------------------------------------------
     -- PROCESS
@@ -118,6 +127,7 @@ begin
             data_valid_previous_state <= '0';
             data_valid_delayed        <= '0';
             computation_start         <= '0';
+            intermediate_data         <= (others => (others => '0'));
             o_data                    <= (others => (others => (others => (others => '0'))));
 
         elsif rising_edge(clock) then
