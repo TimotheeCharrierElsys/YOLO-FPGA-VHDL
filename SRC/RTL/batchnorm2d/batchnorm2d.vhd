@@ -127,7 +127,6 @@ begin
             data_valid_previous_state <= '0';
             data_valid_delayed        <= '0';
             computation_start         <= '0';
-            intermediate_data         <= (others => (others => '0'));
             o_data                    <= (others => (others => (others => (others => '0'))));
 
         elsif rising_edge(clock) then
