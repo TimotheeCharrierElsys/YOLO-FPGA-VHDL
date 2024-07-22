@@ -318,7 +318,7 @@ if __name__ == "__main__":
                                                      running_var[2], weight[2], bias[2])
 
     images = reconstruct_image(
-        "/mnt/c/Users/UF523TCH/Documents/GIT/Modelsim/conv_output_results.txt", 64)
+        "/home/tim/Project/YOLO-FPGA-VHDL/SRC/conv_output_results.txt", 64)
 
     # Absolute Error
     error_emboss = np.rot90(
