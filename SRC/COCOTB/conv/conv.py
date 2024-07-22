@@ -194,72 +194,80 @@ def batchnorm2d_silu(X, running_mean, running_var, weight, bias, eps=0):
 
 
 def create_fig(filter_name, error, parameters, index):
+    # Common font settings
+    common_font = {'family': 'Arial, sans-serif', 'color': 'black'}
+
     # Compute min/max/avg
     error_min = np.min(error)
     error_max = np.max(error)
-    error_min_average = np.mean(error)
+    error_avg = np.mean(error)  # Renamed for clarity
 
     # Create figure
     fig = go.Figure()
 
     # Add surface trace
-    fig.add_trace(go.Surface(z=error,
-                             colorbar=dict(
-                                 title="Error Values",
-                                 tickvals=[error_min,
-                                           error_min_average, error_max],
-                                 ticktext=[f"Min: {error_min:.2f}", f"Avg: {
-                                     error_min_average:.2f}", f"Max: {error_max:.2f}"],
-                                 title_font=dict(
-                                     size=14, family='Arial, sans-serif', color='black')
-                             ),
-                             colorscale='Viridis',  # You can use any colorscale you prefer
-                             cmin=error_min,
-                             cmax=error_max))
+    fig.add_trace(go.Surface(
+        z=error,
+        colorbar=dict(
+            title="Error Values",
+            tickvals=[error_min, error_avg, error_max],
+            ticktext=[f"Min: {error_min:.2f}",
+                      f"Avg: {error_avg:.2f}",
+                      f"Max: {error_max:.2f}"],
+            title_font=common_font,
+            tickfont=common_font
+        ),
+        colorscale='Viridis',
+        cmin=error_min,
+        cmax=error_max
+    ))
 
     # Update plot sizing and layout
     fig.update_layout(
         width=800,
-        height=800,  # Make height equal to width to ensure a square plot
+        height=800,
         autosize=False,
-        margin=dict(t=150, b=0, l=0, r=0),  # Adjust margins as needed
+        margin=dict(t=150, b=0, l=0, r=0),
         template="plotly_white",
-        title={
-            'text': (
+        title=dict(
+            text=(
                 f"<b>Heatmap Absolute Error for Filter {filter_name}</b><br>"
                 "<span style='font-size: 14px;'>"
-                f"Batchnorm2d Parameters: Running Mean={
-                    parameters["running_mean"][index]:.2f}, Running Variance={parameters["running_var"][index]:.2f}, Weight={parameters["weight"][index]}, Bias={parameters["bias"][index]}<br>"
-                f"Conv2d Parameters: Stride={parameters["stride"][index]}, Padding={
-                    parameters["padding"][index]}, Kernel Size={parameters["kernel_size"][index]}"
+                f"Batchnorm2d Parameters: Running Mean={parameters['running_mean'][index]: .2f}, "
+                f"Running Variance={parameters['running_var'][index]: .2f}, Weight={parameters['weight'][index]}, "
+                f"Bias={parameters['bias'][index]}<br>"
+                f"Conv2d Parameters: Stride={parameters['stride'][index]}, Padding={parameters['padding'][index]}, "
+                f"Kernel Size={parameters['kernel_size'][index]}"
                 "</span>"
             ),
-            'font': {'size': 18, 'family': 'Arial, sans-serif', 'color': 'black'},
-            'x': 0.0,  # Center title horizontally
-            'xanchor': 'left',  # Center anchor
-            'y': 0.95,  # Adjust vertical position
-            'yanchor': 'top'
-        }
+            font=common_font,
+            x=0.0,
+            xanchor='left',
+            y=0.95,
+            yanchor='top'
+        )
     )
 
     # Update 3D scene options
     fig.update_scenes(
-        # Set aspect ratio to be equal for x, y, and z axes
         aspectratio=dict(x=1, y=1, z=0.7),
         aspectmode="manual"
     )
 
-    # Define annotations
+    # Define annotations with common font
     annotations = [
-        dict(text="Trace type:", showarrow=False,
-             x=0.0, y=1.085, yref="paper", align="left", visible=True)
+        dict(
+            text="Trace type:", showarrow=False,
+            x=0.0, y=1.085, yref="paper", align="left", visible=True,
+            font=common_font
+        )
     ]
 
     # Add dropdown with callback to toggle annotations visibility
     fig.update_layout(
         updatemenus=[
             dict(
-                buttons=list([
+                buttons=[
                     dict(
                         args=[{"type": "surface"}, {
                             "annotations": annotations}],
@@ -271,7 +279,7 @@ def create_fig(filter_name, error, parameters, index):
                         label="Heatmap",
                         method="update"
                     )
-                ]),
+                ],
                 direction="down",
                 pad={"r": 10, "t": 10},
                 showactive=True,
@@ -283,15 +291,13 @@ def create_fig(filter_name, error, parameters, index):
         ]
     )
 
-    # Show the figure
+    # Show and save the figure
     fig.show()
-
-    # SAve the figure
     fig.write_html(f"filter_{filter_name}_heatmap.html")
 
 
 if __name__ == "__main__":
-    img_path = r"C:\Users\UF523TCH\Documents\GIT\YOLO-FPGA-VHDL\SRC\COCOTB\conv2d\wolf.jpg"
+    img_path = r"SRC/COCOTB/conv2d/wolf.jpg"
     img = plt.imread(img_path)
 
     running_mean, running_var = compute_mean_variance(img_path)
@@ -312,7 +318,7 @@ if __name__ == "__main__":
                                                      running_var[2], weight[2], bias[2])
 
     images = reconstruct_image(
-        r"C:\Users\UF523TCH\Documents\GIT\Modelsim\conv_output_results.txt", 64)
+        "/mnt/c/Users/UF523TCH/Documents/GIT/Modelsim/conv_output_results.txt", 64)
 
     # Absolute Error
     error_emboss = np.rot90(
