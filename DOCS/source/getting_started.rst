@@ -17,7 +17,7 @@ Setup WSL
 
    .. code-block:: bash
 
-      sudo apt update && sudo apt upgrade
+      sudo apt update && sudo apt upgrade && sudo apt install make && sudo apt install gcc && sudo apt-get install libz-dev
 
 Install OSS CAD Suite
 ----------------------
@@ -64,13 +64,13 @@ Install package for virtual environement support:
 
 .. code-block:: bash
 
-    apt install python3.10-venv
+    apt install python3.12-venv
 
 Then create a virtual environement at the root of the project:
 
 .. code-block:: bash
 
-   python3 -m venv .venv
+   python3.12 -m venv .venv
 
 Activate it:
 
