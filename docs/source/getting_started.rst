@@ -13,60 +13,43 @@ Setup WSL
 
       wsl --install -d Ubuntu-24.04
 
-2. Open a new WSL Linux terminal and update the package list, then upgrade the packages:
-
-   .. code-block:: bash
-
-      sudo apt update && sudo apt upgrade && sudo apt install make && sudo apt install gcc && sudo apt-get install libz-dev
-
-Install OSS CAD Suite
-----------------------
-
-`OSS CAD Suite <https://github.com/YosysHQ/oss-cad-suite-build>`__ is a binary software distribution for RTL synthesis, formal hardware verification, place & route, FPGA programming, and testing with support for HDLs like Verilog or VHDL. Follow these steps to install it:
-
-1. Download the OSS CAD Suite:
-
-   .. code-block:: bash
-
-      wget https://github.com/YosysHQ/oss-cad-suite-build/releases/download/2024-07-22/oss-cad-suite-linux-x64-20240722.tgz
-
-2. Create a directory named `Utils` and extract the downloaded file into this directory:
-
-   .. code-block:: bash
-
-      mkdir Utils && tar -xzf oss-cad-suite-linux-x64-20240722.tgz -C Utils
-
-3. To use OSS CAD Suite, run 
-
-   .. code-block:: bash
-
-      source /Utils/oss-cad-suite/environment
-
 Cloning the repo
 ================
 
-Open a terminal and run
+1. Open a terminal and run
 
 .. code-block:: bash
 
    git clone https://github.com/TimotheeCharrierElsys/YOLO-FPGA-VHDL.git
 
-An go to `dev` branch
+2. Go to `dev` branch
 
 .. code-block:: bash
 
+   cd YOLO-FPGA-VHDL \
    git checkout dev
 
-Setup virtual environment
-=========================
-
-Install package for virtual environement support:
+3. Install the requirements for the project
 
 .. code-block:: bash
 
-    apt install python3.12-venv
+   cd script \
+   sudo chmod u+x wsl_setup.sh \
+   ./wsl_setup.sh
 
-Then create a virtual environement at the root of the project:
+.. tip::
+
+   `OSS CAD Suite <https://github.com/YosysHQ/oss-cad-suite-build>`__ is a binary software distribution for RTL synthesis, formal hardware verification, place & route, FPGA programming, and testing with support for HDLs like Verilog or VHDL.
+   To use OSS CAD Suite, run 
+
+   .. code-block:: bash
+
+      source /Utils/oss-cad-suite/environment
+
+Setup virtual environment and build documentation
+=================================================
+
+Create a virtual environment at the root of the project:
 
 .. code-block:: bash
 
