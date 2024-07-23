@@ -46,19 +46,19 @@ Cloning the repo
 Setup virtual environment and build documentation
 =================================================
 
-Create a virtual environment at **the root of the project**:
+1. Create a virtual environment at **the root of the project**:
 
    .. code-block:: bash
 
       python3.12 -m venv .venv
 
-Activate it:
+2. Activate it:
 
    .. code-block:: bash
 
       source .venv/bin/activate
 
-and the install the package for building the documentation
+3. Install the package for building the documentation
 
    .. code-block:: bash
 
@@ -66,9 +66,9 @@ and the install the package for building the documentation
 
 You are now ready to go to build the documentation. Go to the ``docs`` folder and run 
 
-   .. code-block:: bash
+.. code-block:: bash
 
-      make html
+   make html
 
 Open the build ``DOCS/build/index.html``.
 
