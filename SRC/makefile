@@ -28,31 +28,30 @@ WAVE_FILE		:= wave_$(TOPLEVEL).ghw
 
 # GHDL Settings
 GHDL_CMD		:= ghdl
-GHDL_FLAGS		:= --std=08 -frelaxed-rules --warn-no-vital-generic -fexplicit --ieee=synopsys -O2 --work=LIB_RTL -v
+GHDL_FLAGS		:= --std=08 --workdir=$(BUILD_DIR) -O2 --work=LIB_RTL -v
 
 # Simulation Settings
-S_TIME			:= 1000us
+S_TIME			:= 800us
 
 # Targets
 .PHONY: all compile simulate clean
 
 all: compile simulate
 
-compile:
-	@mkdir -p $(BUILD_DIR)
+compile: $(BUILD_DIR)
 	@echo "Compiling VHDL sources..."
 	$(GHDL_CMD) -a $(GHDL_FLAGS)  $(SOURCES) $(TESTBENCH)
 	$(GHDL_CMD) -e $(GHDL_FLAGS) $(TOPLEVEL)
-	@mv *.o lib_rtl-obj08.cf $(BUILD_DIR)
-	@cd $(BUILD_DIR)
 
 simulate: compile
 	@echo "Starting simulation..."
 	$(GHDL_CMD) -r $(GHDL_FLAGS) $(TOPLEVEL) --wave=$(BUILD_DIR)/$(WAVE_FILE) --stop-time=$(S_TIME) --max-stack-alloc=0
-	@mv $(TOPLEVEL) $(BUILD_DIR)
 
 wave: 
 	gtkwave $(BUILD_DIR)/$(WAVE_FILE)&
 
 clean:
 	@rm -rf $(BUILD_DIR)
+
+$(BUILD_DIR):
+	@mkdir -p $(BUILD_DIR) $(TOPLEVEL)
