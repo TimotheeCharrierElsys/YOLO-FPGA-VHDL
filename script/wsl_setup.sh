@@ -17,7 +17,7 @@ sudo apt-get install -y \
     wget \
     gcc \
     python3.12 \
-    python3.12-pip \
+    python3-pip \
     python3.12-venv \
     build-essential \
     git \
@@ -26,7 +26,7 @@ sudo apt-get install -y \
 
 # Install Python requirements
 echo "Installing required packages..."
-sudo pip3.12 install requests bs4 --break-system-packages
+sudo pip3 install requests bs4 --break-system-packages
 
 # Call the Python script
 echo "Running the Python script..."
