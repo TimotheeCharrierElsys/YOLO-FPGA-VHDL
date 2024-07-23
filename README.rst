@@ -24,18 +24,15 @@ Cloning the repo
 
 2. Go to `dev` branch
 
-.. code-block:: bash
+   .. code-block:: bash
 
-   cd YOLO-FPGA-VHDL \
-   git checkout dev
+      cd YOLO-FPGA-VHDL && git checkout dev
 
 3. Install the requirements for the project
 
-.. code-block:: bash
+   .. code-block:: bash
 
-   cd script \
-   sudo chmod u+x wsl_setup.sh \
-   ./wsl_setup.sh
+      cd script && sudo chmod u+x wsl_setup.sh && ./wsl_setup.sh
 
 .. tip::
 
@@ -49,29 +46,29 @@ Cloning the repo
 Setup virtual environment and build documentation
 =================================================
 
-Create a virtual environment at the root of the project:
+Create a virtual environment at **the root of the project**:
 
-.. code-block:: bash
+   .. code-block:: bash
 
-   python3.12 -m venv .venv
+      python3.12 -m venv .venv
 
 Activate it:
 
-.. code-block:: bash
+   .. code-block:: bash
 
-   source .venv/bin/activate
+      source .venv/bin/activate
 
 and the install the package for building the documentation
 
-.. code-block:: bash
+   .. code-block:: bash
 
-   pip install -r requirements.txt
+      pip install -r requirements.txt
 
-You are now ready to go to build the documentation. Go to the ``DOCS`` folder and run 
+You are now ready to go to build the documentation. Go to the ``docs`` folder and run 
 
-.. code-block:: bash
+   .. code-block:: bash
 
-   make html
+      make html
 
 Open the build ``DOCS/build/index.html``.
 
