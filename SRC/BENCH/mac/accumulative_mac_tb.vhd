@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------
---!     @Testbench    accumulative_mac
+--!     @Testbench    accumulative_mac_tb
 --!     @brief        This testbench verifies the functionality of the accumulative mac
 --!     @details      It initializes the inputs, applies test vectors, and checks the outputs.
 --!     @auth         Timothée Charrier
@@ -12,10 +12,10 @@ use IEEE.NUMERIC_STD.all;
 library LIB_RTL;
 use LIB_RTL.types_pkg.all;
 
-entity accumulative_mac is
+entity accumulative_mac_tb is
 end entity;
 
-architecture accumulative_mac_arch of accumulative_mac is
+architecture accumulative_mac_tb_arch of accumulative_mac_tb is
     -------------------------------------------------------------------------------------
     -- CONSTANTS
     -------------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ architecture accumulative_mac_arch of accumulative_mac is
     -------------------------------------------------------------------------------------
     -- COMPONENTS
     -------------------------------------------------------------------------------------
-    component accumulative_mac
+    component accumulative_mac_tb
         generic (
             BITWIDTH : integer
         );
@@ -56,7 +56,7 @@ begin
     -------------------------------------------------------------------------------------
     -- UNIT UNDER TEST (UUT)
     -------------------------------------------------------------------------------------
-    UUT : accumulative_mac
+    UUT : accumulative_mac_tb
     generic map(
         BITWIDTH => BITWIDTH
     )
@@ -112,10 +112,10 @@ begin
 
 end architecture;
 
-configuration accumulative_mac_conf of accumulative_mac is
-    for accumulative_mac_arch
-        for UUT : accumulative_mac
-            use entity LIB_RTL.accumulative_mac(accumulative_mac_arch);
+configuration accumulative_mac_tb_conf of accumulative_mac_tb is
+    for accumulative_mac_tb_arch
+        for UUT : accumulative_mac_tb
+            use entity LIB_RTL.accumulative_mac_tb(accumulative_mac_tb_arch);
         end for;
     end for;
-end configuration accumulative_mac_conf;
+end configuration accumulative_mac_tb_conf;
