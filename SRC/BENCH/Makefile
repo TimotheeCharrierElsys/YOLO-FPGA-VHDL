@@ -4,7 +4,7 @@
 SRC_DIR     := ../RTL
 BENCH_DIR   := .
 
-TOP_ENTITY  := adder_tree_tb
+TOP_ENTITY  := conv_tb
 
 # VHDL Source Files
 SOURCES     := $(SRC_DIR)/types_pkg.vhd \
@@ -70,7 +70,7 @@ elaborate: analyze
 	ghdl -m $(GHDL_FLAGS) $(TOP_ENTITY)
 
 simulate: elaborate
-	ghdl -r $(GHDL_FLAGS) $(TOP_ENTITY) --stop-time=$(STOP_TIME) --wave=$(WORK_DIR)/wave_$(TOP_ENTITY).ghw 
+	ghdl -r $(GHDL_FLAGS) $(TOP_ENTITY) --stop-time=$(STOP_TIME) --wave=$(WORK_DIR)/wave_$(TOP_ENTITY).ghw --max-stack-alloc=0
 
 wave: simulate 
 	gtkwave $(WORK_DIR)/wave_$(TOP_ENTITY).ghw &
