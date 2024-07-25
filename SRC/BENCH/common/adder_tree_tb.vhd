@@ -1,21 +1,9 @@
 -----------------------------------------------------------------------------------
 --!     @Testbench    adder_tree_tb
---!     @brief        This testbench verifies the functionality of the pipelined MOA.
+--!     @brief        This testbench verifies the functionality of the adder tree.
 --!     @details      It initializes the inputs, applies test vectors, and checks the outputs.
 --!     @auth         Timothée Charrier
 -----------------------------------------------------------------------------------
-
---! Tesbench:
---! {
---!   "signal": [
---!     {"name": "clock",    "wave": "N.....", "period": 1},
---!     {"name": "reset_n",    "wave": "10...."},
---!     {"name": "i_sys_enable", "wave": "01...."},
---!     {"name": "i_data",   "wave": "x3....", "data": ["{6,5,4,3,2,1}"]},
---!     {"name": "o_data",   "wave": "x5..4.", "data": ["0","21"]}
---!   ],
---!   "config": { "hscale": 2 }
---! }
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
@@ -31,33 +19,43 @@ architecture adder_tree_tb_arch of adder_tree_tb is
     -------------------------------------------------------------------------------------
     -- CONSTANTS
     -------------------------------------------------------------------------------------
-    constant i_clk_period : time    := 10 ns; --! Clock period
-    constant N_OPD        : integer := 6;     --! Number of operands
-    constant BITWIDTH     : integer := 8;     --! Bit BITWIDTH of each operand
+    constant i_clk_period : time      := 10 ns;
+    constant DO_PIPELINE  : std_logic := '1';
+    constant NUM_OPERANDS : integer   := 8;
+    constant BITWIDTH     : integer   := 8;
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal clock        : std_logic := '0';                                 --! Clock signal
-    signal reset_n      : std_logic := '1';                                 --! Reset signal
-    signal i_sys_enable : std_logic := '0';                                 --! Reset signal, active at low state
-    signal i_data       : t_vec(N_OPD - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data vector
-    signal o_data       : std_logic_vector(BITWIDTH - 1 downto 0);          --! Output data
+    signal clock        : std_logic                                               := '0'; --! Clock signal
+    signal reset_n      : std_logic                                               := '1'; --! Reset signal
+    signal i_sys_enable : std_logic                                               := '0'; --! Reset signal, active at low state
+    signal i_operands   : t_vec(NUM_OPERANDS - 1 downto 0)(BITWIDTH - 1 downto 0) := (
+    std_logic_vector(to_signed(0, BITWIDTH)),
+    std_logic_vector(to_signed(1, BITWIDTH)),
+    std_logic_vector(to_signed(2, BITWIDTH)),
+    std_logic_vector(to_signed(3, BITWIDTH)),
+    std_logic_vector(to_signed(4, BITWIDTH)),
+    std_logic_vector(to_signed(5, BITWIDTH)),
+    std_logic_vector(to_signed(6, BITWIDTH)),
+    std_logic_vector(to_signed(7, BITWIDTH)));
+    signal o_result : std_logic_vector(BITWIDTH - 1 downto 0); --! Output data
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
     -------------------------------------------------------------------------------------
     component adder_tree
         generic (
-            N_OPD    : integer;
-            BITWIDTH : integer
+            DO_PIPELINE  : std_logic;
+            NUM_OPERANDS : integer;
+            BITWIDTH     : integer
         );
         port (
             clock        : in std_logic;
             reset_n      : in std_logic;
             i_sys_enable : in std_logic;
-            i_data       : in t_vec(N_OPD - 1 downto 0)(BITWIDTH - 1 downto 0);
-            o_data       : out std_logic_vector(BITWIDTH - 1 downto 0)
+            i_operands   : in t_vec(NUM_OPERANDS - 1 downto 0)(BITWIDTH - 1 downto 0);
+            o_result     : out std_logic_vector(BITWIDTH - 1 downto 0)
         );
     end component;
 
@@ -67,15 +65,16 @@ begin
     -------------------------------------------------------------------------------------
     UUT : adder_tree
     generic map(
-        N_OPD    => N_OPD,
-        BITWIDTH => BITWIDTH
+        DO_PIPELINE  => DO_PIPELINE,
+        NUM_OPERANDS => NUM_OPERANDS,
+        BITWIDTH     => BITWIDTH
     )
     port map(
         clock        => clock,
         reset_n      => reset_n,
         i_sys_enable => i_sys_enable,
-        i_data       => i_data,
-        o_data       => o_data
+        i_operands   => i_operands,
+        o_result     => o_result
     );
 
     -- Clock generation
@@ -88,40 +87,26 @@ begin
     begin
         -- Reset the system
         reset_n <= '0';
-        wait for 2 * i_clk_period;
+        wait for 2.5 * i_clk_period;
+
+        if DO_PIPELINE = '1' then
+            assert o_result = std_logic_vector(to_signed(0, BITWIDTH))
+            report "Output not reset correctly"
+                severity error;
+        end if;
         reset_n <= '1';
 
         -- Enable
         i_sys_enable <= '1';
 
-        -- Apply input vectors
-        i_data(0) <= std_logic_vector(to_unsigned(1, BITWIDTH));
-        i_data(1) <= std_logic_vector(to_unsigned(2, BITWIDTH));
-        i_data(2) <= std_logic_vector(to_unsigned(3, BITWIDTH));
-        i_data(3) <= std_logic_vector(to_unsigned(4, BITWIDTH));
-        i_data(4) <= std_logic_vector(to_unsigned(5, BITWIDTH));
-        i_data(5) <= std_logic_vector(to_unsigned(6, BITWIDTH));
-        -- i_data(6) <= std_logic_vector(to_unsigned(7, BITWIDTH));
-        -- i_data(7) <= std_logic_vector(to_unsigned(8, BITWIDTH));
+        if DO_PIPELINE = '1' then
+            wait for 3 * i_clk_period + 1 ns;
+        end if;
 
-        -- Wait for enough time to allow the pipeline to process the inputs
-        wait for (N_OPD * i_clk_period);
-
-        -- Check the output
-        assert o_data = std_logic_vector(to_unsigned(21, BITWIDTH))
-        report "Test failed: output does not match expected sum"
+        assert o_result = std_logic_vector(to_signed(28, BITWIDTH))
+        report "Output do not match expected value"
             severity error;
-
         -- Finish the simulation
         wait;
     end process stimulus;
-
 end architecture;
-
-configuration adder_tree_tb_conf of adder_tree_tb is
-    for adder_tree_tb_arch
-        for UUT : adder_tree
-            use entity LIB_RTL.adder_tree(adder_tree_pipelined_arch);
-        end for;
-    end for;
-end configuration adder_tree_tb_conf;
