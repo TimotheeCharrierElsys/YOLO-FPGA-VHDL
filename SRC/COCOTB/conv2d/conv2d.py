@@ -233,7 +233,7 @@ def plot_image(img):
 
 if __name__ == "__main__":
     img = plt.imread(
-        r"C:\Users\UF523TCH\Documents\GIT\YOLO-FPGA-VHDL\SRC\COCOTB\conv2d\wolf.jpg")
+        r"./SRC/COCOTB/conv2d/wolf.jpg")
 
     # Apply ridge filter to the image
     filter_edge_conv2d_output = conv2d(
@@ -245,11 +245,11 @@ if __name__ == "__main__":
     plt.axis('off')
     plt.tight_layout()
     
-    images = reconstruct_image(r"C:\Users\UF523TCH\Documents\GIT\Modelsim\conv2d_output_results.txt", 64)
+    images = reconstruct_image(r"./SRC/BENCH/conv2d_output_results.txt", 64)
     
     for idx, img in enumerate(images):
         plt.figure(figsize=(4, 4))
         plt.imshow(img, cmap="gray")
         plt.axis('off')
         plt.tight_layout()
-        plt.show()
+        plt.imsave(f"image_idx.png",img, cmap="gray")

@@ -292,7 +292,7 @@ def create_fig(filter_name, error, parameters, index):
     )
 
     # Show and save the figure
-    fig.show()
+    # fig.show()
     fig.write_html(f"filter_{filter_name}_heatmap.html")
 
 
@@ -318,7 +318,7 @@ if __name__ == "__main__":
                                                      running_var[2], weight[2], bias[2])
 
     images = reconstruct_image(
-        "/home/tim/Project/YOLO-FPGA-VHDL/SRC/conv_output_results.txt", 64)
+        "SRC/BENCH/conv_output_results.txt", 64)
 
     # Absolute Error
     error_emboss = np.rot90(
