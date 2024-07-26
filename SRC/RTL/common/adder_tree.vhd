@@ -18,9 +18,9 @@ use LIB_RTL.TYPES_PKG.all;
 --! by half in each stage until the final sum is obtained.
 entity adder_tree is
     generic (
-        DO_PIPELINE  : std_logic := '1'; -- Define if the design is pipelined ('1') or not ('0')
-        NUM_OPERANDS : integer   := 8;   -- Number of i_operands
-        BITWIDTH     : integer   := 8    -- Width of each input
+        DO_PIPELINE  : std_logic := '1'; --! Define if the design is pipelined ('1') or not ('0')
+        NUM_OPERANDS : integer   := 8;   --! Number of i_operands
+        BITWIDTH     : integer   := 8    --! Width of each input
     );
     port (
         clock        : in std_logic;                                               --! Clock signal
