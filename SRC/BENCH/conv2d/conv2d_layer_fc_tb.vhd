@@ -19,11 +19,12 @@ architecture conv2d_layer_fc_tb_arch of conv2d_layer_fc_tb is
     -------------------------------------------------------------------------------------
     -- CONSTANTS
     -------------------------------------------------------------------------------------
-    constant i_clk_period   : time    := 10 ns; --! Clock period
-    constant WAIT_COUNT     : integer := 15;    --! Number clock tics to wait
-    constant BITWIDTH       : integer := 8;     --! Bit BITWIDTH of each operand
-    constant CHANNEL_NUMBER : integer := 3;     --! Number of channels
-    constant KERNEL_SIZE    : integer := 3;     --! Kernel Size
+    constant i_clk_period   : time      := 10 ns; --! Clock period
+    constant WAIT_COUNT     : integer   := 15;    --! Number clock tics to wait
+    constant DO_PIPELINE    : std_logic := '0';   -- Define if the design is pipelined ('1') or not ('0')
+    constant BITWIDTH       : integer   := 8;     --! Bit BITWIDTH of each operand
+    constant CHANNEL_NUMBER : integer   := 3;     --! Number of channels
+    constant KERNEL_SIZE    : integer   := 3;     --! Kernel Size
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
@@ -32,17 +33,16 @@ architecture conv2d_layer_fc_tb_arch of conv2d_layer_fc_tb is
     signal reset_n      : std_logic := '1';                                                                                                 --! Reset signal, active at low state
     signal i_sys_enable : std_logic := '0';                                                                                                 --! Enable signal, active at high state
     signal i_data       : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input image
-    signal i_valid      : std_logic := '0';
     signal i_kernels    : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input kernels
     signal i_bias       : std_logic_vector(BITWIDTH - 1 downto 0);                                                                          --! Input bias
     signal o_result     : std_logic_vector(2 * BITWIDTH - 1 downto 0);                                                                      --! Output result
-    signal o_valid      : std_logic;                                                                                                        --! Valid signal
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
     -------------------------------------------------------------------------------------
     component conv2d_layer
         generic (
+            DO_PIPELINE    : std_logic;
             BITWIDTH       : integer;
             CHANNEL_NUMBER : integer;
             KERNEL_SIZE    : integer
@@ -51,12 +51,10 @@ architecture conv2d_layer_fc_tb_arch of conv2d_layer_fc_tb is
             clock        : in std_logic;
             reset_n      : in std_logic;
             i_sys_enable : in std_logic;
-            i_valid      : in std_logic;
             i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_kernels    : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_bias       : in std_logic_vector(BITWIDTH - 1 downto 0);
-            o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0);
-            o_valid      : out std_logic
+            o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
         );
     end component;
 
@@ -66,6 +64,7 @@ begin
     -------------------------------------------------------------------------------------
     UUT : conv2d_layer
     generic map(
+        DO_PIPELINE    => DO_PIPELINE,
         BITWIDTH       => BITWIDTH,
         CHANNEL_NUMBER => CHANNEL_NUMBER,
         KERNEL_SIZE    => KERNEL_SIZE
@@ -74,12 +73,10 @@ begin
         clock        => clock,
         reset_n      => reset_n,
         i_sys_enable => i_sys_enable,
-        i_valid      => i_valid,
         i_data       => i_data,
         i_kernels    => i_kernels,
         i_bias       => i_bias,
-        o_result     => o_result,
-        o_valid      => o_valid
+        o_result     => o_result
     );
 
     -- Clock generation
@@ -137,12 +134,6 @@ begin
         (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)))
         );
 
-        wait for i_clk_period/2;
-
-        i_valid <= '1';
-        wait for i_clk_period/2;
-        i_valid <= '0';
-
         -- Wait for enough time to allow the pipeline to process the inputs
         wait for (WAIT_COUNT * i_clk_period);
 
@@ -160,7 +151,7 @@ end architecture;
 configuration conv2d_layer_fc_tb_conf of conv2d_layer_fc_tb is
     for conv2d_layer_fc_tb_arch
         for UUT : conv2d_layer
-            use configuration LIB_RTL.conv2d_layer_fc_pipelined_conf;
+            use configuration LIB_RTL.conv2d_layer_fc_conf;
         end for;
     end for;
 end configuration conv2d_layer_fc_tb_conf;

@@ -16,9 +16,10 @@ use LIB_RTL.TYPES_PKG.all;
 --! This entity implements a convolution layer using a pipelined MAC unit with a 3x3 kernel.
 entity conv2d_layer_mac is
     generic (
-        BITWIDTH       : integer := 8; --! Bit width of each operand
-        CHANNEL_NUMBER : integer := 3; --! Number of channels in the image
-        KERNEL_SIZE    : integer := 3  --! Size of the kernel (e.g., 3 for a 3x3 kernel)
+        DO_PIPELINE    : std_logic := '1'; --! Define if the design is pipelined ('1') or not ('0')
+        BITWIDTH       : integer   := 8;   --! Bit width of each operand
+        CHANNEL_NUMBER : integer   := 3;   --! Number of channels in the image
+        KERNEL_SIZE    : integer   := 3    --! Size of the kernel (e.g., 3 for a 3x3 kernel)
     );
     port (
         clock        : in std_logic;                                                                                                        --! Clock signal
@@ -68,15 +69,16 @@ architecture conv2d_layer_mac_arch of conv2d_layer_mac is
 
     component adder_tree
         generic (
-            N_OPD    : integer;
-            BITWIDTH : integer
+            DO_PIPELINE  : std_logic;
+            NUM_OPERANDS : integer;
+            BITWIDTH     : integer
         );
         port (
             clock        : in std_logic;
             reset_n      : in std_logic;
             i_sys_enable : in std_logic;
-            i_data       : in t_vec(N_OPD - 1 downto 0)(BITWIDTH - 1 downto 0);
-            o_data       : out std_logic_vector(BITWIDTH - 1 downto 0)
+            i_operands   : in t_vec(NUM_OPERANDS - 1 downto 0)(BITWIDTH - 1 downto 0);
+            o_result     : out std_logic_vector(BITWIDTH - 1 downto 0)
         );
     end component;
 
@@ -106,15 +108,16 @@ begin
 
     adder_tree_inst : adder_tree
     generic map(
-        N_OPD    => CHANNEL_NUMBER + 1,
-        BITWIDTH => 2 * BITWIDTH
+        DO_PIPELINE  => DO_PIPELINE,
+        NUM_OPERANDS => CHANNEL_NUMBER + 1,
+        BITWIDTH     => 2 * BITWIDTH
     )
     port map(
         clock        => clock,
         reset_n      => reset_n,
         i_sys_enable => i_sys_enable,
-        i_data       => r_results,
-        o_data       => o_result
+        i_operands   => r_results,
+        o_result     => o_result
     );
 
     -- Add bias to r_result last position
@@ -162,11 +165,13 @@ end conv2d_layer_mac_arch;
 configuration conv2d_layer_mac_conf of conv2d_layer_mac is
     for conv2d_layer_mac_arch
         for gen_mac_channel
-
             for all : accumulative_mac
                 use entity LIB_RTL.accumulative_mac(accumulative_mac_arch);
             end for;
+        end for;
 
+        for all : adder_tree
+            use entity LIB_RTL.adder_tree(adder_tree_arch);
         end for;
     end for;
 end configuration conv2d_layer_mac_conf;

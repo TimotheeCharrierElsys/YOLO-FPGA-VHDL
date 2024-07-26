@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------
---!     @file         conv2d_layer_one_mac_tb
+--!     @file         conv2d_layer_mac_tb
 --!     @brief        This testbench verifies the functionality of the conv layer
 --!     @details      It initializes the inputs, applies test vectors, and checks the outputs.
 --!     @author       Timothée Charrier
@@ -12,18 +12,19 @@ use IEEE.NUMERIC_STD.all;
 library LIB_RTL;
 use LIB_RTL.types_pkg.all;
 
-entity conv2d_layer_one_mac_tb is
+entity conv2d_layer_mac_tb is
 end entity;
 
-architecture conv2d_layer_one_mac_tb_arch of conv2d_layer_one_mac_tb is
+architecture conv2d_layer_mac_tb_arch of conv2d_layer_mac_tb is
     -------------------------------------------------------------------------------------
     -- CONSTANTS
     -------------------------------------------------------------------------------------
-    constant i_clk_period   : time    := 10 ns; --! Clock period
-    constant WAIT_COUNT     : integer := 15;    --! Number clock tics to wait
-    constant BITWIDTH       : integer := 8;     --! Bit BITWIDTH of each operand
-    constant CHANNEL_NUMBER : integer := 3;     --! Number of channels
-    constant KERNEL_SIZE    : integer := 3;     --! Kernel Size
+    constant i_clk_period   : time      := 10 ns; --! Clock period
+    constant WAIT_COUNT     : integer   := 10;    --! Number clock tics to wait
+    constant DO_PIPELINE    : std_logic := '1';   --! Define if the design is pipelined ('1') or not ('0')
+    constant BITWIDTH       : integer   := 8;     --! Bit BITWIDTH of each operand
+    constant CHANNEL_NUMBER : integer   := 3;     --! Number of channels
+    constant KERNEL_SIZE    : integer   := 3;     --! Kernel Size
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
@@ -36,13 +37,13 @@ architecture conv2d_layer_one_mac_tb_arch of conv2d_layer_one_mac_tb is
     signal i_kernels    : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input kernels
     signal i_bias       : std_logic_vector(BITWIDTH - 1 downto 0);                                                                          --! Input bias
     signal o_result     : std_logic_vector(2 * BITWIDTH - 1 downto 0);                                                                      --! Output result
-    signal o_valid      : std_logic;                                                                                                        --! Valid signal
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
     -------------------------------------------------------------------------------------
-    component conv2d_layer
+    component conv2d_layer_mac
         generic (
+            DO_PIPELINE    : std_logic;
             BITWIDTH       : integer;
             CHANNEL_NUMBER : integer;
             KERNEL_SIZE    : integer
@@ -51,12 +52,11 @@ architecture conv2d_layer_one_mac_tb_arch of conv2d_layer_one_mac_tb is
             clock        : in std_logic;
             reset_n      : in std_logic;
             i_sys_enable : in std_logic;
-            i_valid      : in std_logic;
             i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_valid      : in std_logic;
             i_kernels    : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_bias       : in std_logic_vector(BITWIDTH - 1 downto 0);
-            o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0);
-            o_valid      : out std_logic
+            o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
         );
     end component;
 
@@ -64,8 +64,9 @@ begin
     -------------------------------------------------------------------------------------
     -- UNIT UNDER TEST (UUT)
     -------------------------------------------------------------------------------------
-    UUT : conv2d_layer
+    UUT : conv2d_layer_mac
     generic map(
+        DO_PIPELINE    => DO_PIPELINE,
         BITWIDTH       => BITWIDTH,
         CHANNEL_NUMBER => CHANNEL_NUMBER,
         KERNEL_SIZE    => KERNEL_SIZE
@@ -74,12 +75,11 @@ begin
         clock        => clock,
         reset_n      => reset_n,
         i_sys_enable => i_sys_enable,
-        i_valid      => i_valid,
         i_data       => i_data,
+        i_valid      => i_valid,
         i_kernels    => i_kernels,
         i_bias       => i_bias,
-        o_result     => o_result,
-        o_valid      => o_valid
+        o_result     => o_result
     );
 
     -- Clock generation
@@ -102,39 +102,39 @@ begin
         i_sys_enable <= '1';
 
         i_data(0) <= (
-        (std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(2, BITWIDTH)), std_logic_vector(to_signed(3, BITWIDTH))),
-        (std_logic_vector(to_signed(4, BITWIDTH)), std_logic_vector(to_signed(5, BITWIDTH)), std_logic_vector(to_signed(6, BITWIDTH))),
-        (std_logic_vector(to_signed(7, BITWIDTH)), std_logic_vector(to_signed(8, BITWIDTH)), std_logic_vector(to_signed(9, BITWIDTH)))
+        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
+        (std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
+        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)))
         );
 
         i_data(1) <= (
-        (std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(-2, BITWIDTH)), std_logic_vector(to_signed(-3, BITWIDTH))),
-        (std_logic_vector(to_signed(-4, BITWIDTH)), std_logic_vector(to_signed(-5, BITWIDTH)), std_logic_vector(to_signed(-6, BITWIDTH))),
-        (std_logic_vector(to_signed(-7, BITWIDTH)), std_logic_vector(to_signed(-8, BITWIDTH)), std_logic_vector(to_signed(-9, BITWIDTH)))
+        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
+        (std_logic_vector(to_signed(2, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
+        (std_logic_vector(to_signed(2, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)))
         );
 
         i_data(2) <= (
-        (std_logic_vector(to_signed(10, BITWIDTH)), std_logic_vector(to_signed(11, BITWIDTH)), std_logic_vector(to_signed(12, BITWIDTH))),
-        (std_logic_vector(to_signed(13, BITWIDTH)), std_logic_vector(to_signed(14, BITWIDTH)), std_logic_vector(to_signed(15, BITWIDTH))),
-        (std_logic_vector(to_signed(16, BITWIDTH)), std_logic_vector(to_signed(17, BITWIDTH)), std_logic_vector(to_signed(18, BITWIDTH)))
+        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
+        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
+        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(2, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)))
         );
 
         i_kernels(0) <= (
-        (std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
-        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
-        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)))
+        (std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
+        (std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH))),
+        (std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH)))
         );
 
         i_kernels(1) <= (
-        (std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
-        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
-        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)))
+        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH))),
+        (std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
+        (std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH)))
         );
 
         i_kernels(2) <= (
-        (std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
-        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
-        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)))
+        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH))),
+        (std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH))),
+        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)))
         );
 
         wait for i_clk_period/2;
@@ -157,10 +157,10 @@ begin
 
 end architecture;
 
-configuration conv2d_layer_one_mac_tb_conf of conv2d_layer_one_mac_tb is
-    for conv2d_layer_one_mac_tb_arch
-        for UUT : conv2d_layer
-            use configuration LIB_RTL.conv2d_layer_one_mac_conf;
+configuration conv2d_layer_mac_tb_conf of conv2d_layer_mac_tb is
+    for conv2d_layer_mac_tb_arch
+        for UUT : conv2d_layer_mac
+            use configuration LIB_RTL.conv2d_layer_mac_conf;
         end for;
     end for;
-end configuration conv2d_layer_one_mac_tb_conf;
+end configuration conv2d_layer_mac_tb_conf;
