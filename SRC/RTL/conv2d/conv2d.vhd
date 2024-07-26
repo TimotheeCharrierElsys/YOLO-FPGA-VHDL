@@ -18,13 +18,14 @@ use LIB_RTL.types_pkg.all;
 --! This entity implements a convolution operation
 entity conv2d is
     generic (
-        BITWIDTH       : integer := 8; --! Bit width of each operand
-        INPUT_SIZE     : integer := 5; --! Width and Height of the input
-        CHANNEL_NUMBER : integer := 3; --! Number of channels in the input
-        KERNEL_SIZE    : integer := 3; --! Size of the kernel
-        KERNEL_NUMBER  : integer := 3; --! Number of kernels
-        PADDING        : integer := 1; --! Padding value
-        STRIDE         : integer := 2  --! Stride value 
+        DO_PIPELINE    : std_logic := '1'; --! Define if the design is pipelined ('1') or not ('0')
+        BITWIDTH       : integer   := 8;   --! Bit width of each operand
+        INPUT_SIZE     : integer   := 5;   --! Width and Height of the input
+        CHANNEL_NUMBER : integer   := 3;   --! Number of channels in the input
+        KERNEL_SIZE    : integer   := 3;   --! Size of the kernel
+        KERNEL_NUMBER  : integer   := 3;   --! Number of kernels
+        PADDING        : integer   := 1;   --! Padding value
+        STRIDE         : integer   := 2    --! Stride value 
     );
     port (
         clock        : in std_logic;                                                                                                                                                                                            --! Clock signal
@@ -47,9 +48,11 @@ architecture conv2d_fc_arch of conv2d is
     constant INPUT_PADDED_SIZE : integer := INPUT_SIZE + 2 * PADDING;                              --! Input matrix size with padding
     constant OUTPUT_SIZE       : integer := (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE) / STRIDE + 1; --! Size of the output 
 
-    constant N_ADDITION_REG        : integer := 1;                                 --! Number of addition registers.
-    constant N_OUTPUT_REG          : integer := 1;                                 --! Number of output registers.
-    constant DFF_DELAY_UNPIPELINED : integer := N_ADDITION_REG + N_OUTPUT_REG + 1; --! Total delay when not pipelined
+    constant N_STAGES                : integer := integer(ceil(log2(real(KERNEL_SIZE * KERNEL_SIZE)))); --! Number of stages required to complete the addition process.
+    constant N_ADDITION_REG          : integer := 1;                                                    --! Number of addition registers.
+    constant N_OUTPUT_REG            : integer := 1;                                                    --! Number of output registers.
+    constant DFF_DELAY_NON_PIPELINED : integer := N_ADDITION_REG + N_OUTPUT_REG + 1;                    --! Total delay when not pipelined
+    constant DFF_DELAY_PIPELINED     : integer := N_STAGES + N_ADDITION_REG + N_OUTPUT_REG + 1;         --! Total delay when pipelined
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
@@ -93,6 +96,7 @@ architecture conv2d_fc_arch of conv2d is
 
     component conv2d_layer
         generic (
+            DO_PIPELINE    : std_logic;
             BITWIDTH       : integer;
             CHANNEL_NUMBER : integer;
             KERNEL_SIZE    : integer
@@ -160,17 +164,35 @@ begin
     -------------------------------------------------------------------------------------
     -- pipeline INSTANTIATION
     -------------------------------------------------------------------------------------
-    pipeline_inst : pipeline
-    generic map(
-        N_STAGES => DFF_DELAY_UNPIPELINED
-    )
-    port map(
-        clock        => clock,
-        reset_n      => reset_n,
-        i_sys_enable => i_sys_enable,
-        i_data       => conv2d_start,
-        o_data       => conv2d_layer_done
-    );
+    -- Pipelined version
+    gen_do_pipeline : if DO_PIPELINE = '1' generate
+        pipeline_inst : pipeline
+        generic map(
+            N_STAGES => DFF_DELAY_PIPELINED
+        )
+        port map(
+            clock        => clock,
+            reset_n      => reset_n,
+            i_sys_enable => i_sys_enable,
+            i_data       => conv2d_start,
+            o_data       => conv2d_layer_done
+        );
+    end generate gen_do_pipeline;
+
+    -- Non-Pipelined version
+    gen_do_not_pipeline : if DO_PIPELINE = '0' generate
+        pipeline_inst : pipeline
+        generic map(
+            N_STAGES => DFF_DELAY_NON_PIPELINED
+        )
+        port map(
+            clock        => clock,
+            reset_n      => reset_n,
+            i_sys_enable => i_sys_enable,
+            i_data       => conv2d_start,
+            o_data       => conv2d_layer_done
+        );
+    end generate gen_do_not_pipeline;
 
     -------------------------------------------------------------------------------------
     -- conv2d_layer INSTANTIATION
@@ -178,6 +200,7 @@ begin
     gen_conv2d_layers : for i in 0 to KERNEL_NUMBER - 1 generate
         conv2d_layer_inst : conv2d_layer
         generic map(
+            DO_PIPELINE    => DO_PIPELINE,
             BITWIDTH       => BITWIDTH,
             CHANNEL_NUMBER => CHANNEL_NUMBER,
             KERNEL_SIZE    => KERNEL_SIZE
@@ -232,408 +255,216 @@ configuration conv2d_fc_conf of conv2d is
             use entity LIB_RTL.volume_slice(volume_slice_arch);
         end for;
 
-        for all : pipeline
-            use entity LIB_RTL.pipeline(pipeline_arch);
+        for gen_do_pipeline
+            for all : pipeline
+                use entity LIB_RTL.pipeline(pipeline_arch);
+            end for;
+        end for;
+
+        for gen_do_not_pipeline
+            for all : pipeline
+                use entity LIB_RTL.pipeline(pipeline_arch);
+            end for;
         end for;
     end for;
 end configuration conv2d_fc_conf;
 
-architecture conv2d_fc_pipelined_arch of conv2d is
+-- architecture conv2d_one_mac_arch of conv2d is
 
-    -------------------------------------------------------------------------------------
-    -- CONSTANTS
-    -------------------------------------------------------------------------------------
-    constant INPUT_PADDED_SIZE : integer := INPUT_SIZE + 2 * PADDING;                       --! Input matrix size with padding
-    constant OUTPUT_SIZE       : integer := (INPUT_PADDED_SIZE - KERNEL_SIZE) / STRIDE + 1; --! Size of the output 
+--     -------------------------------------------------------------------------------------
+--     -- CONSTANTS
+--     -------------------------------------------------------------------------------------
+--     constant INPUT_PADDED_SIZE : integer := INPUT_SIZE + 2 * PADDING;                              --! Input matrix size with padding
+--     constant OUTPUT_SIZE       : integer := (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE) / STRIDE + 1; --! Size of the output 
 
-    constant N_STAGES            : integer := integer(ceil(log2(real(KERNEL_SIZE * KERNEL_SIZE)))); --! Number of stages required to complete the addition process.
-    constant N_ADDITION_REG      : integer := 1;                                                    --! Number of addition registers.
-    constant N_OUTPUT_REG        : integer := 1;                                                    --! Number of output registers.
-    constant DFF_DELAY_PIPELINED : integer := N_STAGES + N_ADDITION_REG + N_OUTPUT_REG + 1;         --! Total delay due to flip-flops when pipelined.
+--     constant N_OUTPUT_REG : integer := 1;                                            --! Number of output registers.
+--     constant DFF_DELAY    : integer := KERNEL_SIZE * KERNEL_SIZE + N_OUTPUT_REG + 1; --! Total delay due to flip-flops and computation (+1 for clear)
 
-    -------------------------------------------------------------------------------------
-    -- SIGNALS
-    -------------------------------------------------------------------------------------
-    signal padded_input_data   : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Matrix volume with input padded on all channels
-    signal sliced_input_volume : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);             --! Sliced volume for conv2d_layer input
-    signal output_data_reg     : t_volume(KERNEL_NUMBER - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(2 * BITWIDTH - 1 downto 0);          --! Register to store the output data
-    signal conv2d_result       : t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                                                 --! Output result of the conv2d_layer
-    signal conv2d_start        : std_logic;                                                                                                                    --! Signal to start convolution
-    signal conv2d_layer_done   : std_logic;                                                                                                                    --! Signal indicating convolution layer completion
-    signal row_index           : std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                                        --! Current row index
-    signal col_index           : std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                                        --! Current column index
+--     -------------------------------------------------------------------------------------
+--     -- SIGNALS
+--     -------------------------------------------------------------------------------------
+--     signal padded_input_data   : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Matrix volume with input padded on all channels
+--     signal sliced_input_volume : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);             --! Sliced volume for conv2d_layer input
+--     signal output_data_reg     : t_volume(KERNEL_NUMBER - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(2 * BITWIDTH - 1 downto 0);          --! Register to store the output data
+--     signal conv2d_result       : t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                                                 --! Output result of the conv2d_layer
+--     signal conv2d_start        : std_logic;                                                                                                                    --! Signal to start convolution
+--     signal conv2d_layer_done   : std_logic;                                                                                                                    --! Signal indicating convolution layer completion
+--     signal row_index           : std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                                        --! Current row index
+--     signal col_index           : std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                                        --! Current column index
 
-    -------------------------------------------------------------------------------------
-    -- COMPONENTS
-    -------------------------------------------------------------------------------------
-    component volume_slice
-        generic (
-            BITWIDTH          : integer;
-            INPUT_PADDED_SIZE : integer;
-            CHANNEL_NUMBER    : integer;
-            KERNEL_SIZE       : integer;
-            PADDING           : integer;
-            STRIDE            : integer;
-            OUTPUT_SIZE       : integer
-        );
-        port (
-            clock                   : in std_logic;
-            reset_n                 : in std_logic;
-            i_sys_enable            : in std_logic;
-            i_data                  : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_data_valid            : in std_logic;
-            i_last_computation_done : in std_logic;
-            o_data                  : out t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            o_done                  : out std_logic;
-            o_computation_start     : out std_logic;
-            o_current_row           : out std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);
-            o_current_col           : out std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0)
-        );
-    end component;
+--     -------------------------------------------------------------------------------------
+--     -- COMPONENTS
+--     -------------------------------------------------------------------------------------
+--     component volume_slice
+--         generic (
+--             BITWIDTH          : integer;
+--             INPUT_PADDED_SIZE : integer;
+--             CHANNEL_NUMBER    : integer;
+--             KERNEL_SIZE       : integer;
+--             PADDING           : integer;
+--             STRIDE            : integer;
+--             OUTPUT_SIZE       : integer
+--         );
+--         port (
+--             clock                   : in std_logic;
+--             reset_n                 : in std_logic;
+--             i_sys_enable            : in std_logic;
+--             i_data                  : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+--             i_data_valid            : in std_logic;
+--             i_last_computation_done : in std_logic;
+--             o_data                  : out t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+--             o_done                  : out std_logic;
+--             o_computation_start     : out std_logic;
+--             o_current_row           : out std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);
+--             o_current_col           : out std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0)
+--         );
+--     end component;
 
-    component conv2d_layer
-        generic (
-            BITWIDTH       : integer;
-            CHANNEL_NUMBER : integer;
-            KERNEL_SIZE    : integer
-        );
-        port (
-            clock        : in std_logic;
-            reset_n      : in std_logic;
-            i_sys_enable : in std_logic;
-            i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_kernels    : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_bias       : in std_logic_vector(BITWIDTH - 1 downto 0);
-            o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
-        );
-    end component;
+--     component conv2d_layer_mac
+--         generic (
+--             BITWIDTH       : integer;
+--             CHANNEL_NUMBER : integer;
+--             KERNEL_SIZE    : integer
+--         );
+--         port (
+--             clock        : in std_logic;
+--             reset_n      : in std_logic;
+--             i_sys_enable : in std_logic;
+--             i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+--             i_valid      : in std_logic;
+--             i_kernels    : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+--             i_bias       : in std_logic_vector(BITWIDTH - 1 downto 0);
+--             o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
+--         );
+--     end component;
 
-    component pipeline
-        generic (
-            N_STAGES : integer --! Number of pipeline stages
-        );
-        port (
-            clock        : in std_logic; --! Clock signal
-            reset_n      : in std_logic; --! Reset signal, active low
-            i_sys_enable : in std_logic; --! Global enable signal, active high
-            i_data       : in std_logic; --! Input data
-            o_data       : out std_logic --! Output data
-        );
-    end component;
-begin
+--     component pipeline
+--         generic (
+--             N_STAGES : integer --! Number of pipeline stages
+--         );
+--         port (
+--             clock        : in std_logic; --! Clock signal
+--             reset_n      : in std_logic; --! Reset signal, active low
+--             i_sys_enable : in std_logic; --! Global enable signal, active high
+--             i_data       : in std_logic; --! Input data
+--             o_data       : out std_logic --! Output data
+--         );
+--     end component;
+-- begin
 
-    -------------------------------------------------------------------------------------
-    -- COMBINATIONAL PROCESS PADDING THE INPUT DATAS
-    -------------------------------------------------------------------------------------
-    comb_proc : process (i_data)
-    begin
-        padded_input_data <= pad_input(i_data, INPUT_SIZE, CHANNEL_NUMBER, PADDING, BITWIDTH);
-    end process comb_proc;
+--     -------------------------------------------------------------------------------------
+--     -- COMBINATIONAL PROCESS PADDING THE INPUT DATAS
+--     -------------------------------------------------------------------------------------
+--     comb_proc : process (i_data)
+--     begin
+--         padded_input_data <= pad_input(i_data, INPUT_SIZE, CHANNEL_NUMBER, PADDING, BITWIDTH);
+--     end process comb_proc;
 
-    -------------------------------------------------------------------------------------
-    -- MATRIX VOLUME SLICER
-    -------------------------------------------------------------------------------------
-    volume_slice_inst : volume_slice
-    generic map(
-        BITWIDTH          => BITWIDTH,
-        INPUT_PADDED_SIZE => INPUT_PADDED_SIZE,
-        CHANNEL_NUMBER    => CHANNEL_NUMBER,
-        KERNEL_SIZE       => KERNEL_SIZE,
-        PADDING           => PADDING,
-        STRIDE            => STRIDE,
-        OUTPUT_SIZE       => OUTPUT_SIZE
-    )
-    port map(
-        clock                   => clock,
-        reset_n                 => reset_n,
-        i_sys_enable            => i_sys_enable,
-        i_data                  => padded_input_data,
-        i_data_valid            => i_data_valid,
-        i_last_computation_done => conv2d_layer_done,
-        o_data                  => sliced_input_volume,
-        o_done                  => o_data_valid,
-        o_computation_start     => conv2d_start,
-        o_current_row           => row_index,
-        o_current_col           => col_index
-    );
+--     -------------------------------------------------------------------------------------
+--     -- MATRIX VOLUME SLICER
+--     -------------------------------------------------------------------------------------
+--     volume_slice_inst : volume_slice
+--     generic map(
+--         BITWIDTH          => BITWIDTH,
+--         INPUT_PADDED_SIZE => INPUT_PADDED_SIZE,
+--         CHANNEL_NUMBER    => CHANNEL_NUMBER,
+--         KERNEL_SIZE       => KERNEL_SIZE,
+--         PADDING           => PADDING,
+--         STRIDE            => STRIDE,
+--         OUTPUT_SIZE       => OUTPUT_SIZE
+--     )
+--     port map(
+--         clock                   => clock,
+--         reset_n                 => reset_n,
+--         i_sys_enable            => i_sys_enable,
+--         i_data                  => padded_input_data,
+--         i_data_valid            => i_data_valid,
+--         i_last_computation_done => conv2d_layer_done,
+--         o_data                  => sliced_input_volume,
+--         o_done                  => o_data_valid,
+--         o_computation_start     => conv2d_start,
+--         o_current_row           => row_index,
+--         o_current_col           => col_index
+--     );
 
-    -------------------------------------------------------------------------------------
-    -- conv2d_layer INSTANTIATION
-    -------------------------------------------------------------------------------------
-    gen_conv2d_layers : for i in 0 to KERNEL_NUMBER - 1 generate
-        conv2d_layer_inst : conv2d_layer
-        generic map(
-            BITWIDTH       => BITWIDTH,
-            CHANNEL_NUMBER => CHANNEL_NUMBER,
-            KERNEL_SIZE    => KERNEL_SIZE
-        )
-        port map(
-            clock        => clock,
-            reset_n      => reset_n,
-            i_sys_enable => i_sys_enable,
-            i_data       => sliced_input_volume,
-            i_kernels    => i_kernel(i),
-            i_bias       => i_bias(i),
-            o_result     => conv2d_result(i)
-        );
-    end generate gen_conv2d_layers;
+--     -------------------------------------------------------------------------------------
+--     -- conv2d_layer INSTANTIATION
+--     -------------------------------------------------------------------------------------
+--     gen_conv2d_layers : for i in 0 to KERNEL_NUMBER - 1 generate
+--         conv2d_layer_inst : conv2d_layer_mac
+--         generic map(
+--             BITWIDTH       => BITWIDTH,
+--             CHANNEL_NUMBER => CHANNEL_NUMBER,
+--             KERNEL_SIZE    => KERNEL_SIZE
+--         )
+--         port map(
+--             clock        => clock,
+--             reset_n      => reset_n,
+--             i_sys_enable => i_sys_enable,
+--             i_valid      => conv2d_start,
+--             i_data       => sliced_input_volume,
+--             i_kernels    => i_kernel(i),
+--             i_bias       => i_bias(i),
+--             o_result     => conv2d_result(i)
+--         );
+--     end generate gen_conv2d_layers;
 
-    -------------------------------------------------------------------------------------
-    -- pipeline INSTANTIATION
-    -------------------------------------------------------------------------------------
-    pipeline_inst : pipeline
-    generic map(
-        N_STAGES => DFF_DELAY_PIPELINED
-    )
-    port map(
-        clock        => clock,
-        reset_n      => reset_n,
-        i_sys_enable => i_sys_enable,
-        i_data       => conv2d_start,
-        o_data       => conv2d_layer_done
-    );
+--     -------------------------------------------------------------------------------------
+--     -- pipeline INSTANTIATION
+--     -------------------------------------------------------------------------------------
+--     pipeline_inst : pipeline
+--     generic map(
+--         N_STAGES => DFF_DELAY
+--     )
+--     port map(
+--         clock        => clock,
+--         reset_n      => reset_n,
+--         i_sys_enable => i_sys_enable,
+--         i_data       => conv2d_start,
+--         o_data       => conv2d_layer_done
+--     );
 
-    -------------------------------------------------------------------------------------
-    -- PROCESS ASYNC (RESET ACTIVE LOW)
-    -------------------------------------------------------------------------------------
-    --! Process handling synchronous and asynchronous operations of the convolution
-    conv2d_control : process (clock, reset_n)
-    begin
-        if reset_n = '0' then
-            -- Reset output register to zeros
-            output_data_reg <= (others => (others => (others => (others => '0'))));
-        elsif rising_edge(clock) then
-            if (i_sys_enable = '1') then
-                -- Update output
-                if (conv2d_layer_done = '1') then
-                    for i in 0 to KERNEL_NUMBER - 1 loop
-                        output_data_reg(i)(to_integer(unsigned(row_index)))(to_integer(unsigned(col_index))) <= conv2d_result(i);
-                    end loop;
-                end if;
-            end if;
-        end if;
-    end process conv2d_control;
+--     -------------------------------------------------------------------------------------
+--     -- PROCESS ASYNC (RESET ACTIVE LOW)
+--     -------------------------------------------------------------------------------------
+--     --! Process handling synchronous and asynchronous operations of the convolution
+--     conv2d_control : process (clock, reset_n)
+--     begin
+--         if reset_n = '0' then
+--             -- Reset output register to zeros
+--             output_data_reg <= (others => (others => (others => (others => '0'))));
+--         elsif rising_edge(clock) then
+--             if (i_sys_enable = '1') then
+--                 -- Update output
+--                 if (conv2d_layer_done = '1') then
+--                     for i in 0 to KERNEL_NUMBER - 1 loop
+--                         output_data_reg(i)(to_integer(unsigned(row_index)))(to_integer(unsigned(col_index))) <= conv2d_result(i);
+--                     end loop;
+--                 end if;
+--             end if;
+--         end if;
+--     end process conv2d_control;
 
-    -- Assign output data
-    o_data <= output_data_reg;
+--     -- Assign output data
+--     o_data <= output_data_reg;
 
-end architecture;
+-- end architecture;
 
-configuration conv2d_fc_pipelined_conf of conv2d is
-    for conv2d_fc_pipelined_arch
+-- configuration conv2d_one_mac_conf of conv2d is
+--     for conv2d_one_mac_arch
 
-        for gen_conv2d_layers
-            for all : conv2d_layer
-                use configuration LIB_RTL.conv2d_layer_fc_pipelined_conf;
-            end for;
-        end for;
+--         for gen_conv2d_layers
+--             for all : conv2d_layer_mac
+--                 use configuration LIB_RTL.conv2d_layer_mac_conf;
+--             end for;
+--         end for;
 
-        for all : volume_slice
-            use entity LIB_RTL.volume_slice(volume_slice_arch);
-        end for;
+--         for all : volume_slice
+--             use entity LIB_RTL.volume_slice(volume_slice_arch);
+--         end for;
 
-        for all : pipeline
-            use entity LIB_RTL.pipeline(pipeline_arch);
-        end for;
-    end for;
-end configuration conv2d_fc_pipelined_conf;
-
-architecture conv2d_one_mac_arch of conv2d is
-
-    -------------------------------------------------------------------------------------
-    -- CONSTANTS
-    -------------------------------------------------------------------------------------
-    constant INPUT_PADDED_SIZE : integer := INPUT_SIZE + 2 * PADDING;                              --! Input matrix size with padding
-    constant OUTPUT_SIZE       : integer := (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE) / STRIDE + 1; --! Size of the output 
-
-    constant N_OUTPUT_REG : integer := 1;                                            --! Number of output registers.
-    constant DFF_DELAY    : integer := KERNEL_SIZE * KERNEL_SIZE + N_OUTPUT_REG + 1; --! Total delay due to flip-flops and computation (+1 for clear)
-
-    -------------------------------------------------------------------------------------
-    -- SIGNALS
-    -------------------------------------------------------------------------------------
-    signal padded_input_data   : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Matrix volume with input padded on all channels
-    signal sliced_input_volume : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);             --! Sliced volume for conv2d_layer input
-    signal output_data_reg     : t_volume(KERNEL_NUMBER - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(2 * BITWIDTH - 1 downto 0);          --! Register to store the output data
-    signal conv2d_result       : t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                                                 --! Output result of the conv2d_layer
-    signal conv2d_start        : std_logic;                                                                                                                    --! Signal to start convolution
-    signal conv2d_layer_done   : std_logic;                                                                                                                    --! Signal indicating convolution layer completion
-    signal row_index           : std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                                        --! Current row index
-    signal col_index           : std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                                        --! Current column index
-
-    -------------------------------------------------------------------------------------
-    -- COMPONENTS
-    -------------------------------------------------------------------------------------
-    component volume_slice
-        generic (
-            BITWIDTH          : integer;
-            INPUT_PADDED_SIZE : integer;
-            CHANNEL_NUMBER    : integer;
-            KERNEL_SIZE       : integer;
-            PADDING           : integer;
-            STRIDE            : integer;
-            OUTPUT_SIZE       : integer
-        );
-        port (
-            clock                   : in std_logic;
-            reset_n                 : in std_logic;
-            i_sys_enable            : in std_logic;
-            i_data                  : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_data_valid            : in std_logic;
-            i_last_computation_done : in std_logic;
-            o_data                  : out t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            o_done                  : out std_logic;
-            o_computation_start     : out std_logic;
-            o_current_row           : out std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);
-            o_current_col           : out std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0)
-        );
-    end component;
-
-    component conv2d_layer_mac
-        generic (
-            BITWIDTH       : integer;
-            CHANNEL_NUMBER : integer;
-            KERNEL_SIZE    : integer
-        );
-        port (
-            clock        : in std_logic;
-            reset_n      : in std_logic;
-            i_sys_enable : in std_logic;
-            i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_valid      : in std_logic;
-            i_kernels    : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_bias       : in std_logic_vector(BITWIDTH - 1 downto 0);
-            o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
-        );
-    end component;
-
-    component pipeline
-        generic (
-            N_STAGES : integer --! Number of pipeline stages
-        );
-        port (
-            clock        : in std_logic; --! Clock signal
-            reset_n      : in std_logic; --! Reset signal, active low
-            i_sys_enable : in std_logic; --! Global enable signal, active high
-            i_data       : in std_logic; --! Input data
-            o_data       : out std_logic --! Output data
-        );
-    end component;
-begin
-
-    -------------------------------------------------------------------------------------
-    -- COMBINATIONAL PROCESS PADDING THE INPUT DATAS
-    -------------------------------------------------------------------------------------
-    comb_proc : process (i_data)
-    begin
-        padded_input_data <= pad_input(i_data, INPUT_SIZE, CHANNEL_NUMBER, PADDING, BITWIDTH);
-    end process comb_proc;
-
-    -------------------------------------------------------------------------------------
-    -- MATRIX VOLUME SLICER
-    -------------------------------------------------------------------------------------
-    volume_slice_inst : volume_slice
-    generic map(
-        BITWIDTH          => BITWIDTH,
-        INPUT_PADDED_SIZE => INPUT_PADDED_SIZE,
-        CHANNEL_NUMBER    => CHANNEL_NUMBER,
-        KERNEL_SIZE       => KERNEL_SIZE,
-        PADDING           => PADDING,
-        STRIDE            => STRIDE,
-        OUTPUT_SIZE       => OUTPUT_SIZE
-    )
-    port map(
-        clock                   => clock,
-        reset_n                 => reset_n,
-        i_sys_enable            => i_sys_enable,
-        i_data                  => padded_input_data,
-        i_data_valid            => i_data_valid,
-        i_last_computation_done => conv2d_layer_done,
-        o_data                  => sliced_input_volume,
-        o_done                  => o_data_valid,
-        o_computation_start     => conv2d_start,
-        o_current_row           => row_index,
-        o_current_col           => col_index
-    );
-
-    -------------------------------------------------------------------------------------
-    -- conv2d_layer INSTANTIATION
-    -------------------------------------------------------------------------------------
-    gen_conv2d_layers : for i in 0 to KERNEL_NUMBER - 1 generate
-        conv2d_layer_inst : conv2d_layer_mac
-        generic map(
-            BITWIDTH       => BITWIDTH,
-            CHANNEL_NUMBER => CHANNEL_NUMBER,
-            KERNEL_SIZE    => KERNEL_SIZE
-        )
-        port map(
-            clock        => clock,
-            reset_n      => reset_n,
-            i_sys_enable => i_sys_enable,
-            i_valid      => conv2d_start,
-            i_data       => sliced_input_volume,
-            i_kernels    => i_kernel(i),
-            i_bias       => i_bias(i),
-            o_result     => conv2d_result(i)
-        );
-    end generate gen_conv2d_layers;
-
-    -------------------------------------------------------------------------------------
-    -- pipeline INSTANTIATION
-    -------------------------------------------------------------------------------------
-    pipeline_inst : pipeline
-    generic map(
-        N_STAGES => DFF_DELAY
-    )
-    port map(
-        clock        => clock,
-        reset_n      => reset_n,
-        i_sys_enable => i_sys_enable,
-        i_data       => conv2d_start,
-        o_data       => conv2d_layer_done
-    );
-
-    -------------------------------------------------------------------------------------
-    -- PROCESS ASYNC (RESET ACTIVE LOW)
-    -------------------------------------------------------------------------------------
-    --! Process handling synchronous and asynchronous operations of the convolution
-    conv2d_control : process (clock, reset_n)
-    begin
-        if reset_n = '0' then
-            -- Reset output register to zeros
-            output_data_reg <= (others => (others => (others => (others => '0'))));
-        elsif rising_edge(clock) then
-            if (i_sys_enable = '1') then
-                -- Update output
-                if (conv2d_layer_done = '1') then
-                    for i in 0 to KERNEL_NUMBER - 1 loop
-                        output_data_reg(i)(to_integer(unsigned(row_index)))(to_integer(unsigned(col_index))) <= conv2d_result(i);
-                    end loop;
-                end if;
-            end if;
-        end if;
-    end process conv2d_control;
-
-    -- Assign output data
-    o_data <= output_data_reg;
-
-end architecture;
-
-configuration conv2d_one_mac_conf of conv2d is
-    for conv2d_one_mac_arch
-
-        for gen_conv2d_layers
-            for all : conv2d_layer_mac
-                use configuration LIB_RTL.conv2d_layer_mac_conf;
-            end for;
-        end for;
-
-        for all : volume_slice
-            use entity LIB_RTL.volume_slice(volume_slice_arch);
-        end for;
-
-        for all : pipeline
-            use entity LIB_RTL.pipeline(pipeline_arch);
-        end for;
-    end for;
-end configuration conv2d_one_mac_conf;
+--         for all : pipeline
+--             use entity LIB_RTL.pipeline(pipeline_arch);
+--         end for;
+--     end for;
+-- end configuration conv2d_one_mac_conf;

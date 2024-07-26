@@ -22,6 +22,7 @@ architecture conv_tb_arch of conv_tb is
     -- CONSTANTS
     -------------------------------------------------------------------------------------
     constant i_clk_period   : time    := 10 ns; --! Clock period
+    constant DO_PIPELINE    : std_logic := '1';
     constant BITWIDTH       : integer := 16;
     constant INPUT_SIZE     : integer := 64;
     constant CHANNEL_NUMBER : integer := 3;
@@ -56,6 +57,7 @@ architecture conv_tb_arch of conv_tb is
     -------------------------------------------------------------------------------------
     component conv
         generic (
+            DO_PIPELINE    : std_logic;
             BITWIDTH       : integer;
             INPUT_SIZE     : integer;
             CHANNEL_NUMBER : integer;
@@ -88,6 +90,7 @@ begin
     -------------------------------------------------------------------------------------
     UUT : conv
     generic map(
+        DO_PIPELINE    => DO_PIPELINE,
         BITWIDTH       => BITWIDTH,
         INPUT_SIZE     => INPUT_SIZE,
         CHANNEL_NUMBER => CHANNEL_NUMBER,

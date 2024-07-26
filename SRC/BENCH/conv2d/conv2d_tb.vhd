@@ -14,6 +14,7 @@ architecture conv2d_tb_arch of conv2d_tb is
     -- Clock period
     constant i_clk_period : time := 5 ns;
     -- Generics
+    constant DO_PIPELINE    : std_logic := '1';
     constant BITWIDTH       : integer := 16;
     constant INPUT_SIZE     : integer := 64;
     constant CHANNEL_NUMBER : integer := 3;
@@ -37,6 +38,7 @@ architecture conv2d_tb_arch of conv2d_tb is
 
     component conv2d
         generic (
+            DO_PIPELINE    : std_logic;
             BITWIDTH       : integer;
             INPUT_SIZE     : integer;
             CHANNEL_NUMBER : integer;
@@ -62,6 +64,7 @@ begin
 
     UUT : conv2d
     generic map(
+        DO_PIPELINE    => DO_PIPELINE,
         BITWIDTH       => BITWIDTH,
         INPUT_SIZE     => INPUT_SIZE,
         CHANNEL_NUMBER => CHANNEL_NUMBER,
