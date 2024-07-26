@@ -16,7 +16,7 @@ use LIB_RTL.TYPES_PKG.all;
 --! This entity implements a full connected layer layer using an adder tree.
 entity fc_layer is
     generic (
-        DO_PIPELINE : std_logic := '1'; -- Define if the design is pipelined ('1') or not ('0')
+        DO_PIPELINE : std_logic := '1'; --! Define if the design is pipelined ('1') or not ('0')
         BITWIDTH    : integer   := 8;   --! Bit width of each operand
         MATRIX_SIZE : integer   := 3    --! Input Maxtrix Size (squared)
     );
@@ -75,9 +75,8 @@ begin
     end process comb_proc;
 
     -------------------------------------------------------------------------------------
-    -- ADDER TREE
+    -- ADDER TREE instantiation
     -------------------------------------------------------------------------------------
-    -- Instantiate the adder tree
     adder_tree_inst : adder_tree
     generic map(
         DO_PIPELINE  => DO_PIPELINE,
@@ -92,8 +91,10 @@ begin
         o_result     => sum_result
     );
 
-    -- Case do pipelined version.
-    -- We remove the register at the end because already present in the adder_tree
+    -------------------------------------------------------------------------------------
+    -- Case: DO_PIPELINE = '1'
+    -- We remove the register at the end because already present in the adder_tree.
+    -------------------------------------------------------------------------------------
     gen_do_pipeline : if DO_PIPELINE = '1' generate
         process (clock, reset_n)
         begin
@@ -102,9 +103,6 @@ begin
 
             elsif rising_edge(clock) then
                 if i_sys_enable = '1' then
-                    -------------------------------------------------------------------------------------
-                    -- MULTIPLICATION GENERATION
-                    -------------------------------------------------------------------------------------
                     -- Multiply the two inputs together
                     mult_gen : for i in 0 to MATRIX_SIZE * MATRIX_SIZE - 1 loop
                         reg_mult_to_add(i) <= std_logic_vector(signed(flatten_i_matrix1(i)) * signed(flatten_i_matrix2(i)));
@@ -113,13 +111,15 @@ begin
             end if;
         end process;
 
-        -- Assign the final output data from the first stage of the register
+        -- Assign the final output data from the adder tree
         o_result <= sum_result;
 
     end generate gen_do_pipeline;
 
-    -- Case do not pipelined version.
+    -------------------------------------------------------------------------------------
+    -- Case: DO_PIPELINE = '0'
     -- We add a register at the end for timing purpose.
+    -------------------------------------------------------------------------------------
     gen_do_not_pipeline : if DO_PIPELINE = '0' generate
         process (clock, reset_n)
         begin
@@ -129,9 +129,6 @@ begin
 
             elsif rising_edge(clock) then
                 if i_sys_enable = '1' then
-                    -------------------------------------------------------------------------------------
-                    -- MULTIPLICATION GENERATION
-                    -------------------------------------------------------------------------------------
                     -- Multiply the two inputs together
                     mult_gen : for i in 0 to MATRIX_SIZE * MATRIX_SIZE - 1 loop
                         reg_mult_to_add(i) <= std_logic_vector(signed(flatten_i_matrix1(i)) * signed(flatten_i_matrix2(i)));
@@ -142,7 +139,7 @@ begin
             end if;
         end process;
 
-        -- Assign the final output data from the first stage of the register
+        -- Assign the final output data from the register after the adder tree
         o_result <= reg_sum_result;
 
     end generate gen_do_not_pipeline;
