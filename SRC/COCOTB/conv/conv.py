@@ -142,11 +142,11 @@ def binary_to_signed(binary_str):
 
 
 def relu6(x):
-    return np.minimum(np.maximum(x, 0), 6 * 1024)
+    return np.minimum(np.maximum(x, 0), 6 * 2**13)
 
 
 def hardswish(x_prime):
-    return x_prime * relu6(x_prime + 3 * 1024) / (6 * 1024)
+    return x_prime * relu6(x_prime + 3 * 2**13) / (6 * 2**13)
 
 
 def compute_mean_variance(image_path):
@@ -193,6 +193,23 @@ def batchnorm2d_silu(X, running_mean, running_var, weight, bias, eps=0):
     return Y
 
 
+def batchnorm2d_silu_fp(X, running_mean, running_var, weight, bias, eps=0):
+
+    # Normalize the input
+    X_normalized = (X - running_mean) / np.sqrt(running_var + eps)
+
+    # Scale and shift
+    X_scaled_shifted = X_normalized * weight + bias
+
+    def silu_scaled(x):
+        return x/(1 + np.exp(-x))*2**13
+
+    # Apply Hardswish (Sigmoid Linear Unit) activation function approxiamtion
+    Y = silu_scaled(X_scaled_shifted/2**13)
+
+    return Y
+
+
 def create_fig(filter_name, error, parameters, index):
     # Common font settings
     common_font = {'family': 'Arial, sans-serif', 'color': 'black'}
@@ -233,10 +250,13 @@ def create_fig(filter_name, error, parameters, index):
             text=(
                 f"<b>Heatmap Absolute Error for Filter {filter_name}</b><br>"
                 "<span style='font-size: 14px;'>"
-                f"Batchnorm2d Parameters: Running Mean={parameters['running_mean'][index]: .2f}, "
-                f"Running Variance={parameters['running_var'][index]: .2f}, Weight={parameters['weight'][index]}, "
+                f"Batchnorm2d Parameters: Running Mean={
+                    parameters['running_mean'][index]: .2f}, "
+                f"Running Variance={parameters['running_var'][index]: .2f}, Weight={
+                    parameters['weight'][index]}, "
                 f"Bias={parameters['bias'][index]}<br>"
-                f"Conv2d Parameters: Stride={parameters['stride'][index]}, Padding={parameters['padding'][index]}, "
+                f"Conv2d Parameters: Stride={parameters['stride'][index]}, Padding={
+                    parameters['padding'][index]}, "
                 f"Kernel Size={parameters['kernel_size'][index]}"
                 "</span>"
             ),
@@ -316,6 +336,28 @@ if __name__ == "__main__":
                                                         running_var[1], weight[1], bias[1])
     batchnorm2d_silu_result_sharp = batchnorm2d_silu(conv2d_result_sharp, running_mean[2],
                                                      running_var[2], weight[2], bias[2])
+
+    batchnorm2d_silu_result_emboss_fp = batchnorm2d_silu_fp(conv2d_result_emboss, running_mean[0],
+                                                            running_var[0], weight[0], bias[0])
+    batchnorm2d_silu_result_identity_fp = batchnorm2d_silu_fp(conv2d_result_identity, running_mean[1],
+                                                              running_var[1], weight[1], bias[1])
+    batchnorm2d_silu_result_sharp_fp = batchnorm2d_silu_fp(conv2d_result_sharp, running_mean[2],
+                                                           running_var[2], weight[2], bias[2])
+
+    # Absolute Error
+    error_emboss_sh = np.abs(
+        batchnorm2d_silu_result_emboss-batchnorm2d_silu_result_emboss_fp)
+    error_identity_sh = np.abs(
+        batchnorm2d_silu_result_identity-batchnorm2d_silu_result_identity_fp)
+    error_sharp_sh = np.abs(batchnorm2d_silu_result_sharp -
+                            batchnorm2d_silu_result_sharp_fp)
+
+    print(f"Average Absolute Error with Emboss between harshwish and silu: {
+          np.mean(error_emboss_sh)}")
+    print(f"Average Absolute Error with Identity between harshwish and silu: {
+          np.mean(error_identity_sh)}")
+    print(f"Average Absolute Error with Sharp between harshwish and silu: {
+          np.mean(error_sharp_sh)}")
 
     images = reconstruct_image(
         "SRC/BENCH/conv_output_results.txt", 64)
