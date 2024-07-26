@@ -22,7 +22,7 @@ architecture conv_tb_arch of conv_tb is
     -- CONSTANTS
     -------------------------------------------------------------------------------------
     constant i_clk_period   : time    := 10 ns; --! Clock period
-    constant DO_PIPELINE    : std_logic := '1';
+    constant DO_PIPELINE    : std_logic := '0';
     constant BITWIDTH       : integer := 16;
     constant INPUT_SIZE     : integer := 64;
     constant CHANNEL_NUMBER : integer := 3;
