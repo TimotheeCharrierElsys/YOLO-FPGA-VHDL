@@ -16,8 +16,9 @@ use LIB_RTL.TYPES_PKG.all;
 --! This entity implements a full connected layer layer using an adder tree.
 entity fc_layer is
     generic (
-        BITWIDTH    : integer := 8; --! Bit width of each operand
-        MATRIX_SIZE : integer := 3  --! Input Maxtrix Size (squared)
+        DO_PIPELINE : std_logic := '1'; -- Define if the design is pipelined ('1') or not ('0')
+        BITWIDTH    : integer   := 8;   --! Bit width of each operand
+        MATRIX_SIZE : integer   := 3    --! Input Maxtrix Size (squared)
     );
     port (
         clock        : in std_logic;                                                                        --! Clock signal
@@ -44,15 +45,16 @@ architecture fc_layer_arch of fc_layer is
     -------------------------------------------------------------------------------------
     component adder_tree
         generic (
-            N_OPD    : integer;
-            BITWIDTH : integer
+            DO_PIPELINE  : std_logic;
+            NUM_OPERANDS : integer;
+            BITWIDTH     : integer
         );
         port (
-            clock        : in std_logic;                                    --! Clock signal
-            reset_n      : in std_logic;                                    --! Reset signal, active at low state
-            i_sys_enable : in std_logic;                                    --! Reset signal, active at low state
-            i_data       : in t_vec(0 to N_OPD - 1)(BITWIDTH - 1 downto 0); --! Input data vector
-            o_data       : out std_logic_vector(BITWIDTH - 1 downto 0)      --! Output data
+            clock        : in std_logic;
+            reset_n      : in std_logic;
+            i_sys_enable : in std_logic;
+            i_operands   : in t_vec(NUM_OPERANDS - 1 downto 0)(BITWIDTH - 1 downto 0);
+            o_result     : out std_logic_vector(BITWIDTH - 1 downto 0)
         );
     end component;
 
@@ -85,17 +87,17 @@ begin
     -- Instantiate the adder tree
     adder_tree_inst : adder_tree
     generic map(
-        N_OPD    => MATRIX_SIZE * MATRIX_SIZE,
-        BITWIDTH => 2 * BITWIDTH
+        DO_PIPELINE  => DO_PIPELINE,
+        NUM_OPERANDS => MATRIX_SIZE * MATRIX_SIZE,
+        BITWIDTH     => 2 * BITWIDTH
     )
     port map(
         clock        => clock,
         reset_n      => reset_n,
         i_sys_enable => i_sys_enable,
-        i_data       => r_mult_to_add,
-        o_data       => r_sum
+        i_operands   => r_mult_to_add,
+        o_result     => r_sum
     );
-
     -------------------------------------------------------------------------------------
     -- OUTPUT UPDATE
     -------------------------------------------------------------------------------------
@@ -111,11 +113,3 @@ configuration fc_layer_conf of fc_layer is
         end for;
     end for;
 end configuration fc_layer_conf;
-
-configuration fc_layer_pipelined_conf of fc_layer is
-    for fc_layer_arch
-        for all : adder_tree
-            use entity LIB_RTL.adder_tree(adder_tree_pipelined_arch);
-        end for;
-    end for;
-end configuration fc_layer_pipelined_conf;

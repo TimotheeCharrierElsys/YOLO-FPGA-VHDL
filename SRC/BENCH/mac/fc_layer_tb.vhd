@@ -19,10 +19,10 @@ architecture fc_layer_tb_arch of fc_layer_tb is
     -------------------------------------------------------------------------------------
     -- CONSTANTS
     -------------------------------------------------------------------------------------
-    constant i_clk_period : time    := 10 ns; --! Clock period
-    constant WAIT_COUNT   : integer := 8;     --! Number clock tics to wait
-    constant BITWIDTH     : integer := 8;     --! Bit BITWIDTH of each operand
-    constant MATRIX_SIZE  : integer := 3;     --! Kernel Size
+    constant i_clk_period : time      := 10 ns; --! Clock period
+    constant DO_PIPELINE  : std_logic := '1';
+    constant BITWIDTH     : integer   := 8; --! Bit BITWIDTH of each operand
+    constant MATRIX_SIZE  : integer   := 3; --! Kernel Size
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
@@ -39,6 +39,7 @@ architecture fc_layer_tb_arch of fc_layer_tb is
     -------------------------------------------------------------------------------------
     component fc_layer
         generic (
+            DO_PIPELINE : std_logic;
             BITWIDTH    : integer;
             MATRIX_SIZE : integer
         );
@@ -58,6 +59,7 @@ begin
     -------------------------------------------------------------------------------------
     UUT : fc_layer
     generic map(
+        DO_PIPELINE => DO_PIPELINE,
         BITWIDTH    => BITWIDTH,
         MATRIX_SIZE => MATRIX_SIZE
     )
@@ -80,7 +82,7 @@ begin
     begin
         -- Reset the system
         reset_n <= '0';
-        wait for 2 * i_clk_period;
+        wait for 25 ns;
         reset_n <= '1';
 
         -- Enable the mac unit
@@ -96,13 +98,13 @@ begin
         i_matrix2(1)(2) <= std_logic_vector(to_unsigned(6, BITWIDTH));
         i_matrix2(2)(0) <= std_logic_vector(to_unsigned(7, BITWIDTH));
         i_matrix2(2)(1) <= std_logic_vector(to_unsigned(8, BITWIDTH));
-        i_matrix2(2)(2) <= std_logic_vector(to_unsigned(8, BITWIDTH));
+        i_matrix2(2)(2) <= std_logic_vector(to_unsigned(9, BITWIDTH));
 
         -- Wait for enough time to allow the pipeline to process the inputs
-        wait for (WAIT_COUNT * i_clk_period);
+        wait for (10 * i_clk_period);
 
         -- Check the output
-        assert o_result = std_logic_vector(to_signed(36, 2 * BITWIDTH))
+        assert o_result = std_logic_vector(to_signed(45, 2 * BITWIDTH))
         report "Test failed: output does not match expected output"
             severity error;
 
