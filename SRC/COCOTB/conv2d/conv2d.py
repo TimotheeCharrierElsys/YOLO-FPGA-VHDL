@@ -10,8 +10,8 @@ filters = {
     "filter_ridge": [np.array([[0, -1, 0], [-1, 4, -1], [0, -1, 0]]) for _ in range(3)],
     "filter_edge": [np.array([[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]]) for _ in range(3)],
     "filter_sharp": [np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]]) for _ in range(3)],
-    "filter_blur": [np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]]) / 9 for _ in range(3)],
-    "filter_gaussian_33": [np.array([[1, 2, 1], [2, 4, 2], [1, 2, 1]]) / 16 for _ in range(3)],
+    "filter_blur": [np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]]) / 9 * 1000 for _ in range(3)],
+    "filter_gaussian_33": [np.array([[1, 2, 1], [2, 4, 2], [1, 2, 1]]) / 16 * 1000 for _ in range(3)],
     "filter_gaussian_55": [np.array([[1, 4, 6, 4, 1], [4, 16, 24, 16, 4], [6, 24, 36, 24, 6], [4, 16, 24, 16, 4], [1, 4, 6, 4, 1]]) / 256 for _ in range(3)],
     "filter_unsharp_55": [np.array([[1, 4, 6, 4, 1], [4, 16, 24, 16, 4], [6, 24, -476, 24, 6], [4, 16, 24, 16, 4], [1, 4, 6, 4, 1]]) / 256 for _ in range(3)],
     "filter_emboss": [np.array([[-2, -1, 0], [-1, 1, 1], [0, 1, 2]]) for _ in range(3)],
@@ -24,7 +24,7 @@ filters = {
     "filter_laplacian_gaussian": [np.array([[0, 0, -1, 0, 0], [0, -1, -2, -1, 0], [-1, -2, 16, -2, -1], [0, -1, -2, -1, 0], [0, 0, -1, 0, 0]]) for _ in range(3)],
     "filter_randoml_33": [np.array([[random.randint(-1, 1) for _ in range(3)] for _ in range(3)]) for _ in range(3)],
     "filter_randoml_55": [np.array([[random.randint(-1, 1) for _ in range(5)] for _ in range(5)]) for _ in range(3)],
-    "filter_test": [np.array([[11, 11, 11], [11, 11, 11], [11, 11, 11]]) for _ in range(3)]
+    "filter_test": [np.array([[-10, 2, -9], [4, 7, -7], [-4, 9, -4]]) for _ in range(3)]
 }
 
 
@@ -129,6 +129,7 @@ def reconstruct_image(file_path, image_width):
 
     return images
 
+
 def binary_to_signed(binary_str):
     # Convert binary string to signed integer
     if binary_str[0] == '1':  # If the sign bit is 1, the number is negative
@@ -231,25 +232,85 @@ def plot_image(img):
                 f"./output_images/computed_{file}.png", bbox_inches='tight', pad_inches=0, dpi=1000)
 
 
+def testbench_comparaison(img):
+    filter_output = []
+    filter_output.append(conv2d(
+        img, filters["filter_edge"]).conv2d_output)
+
+    filter_output.append(conv2d(
+        img, filters["filter_emboss"]).conv2d_output)
+
+    filter_output.append(conv2d(
+        img, filters["filter_identity"]).conv2d_output)
+
+    filter_output.append(conv2d(
+        img, filters["filter_laplacian_diag"]).conv2d_output)
+
+    filter_output.append(conv2d(
+        img, filters["filter_prewitt_x"]).conv2d_output)
+
+    filter_output.append(conv2d(
+        img, filters["filter_prewitt_y"]).conv2d_output)
+
+    filter_output.append(conv2d(
+        img, filters["filter_test"]).conv2d_output)
+
+    filter_output.append(conv2d(
+        img, filters["filter_ridge"]).conv2d_output)
+
+    filter_output.append(conv2d(
+        img, filters["filter_sharp"]).conv2d_output)
+
+    filter_output.append(conv2d(
+        img, filters["filter_sobel_x"]).conv2d_output)
+
+    filter_output.append(conv2d(
+        img, filters["filter_sobel_y"]).conv2d_output)
+
+    filter_output.append(conv2d(
+        img, filters["filter_blur"]).conv2d_output)
+
+    filter_output.append(conv2d(
+        img, filters["filter_gaussian_33"]).conv2d_output)
+
+    images = reconstruct_image(r"./SRC/BENCH/conv2d_output_results.txt", 64)
+
+    for idx, img in enumerate(images):
+        plt.figure()  # Create a new figure for each pair of images
+
+        # Plot the expected output
+        plt.subplot(1, 3, 1)
+        plt.imshow(filter_output[idx], cmap="gray")
+        plt.title("Expected")
+        plt.axis('off')
+
+        # Plot the gotten output
+        plt.subplot(1, 3, 2)
+        plt.imshow(img, cmap="gray")
+        plt.title("Gotten")
+        plt.axis('off')
+
+        # Plot the heatmap of the differences
+        # Plot the heatmap of the differences
+        plt.subplot(1, 3, 3)
+        # Compute the absolute differences
+        difference = np.abs(filter_output[idx] - img)
+        heatmap = plt.imshow(difference, cmap="hot")
+        plt.title("Difference Heatmap")
+        plt.axis('off')
+
+        # Add colorbar to the heatmap
+        plt.colorbar(heatmap, fraction=0.046, pad=0.04)
+
+        plt.tight_layout()
+
+        # Save the entire figure containing the subplot
+        plt.savefig(f"subplot_image_{idx}.png")
+        plt.show()
+
+        plt.close()  # Close the figure to free memory
+
+
 if __name__ == "__main__":
     img = plt.imread(
         r"./SRC/COCOTB/conv2d/wolf.jpg")
-
-    # Apply ridge filter to the image
-    filter_edge_conv2d_output = conv2d(
-        img, filters["filter_edge"]).conv2d_output
-
-    # Show the result
-    plt.figure(figsize=(4, 4))
-    plt.imshow(filter_edge_conv2d_output, cmap="gray")
-    plt.axis('off')
-    plt.tight_layout()
-    
-    images = reconstruct_image(r"./SRC/BENCH/conv2d_output_results.txt", 64)
-    
-    for idx, img in enumerate(images):
-        plt.figure(figsize=(4, 4))
-        plt.imshow(img, cmap="gray")
-        plt.axis('off')
-        plt.tight_layout()
-        plt.imsave(f"image_idx.png",img, cmap="gray")

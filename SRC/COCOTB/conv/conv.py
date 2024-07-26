@@ -292,7 +292,7 @@ def create_fig(filter_name, error, parameters, index):
     )
 
     # Show and save the figure
-    # fig.show()
+    fig.show()
     fig.write_html(f"filter_{filter_name}_heatmap.html")
 
 
