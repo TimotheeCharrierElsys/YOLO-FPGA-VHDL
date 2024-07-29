@@ -62,11 +62,11 @@ $(WORK_DIR):
 
 # Analyze VHDL files
 analyze: $(WORK_DIR)
-	ghdl -a $(FLAGS) $(WARNINGS) $(SOURCES) $(TESTBENCHES)
+	ghdl -i $(FLAGS) $(WARNINGS) $(SOURCES) $(TESTBENCHES)
 
 # Elaborate the design
 elaborate: analyze
-	ghdl -e $(FLAGS) $(WARNINGS) -Wdelayed-checks --syn-binding $(TOP_ENTITY)
+	ghdl -m $(FLAGS) $(WARNINGS) -Wdelayed-checks --syn-binding $(TOP_ENTITY)
 
 simulate: elaborate
 	ghdl -r $(GHDL_FLAGS) $(TOP_ENTITY) $(SIM_FLAGS) --max-stack-alloc=0
