@@ -50,8 +50,8 @@ begin
             -- Reset output register to zeros
             mac_out <= (others => '0');
         elsif rising_edge(clock) then
-            if (i_sys_enable = '1') then
-                if (i_clear = '1') then
+            if i_sys_enable = '1' then
+                if i_clear = '1' then
                     mac_out <= (others => '0');
                 else
                     -- Multiplication

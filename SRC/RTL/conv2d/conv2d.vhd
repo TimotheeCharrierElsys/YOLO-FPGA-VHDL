@@ -226,9 +226,9 @@ begin
             -- Reset output register to zeros
             output_data_reg <= (others => (others => (others => (others => '0'))));
         elsif rising_edge(clock) then
-            if (i_sys_enable = '1') then
+            if i_sys_enable = '1' then
                 -- Update output
-                if (conv2d_layer_done = '1') then
+                if conv2d_layer_done = '1' then
                     for i in 0 to KERNEL_NUMBER - 1 loop
                         output_data_reg(i)(to_integer(unsigned(row_index)))(to_integer(unsigned(col_index))) <= conv2d_result(i);
                     end loop;
@@ -434,9 +434,9 @@ end configuration conv2d_fc_conf;
 --             -- Reset output register to zeros
 --             output_data_reg <= (others => (others => (others => (others => '0'))));
 --         elsif rising_edge(clock) then
---             if (i_sys_enable = '1') then
+--             if i_sys_enable = '1' then
 --                 -- Update output
---                 if (conv2d_layer_done = '1') then
+--                 if conv2d_layer_done = '1' then
 --                     for i in 0 to KERNEL_NUMBER - 1 loop
 --                         output_data_reg(i)(to_integer(unsigned(row_index)))(to_integer(unsigned(col_index))) <= conv2d_result(i);
 --                     end loop;

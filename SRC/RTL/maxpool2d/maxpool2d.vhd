@@ -166,9 +166,9 @@ begin
             -- Reset output register to zeros
             o_data <= (others => (others => (others => (others => '0'))));
         elsif rising_edge(clock) then
-            if (i_sys_enable = '1') then
+            if i_sys_enable = '1' then
                 -- Update output
-                if (maxpool2d_layer_done = '1') then
+                if maxpool2d_layer_done = '1' then
                     for i in 0 to CHANNEL_NUMBER - 1 loop
                         o_data(i)(to_integer(unsigned(row_index)))(to_integer(unsigned(col_index))) <= maxpool2d_result(i);
                     end loop;

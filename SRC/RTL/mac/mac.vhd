@@ -42,7 +42,7 @@ begin
             -- Reset output register to zeros
             o_result <= (others => '0');
         elsif rising_edge(clock) then
-            if (i_sys_enable = '1') then
+            if i_sys_enable = '1' then
                 -- Perform the multiplication and addition operation
                 o_result <= std_logic_vector(signed(i_add) + signed(i_multiplier1) * signed(i_multiplier2));
             end if;
