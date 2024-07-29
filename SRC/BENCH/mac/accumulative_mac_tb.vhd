@@ -37,7 +37,7 @@ architecture accumulative_mac_tb_arch of accumulative_mac_tb is
     -------------------------------------------------------------------------------------
     -- COMPONENTS
     -------------------------------------------------------------------------------------
-    component accumulative_mac_tb
+    component accumulative_mac
         generic (
             BITWIDTH : integer
         );
@@ -56,7 +56,7 @@ begin
     -------------------------------------------------------------------------------------
     -- UNIT UNDER TEST (UUT)
     -------------------------------------------------------------------------------------
-    UUT : accumulative_mac_tb
+    UUT : accumulative_mac
     generic map(
         BITWIDTH => BITWIDTH
     )
@@ -114,8 +114,8 @@ end architecture;
 
 configuration accumulative_mac_tb_conf of accumulative_mac_tb is
     for accumulative_mac_tb_arch
-        for UUT : accumulative_mac_tb
-            use entity LIB_RTL.accumulative_mac_tb(accumulative_mac_tb_arch);
+        for UUT : accumulative_mac
+            use entity LIB_RTL.accumulative_mac(accumulative_mac_arch);
         end for;
     end for;
 end configuration accumulative_mac_tb_conf;
