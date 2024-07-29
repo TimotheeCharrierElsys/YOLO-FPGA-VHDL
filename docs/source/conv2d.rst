@@ -70,7 +70,8 @@ Output Table
 This is an example of the output of the conv2d layer where the input image is a 64x64 RGB image. The hyperparameters
 used are: *Stride=1*, *Padding=1* and with a *Kernel Size=3*. The output size is a 64x64 gray image.
 
-.. image:: fig/filters/wolf.png
+.. raw:: html
+   :file: html/input_image.html
 
 +--------------------+-----------------------------------------------+------------------------------------------+
 |     Operation      |                    Kernels                    |               Image result               |
