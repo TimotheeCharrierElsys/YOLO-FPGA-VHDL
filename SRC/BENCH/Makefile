@@ -5,6 +5,7 @@ SRC_DIR     := ../RTL
 BENCH_DIR   := .
 
 TOP_ENTITY  := conv_tb
+STOP_TIME   := 800us
 
 # VHDL Source Files
 SOURCES     := $(SRC_DIR)/types_pkg.vhd \
@@ -46,14 +47,11 @@ TESTBENCHES := $(BENCH_DIR)/common/pipeline_tb.vhd \
 # Work Directory
 WORK_DIR    := work
 
-# VHDL Standard and Library
-STD         := 08
-LIB         := LIB_RTL
-STOP_TIME   := 800us
-
 # GHDL and Yosys Flags
-GHDL_FLAGS  := --std=$(STD) --work=$(LIB) --workdir=$(WORK_DIR) -P$(WORK_DIR) -O2
-SIM_FLAGS   := --stop-time=$(STOP_TIME) #--wave=$(WORK_DIR)/wave_$(TOP_ENTITY).ghw
+LIB 		:= LIB_RTL
+FLAGS       := --std=08 --ieee=standard --work=$(LIB) --workdir=$(WORK_DIR) -O2
+WARNINGS	:= -Wdefault-binding -Wparenthesis -Wothers -Wstatic -Werror
+SIM_FLAGS   := --stop-time=$(STOP_TIME) --wave=$(WORK_DIR)/wave_$(TOP_ENTITY).ghw
 
 # Default target
 all: simulate
@@ -64,11 +62,11 @@ $(WORK_DIR):
 
 # Analyze VHDL files
 analyze: $(WORK_DIR)
-	ghdl -i $(GHDL_FLAGS) $(SOURCES) $(TESTBENCHES)
+	ghdl -a $(FLAGS) $(WARNINGS) $(SOURCES) $(TESTBENCHES)
 
 # Elaborate the design
 elaborate: analyze
-	ghdl -m $(GHDL_FLAGS) $(TOP_ENTITY)
+	ghdl -e $(FLAGS) $(WARNINGS) -Wdelayed-checks --syn-binding $(TOP_ENTITY)
 
 simulate: elaborate
 	ghdl -r $(GHDL_FLAGS) $(TOP_ENTITY) $(SIM_FLAGS) --max-stack-alloc=0
