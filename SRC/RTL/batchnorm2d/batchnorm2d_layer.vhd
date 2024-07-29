@@ -218,3 +218,21 @@ begin
         end if;
     end process;
 end batchnorm2d_layer_arch;
+
+configuration batchnorm2d_layer_conf of batchnorm2d_layer is
+    for batchnorm2d_layer_arch
+
+        for all : pipeline
+            use entity LIB_RTL.pipeline(pipeline_arch);
+        end for;
+
+        for all : square_root
+            use entity LIB_RTL.square_root(square_root_arch);
+        end for;
+
+        for all : silu_activation
+            use entity LIB_RTL.silu_activation(silu_activation_arch);
+        end for;
+
+    end for;
+end configuration batchnorm2d_layer_conf;

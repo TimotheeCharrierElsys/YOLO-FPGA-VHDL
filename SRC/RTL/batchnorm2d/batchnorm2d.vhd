@@ -186,7 +186,7 @@ configuration batchnorm2d_conf of batchnorm2d is
     for batchnorm2d_arch
         for gen_batchnorm2d_layer
             for batchnorm2d_layer_inst : batchnorm2d_layer
-                use entity LIB_RTL.batchnorm2d_layer(batchnorm2d_layer_arch);
+                use configuration LIB_RTL.batchnorm2d_layer_conf;
             end for;
         end for;
     end for;
