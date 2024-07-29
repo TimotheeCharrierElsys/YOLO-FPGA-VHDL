@@ -14,7 +14,7 @@ architecture conv2d_tb_arch of conv2d_tb is
     -- Clock period
     constant i_clk_period : time := 5 ns;
     -- Generics
-    constant DO_PIPELINE    : std_logic := '0';
+    constant DO_PIPELINE    : std_logic := '1';
     constant BITWIDTH       : integer   := 16;
     constant INPUT_SIZE     : integer   := 64;
     constant CHANNEL_NUMBER : integer   := 3;
@@ -320,17 +320,17 @@ begin
         -- );
 
         -- FILTER EMBOSS
-        i_kernel(0)(0) <= (
+        i_kernel(2)(0) <= (
         (std_logic_vector(to_signed(-2, 16)), std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(0, 16))),
         (std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(1, 16)), std_logic_vector(to_signed(1, 16))),
         (std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(1, 16)), std_logic_vector(to_signed(2, 16)))
         );
-        i_kernel(0)(1) <= (
+        i_kernel(2)(1) <= (
         (std_logic_vector(to_signed(-2, 16)), std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(0, 16))),
         (std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(1, 16)), std_logic_vector(to_signed(1, 16))),
         (std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(1, 16)), std_logic_vector(to_signed(2, 16)))
         );
-        i_kernel(0)(2) <= (
+        i_kernel(2)(2) <= (
         (std_logic_vector(to_signed(-2, 16)), std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(0, 16))),
         (std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(1, 16)), std_logic_vector(to_signed(1, 16))),
         (std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(1, 16)), std_logic_vector(to_signed(2, 16)))
@@ -439,17 +439,17 @@ begin
         -- );
 
         -- FILTER SHARP
-        i_kernel(2)(0) <= (
+        i_kernel(0)(0) <= (
         (std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(0, 16))),
         (std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(5, 16)), std_logic_vector(to_signed(-1, 16))),
         (std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(0, 16)))
         );
-        i_kernel(2)(1) <= (
+        i_kernel(0)(1) <= (
         (std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(0, 16))),
         (std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(5, 16)), std_logic_vector(to_signed(-1, 16))),
         (std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(0, 16)))
         );
-        i_kernel(2)(2) <= (
+        i_kernel(0)(2) <= (
         (std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(0, 16))),
         (std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(5, 16)), std_logic_vector(to_signed(-1, 16))),
         (std_logic_vector(to_signed(0, 16)), std_logic_vector(to_signed(-1, 16)), std_logic_vector(to_signed(0, 16)))

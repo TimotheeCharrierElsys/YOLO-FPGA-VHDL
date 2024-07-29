@@ -20,7 +20,7 @@ architecture fc_layer_tb_arch of fc_layer_tb is
     -- CONSTANTS
     -------------------------------------------------------------------------------------
     constant i_clk_period : time      := 10 ns; --! Clock period
-    constant DO_PIPELINE  : std_logic := '0';
+    constant DO_PIPELINE  : std_logic := '1';
     constant BITWIDTH     : integer   := 8; --! Bit BITWIDTH of each operand
     constant MATRIX_SIZE  : integer   := 3; --! Kernel Size
 

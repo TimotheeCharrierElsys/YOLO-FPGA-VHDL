@@ -52,7 +52,7 @@ architecture conv2d_fc_arch of conv2d is
     constant N_MULT_REG              : integer := 1;                                                    --! Number of addition registers.
     constant N_OUTPUT_REG            : integer := 1;                                                    --! Number of output registers.
     constant DFF_DELAY_NON_PIPELINED : integer := N_MULT_REG + N_OUTPUT_REG + 1;                        --! Total delay when not pipelined
-    constant DFF_DELAY_PIPELINED     : integer := N_STAGES + N_MULT_REG + N_OUTPUT_REG + 1;             --! Total delay when pipelined
+    constant DFF_DELAY_PIPELINED     : integer := N_STAGES + N_MULT_REG + N_OUTPUT_REG + 2;             --! Total delay when pipelined
 
     -------------------------------------------------------------------------------------
     -- SIGNALS

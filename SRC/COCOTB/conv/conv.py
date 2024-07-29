@@ -1,3 +1,4 @@
+import plotly.graph_objs as go
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import convolve2d
@@ -32,13 +33,14 @@ filters = {
 
 
 class conv2d:
-    def __init__(self, img, filter, stride=1, padding=1):
+    def __init__(self, img, filter, stride=1, padding=1, bias=0):
         self.img = img
         self.img_padded = np.pad(img, ((
             padding, padding), (padding, padding), (0, 0)), mode='constant', constant_values=0)
         self.filter = filter
         self.stride = stride
         self.padding = padding
+        self.bias = bias
         self.conv2d_output = self.convolution2d()
 
     def convolution2d(self, bias=0):
@@ -57,7 +59,7 @@ class conv2d:
         conv_B = convolve2d(B, F_B, mode='valid')
 
         # Sum all the convolutions
-        conv = conv_R + conv_G + conv_B + bias
+        conv = conv_R + conv_G + conv_B + self.bias
 
         toc = time.perf_counter_ns()
         print(f"Executed in {(toc - tic)/1000:0.4f} us")
@@ -222,7 +224,7 @@ def create_fig(filter_name, error, parameters, index):
     # Create figure
     fig = go.Figure()
 
-    # Add surface trace
+    # Add surface trace with a custom hovertemplate
     fig.add_trace(go.Surface(
         z=error,
         colorbar=dict(
@@ -236,7 +238,11 @@ def create_fig(filter_name, error, parameters, index):
         ),
         colorscale='Viridis',
         cmin=error_min,
-        cmax=error_max
+        cmax=error_max,
+        hovertemplate='<b>X</b>: %{x}<br>' +
+                      '<b>Y</b>: %{y}<br>' +
+                      '<b>Error</b>: %{z:.2f}<br>' +
+                      '<extra></extra>'
     ))
 
     # Update plot sizing and layout
@@ -251,8 +257,8 @@ def create_fig(filter_name, error, parameters, index):
                 f"<b>Heatmap Absolute Error for Filter {filter_name}</b><br>"
                 "<span style='font-size: 14px;'>"
                 f"Batchnorm2d Parameters: Running Mean={
-                    parameters['running_mean'][index]: .2f}, "
-                f"Running Variance={parameters['running_var'][index]: .2f}, Weight={
+                    parameters['running_mean'][index]:.2f}, "
+                f"Running Variance={parameters['running_var'][index]:.2f}, Weight={
                     parameters['weight'][index]}, "
                 f"Bias={parameters['bias'][index]}<br>"
                 f"Conv2d Parameters: Stride={parameters['stride'][index]}, Padding={
@@ -312,7 +318,7 @@ def create_fig(filter_name, error, parameters, index):
     )
 
     # Show and save the figure
-    fig.show()
+    # fig.show()
     fig.write_html(f"filter_{filter_name}_heatmap.html")
 
 
@@ -324,10 +330,14 @@ if __name__ == "__main__":
     weight, bias = [3, 3, 3], [15, 15, 15]
     print(running_mean, running_var)
 
-    conv2d_result_emboss = conv2d(img, filters["filter_emboss"]).conv2d_output
+    conv2d_bias = 1
+
+    conv2d_result_emboss = conv2d(
+        img, filters["filter_emboss"], bias=conv2d_bias).conv2d_output
     conv2d_result_identity = conv2d(
-        img, filters["filter_identity"]).conv2d_output
-    conv2d_result_sharp = conv2d(img, filters["filter_sharp"]).conv2d_output
+        img, filters["filter_identity"], bias=conv2d_bias).conv2d_output
+    conv2d_result_sharp = conv2d(
+        img, filters["filter_sharp"], bias=conv2d_bias).conv2d_output
 
     print("Computing Batchnorm2d and SiLU")
     batchnorm2d_silu_result_emboss = batchnorm2d_silu(conv2d_result_emboss, running_mean[0],
@@ -352,12 +362,12 @@ if __name__ == "__main__":
     error_sharp_sh = np.abs(batchnorm2d_silu_result_sharp -
                             batchnorm2d_silu_result_sharp_fp)
 
-    print(f"Average Absolute Error with Emboss between harshwish and silu: {
-          np.mean(error_emboss_sh)}")
-    print(f"Average Absolute Error with Identity between harshwish and silu: {
-          np.mean(error_identity_sh)}")
-    print(f"Average Absolute Error with Sharp between harshwish and silu: {
-          np.mean(error_sharp_sh)}")
+    # print(f"Average Absolute Error with Emboss between harshwish and silu: {
+    #       np.mean(error_emboss_sh)}")
+    # print(f"Average Absolute Error with Identity between harshwish and silu: {
+    #       np.mean(error_identity_sh)}")
+    # print(f"Average Absolute Error with Sharp between harshwish and silu: {
+    #       np.mean(error_sharp_sh)}")
 
     images = reconstruct_image(
         "SRC/BENCH/conv_output_results.txt", 64)
