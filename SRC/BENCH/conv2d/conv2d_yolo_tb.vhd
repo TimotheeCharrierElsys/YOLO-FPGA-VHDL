@@ -21,7 +21,8 @@ architecture conv2d_yolo_tb_arch of conv2d_yolo_tb is
     constant KERNEL_SIZE    : integer   := 3;
     constant KERNEL_NUMBER  : integer   := 1;
     constant PADDING        : integer   := 1;
-    constant STRIDE         : integer   := 1;
+    constant STRIDE         : integer   := 2;
+    
     -- Ports
     signal clock        : std_logic                                                                                                                                           := '0';
     signal reset_n      : std_logic                                                                                                                                           := '0';
