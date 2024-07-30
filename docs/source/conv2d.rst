@@ -1,11 +1,11 @@
 Convolution 2D
-==============
+**************
 
 This document describes the three different architectures available for the `conv2d_layer` entity, which implements a convolution layer using various methods. Each architecture has unique characteristics and dependencies.
 
 
 1. **Fully Connected Architecture**
-------------------------------------
+###################################
 
 **Overview:**
 This architecture uses a fully connected layer approach to perform the convolution operation. It involves an adder tree to sum the results.
@@ -25,7 +25,7 @@ This architecture uses a fully connected layer approach to perform the convoluti
    :alt: Diagram
 
 2. **One MAC per Channel Architecture**
-----------------------------------------
+#######################################
 
 **Overview:**
 This architecture uses one MAC unit per channel. The MAC units are controlled using a multiplexer that handles the selection of operands and inclusion of bias.
@@ -40,13 +40,13 @@ This architecture uses one MAC unit per channel. The MAC units are controlled us
    :alt: Diagram
 
 3. **Conv layer architecture**
-------------------------------
+##############################
 
 The conv layer instantiate one entity per filter/kernel number to perform the computation. It takes one sliced matrix and kernel per channels. It computes the and return the 
 result, while raising a *done flag* according to the computation delay induced by the DFF.
 
 4. **Conv2D architecture**
----------------------------
+##########################
 
 **Overview:**
 The con2d architecture is based on conv2d_layer and volume_slicer entities.
@@ -65,7 +65,7 @@ The following image illustrates the architecture of maxpool2d, by applying a con
    :alt: Diagram
 
 Output Table
-------------
+############
 
 This is an example of the output of the conv2d layer where the input image is a 64x64 RGB image. The hyperparameters
 used are: *Stride=1*, *Padding=1* and with a *Kernel Size=3*. The output size is a 64x64 gray image.

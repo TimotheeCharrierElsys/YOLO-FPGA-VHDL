@@ -1,8 +1,13 @@
 MaxPool2d
-=========
+*********
+
+A maxpool layer is a downsampling technique commonly used in convolutional neural networks (CNNs). 
+It reduces the spatial dimensions of the input, retaining the most important features by selecting the maximum value within a defined window. 
+This process helps to decrease computational load, reduce overfitting, 
+and ensure the network's ability to recognize patterns regardless of minor variations in position.
 
 **Maxpool2d architecture**
---------------------------
+##########################
 
 **Overview:**
 The maxpool2d architecture is based on maxpool2d_layer and volume_slicer entities.
@@ -20,7 +25,7 @@ The following image illustrate the architecture of the maxpool2d, by apllying ma
    :alt: Diagram
 
 **Output Table**
-----------------
+################
 
 This is an example of the output of the maxpool2d where the input image is a 64x64 RGB image. The hyperparameters
 used are: *Stride=1*, *Padding=1* and with a *Kernel Size=3*. The output size is a 64x64 gray image.
