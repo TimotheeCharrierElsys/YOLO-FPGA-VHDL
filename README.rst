@@ -20,7 +20,7 @@ Cloning the repo
 
 .. code-block:: bash
 
-   git clone https://github.com/TimotheeCharrierElsys/YOLO-FPGA-VHDL.git
+      git clone https://github.com/TimotheeCharrierElsys/YOLO-FPGA-VHDL.git
 
 2. Go to `dev` branch
 
