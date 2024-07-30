@@ -18,7 +18,7 @@ Cloning the repo
 
 1. Open a terminal and run
 
-.. code-block:: bash
+   .. code-block:: bash
 
       git clone https://github.com/TimotheeCharrierElsys/YOLO-FPGA-VHDL.git
 
