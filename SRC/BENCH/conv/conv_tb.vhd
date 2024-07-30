@@ -123,7 +123,7 @@ begin
     i_bias_conv2d <= (others => std_logic_vector(to_signed(1, BITWIDTH)));
 
     i_running_mean     <= (std_logic_vector(to_signed(110, 2 * BITWIDTH)), std_logic_vector(to_signed(113, 2 * BITWIDTH)), std_logic_vector(to_signed(107, 2 * BITWIDTH)));
-    i_running_var      <= (std_logic_vector(to_signed(3975, 2 * BITWIDTH)), std_logic_vector(to_signed(3400, 2 * BITWIDTH)), std_logic_vector(to_signed(2503, 2 * BITWIDTH)));
+    i_running_var      <= (std_logic_vector(to_signed(3975, 2 * BITWIDTH)), std_logic_vector(to_signed(3399, 2 * BITWIDTH)), std_logic_vector(to_signed(2503, 2 * BITWIDTH)));
     i_weight           <= (others => std_logic_vector(to_signed(3, 2 * BITWIDTH)));
     i_bias_batchnorm2d <= (others => std_logic_vector(to_signed(15, 2 * BITWIDTH)));
 
