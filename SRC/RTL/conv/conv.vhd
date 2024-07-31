@@ -44,10 +44,10 @@ entity conv is
         -- batchnorm2d inputs
         --  
 
-        i_running_mean     : in t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Input mean vector
-        i_running_var      : in t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Input variance vector
-        i_weight           : in t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Input weight vector
-        i_bias_batchnorm2d : in t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Input bias vector for batchnorm2d   
+        i_running_mean     : in t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Input mean vector
+        i_running_var      : in t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Input variance vector
+        i_weight           : in t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Input weight vector
+        i_bias_batchnorm2d : in t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Input bias vector for batchnorm2d   
 
         -- 
         -- outputs
@@ -149,7 +149,7 @@ begin
     generic map(
         BITWIDTH       => 2 * BITWIDTH,
         INPUT_SIZE     => OUTPUT_SIZE,
-        CHANNEL_NUMBER => CHANNEL_NUMBER,
+        CHANNEL_NUMBER => KERNEL_NUMBER,
         EPSILON        => EPSILON
     )
     port map(
