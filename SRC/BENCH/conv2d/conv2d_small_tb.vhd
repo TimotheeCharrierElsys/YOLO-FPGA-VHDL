@@ -12,7 +12,8 @@ architecture conv2d_small_tb_arch of conv2d_small_tb is
     -- Clock period
     constant i_clk_period : time := 5 ns;
     -- Generics
-    constant DO_PIPELINE    : std_logic := '1';
+    constant USE_MAC_ARCH   : std_logic := '0';
+    constant DO_PIPELINE    : std_logic := '0';
     constant BITWIDTH       : integer   := 16;
     constant INPUT_SIZE     : integer   := 5;
     constant CHANNEL_NUMBER : integer   := 3;
@@ -33,6 +34,7 @@ architecture conv2d_small_tb_arch of conv2d_small_tb is
 
     component conv2d
         generic (
+            USE_MAC_ARCH   : std_logic;
             DO_PIPELINE    : std_logic;
             BITWIDTH       : integer;
             INPUT_SIZE     : integer;
@@ -59,6 +61,7 @@ begin
 
     UUT : conv2d
     generic map(
+        USE_MAC_ARCH   => USE_MAC_ARCH,
         DO_PIPELINE    => DO_PIPELINE,
         BITWIDTH       => BITWIDTH,
         INPUT_SIZE     => INPUT_SIZE,
@@ -155,7 +158,7 @@ end conv2d_small_tb_arch;
 configuration conv2d_small_tb_conf of conv2d_small_tb is
     for conv2d_small_tb_arch
         for UUT : conv2d
-            use configuration LIB_RTL.conv2d_fc_conf;
+            use configuration LIB_RTL.conv2d_conf;
         end for;
     end for;
 end configuration conv2d_small_tb_conf;

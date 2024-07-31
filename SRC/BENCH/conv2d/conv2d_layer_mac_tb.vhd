@@ -151,6 +151,11 @@ begin
         report "Test failed: output does not match expected output"
             severity error;
 
+        wait for 100 ns;
+        i_valid <= '1';
+        wait for i_clk_period/2;
+        i_valid <= '0';
+
         -- Finish the simulation
         wait;
     end process stimulus;
