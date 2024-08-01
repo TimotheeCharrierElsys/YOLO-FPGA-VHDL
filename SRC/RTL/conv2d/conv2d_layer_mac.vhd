@@ -28,7 +28,7 @@ entity conv2d_layer_mac is
         i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data  (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
         i_valid      : in std_logic;                                                                                                        --! Input valid signal
         i_kernels    : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Kernel data (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
-        i_bias       : in std_logic_vector(BITWIDTH - 1 downto 0);                                                                          --! Input bias value
+        i_bias       : in std_logic_vector(2 * BITWIDTH - 1 downto 0);                                                                      --! Input bias value
         o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0)                                                                      --! Output value
     );
 end conv2d_layer_mac;
@@ -43,16 +43,16 @@ architecture conv2d_layer_mac_arch of conv2d_layer_mac is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal r_results                 : t_vec(CHANNEL_NUMBER downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel.
-    signal current_row               : integer range 0 to KERNEL_SIZE - 1;                        --! Counter to track the current position within the kernel.
-    signal current_col               : integer range 0 to KERNEL_SIZE - 1;                        --! Counter to track the current position within the kernel.
-    signal current_channel           : integer range 0 to CHANNEL_NUMBER;                         --! Counter to track the current position within the channels.
-    signal intermediate_multiplier1  : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0); --! Intermediate signal to avoid static 
-    signal intermediate_multiplier2  : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0); --! Intermediate signal
-    signal current_operand           : std_logic_vector(2 * BITWIDTH - 1 downto 0);               --! Intermediate signal for output sum
-    signal clear_output_sum          : std_logic;
-    signal start_processing          : std_logic; --! Signal to start processing
-    signal data_valid_previous_state : std_logic; --! Previous state of the data_valid signal
+    signal r_results                : t_vec(CHANNEL_NUMBER downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel.
+    signal current_row              : integer range 0 to KERNEL_SIZE - 1;                        --! Counter to track the current position within the kernel.
+    signal current_col              : integer range 0 to KERNEL_SIZE - 1;                        --! Counter to track the current position within the kernel.
+    signal current_channel          : integer range 0 to CHANNEL_NUMBER;                         --! Counter to track the current position within the channels.
+    signal intermediate_multiplier1 : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0); --! Intermediate signal to avoid static 
+    signal intermediate_multiplier2 : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0); --! Intermediate signal
+    signal current_operand          : std_logic_vector(2 * BITWIDTH - 1 downto 0);               --! Intermediate signal for output sum
+    signal clear_output_sum         : std_logic;                                                 --! Clear the output sum register
+    signal start_processing         : std_logic;                                                 --! Signal to start processing
+    signal i_valid_d1               : std_logic;                                                 --! Previous state of the data_valid signal
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -137,26 +137,24 @@ begin
     counter_control : process (clock, reset_n)
     begin
         if reset_n = '0' then
-            -- Reset counters  to initial states.
-            data_valid_previous_state <= '0';
-            start_processing          <= '0';
-            current_row               <= 0;
-            current_col               <= 0;
-            current_channel           <= 0;
+            -- Reset counters to initial states.
+            i_valid_d1       <= '0';
+            start_processing <= '0';
+            current_row      <= 0;
+            current_col      <= 0;
+            current_channel  <= 0;
 
         elsif rising_edge(clock) then
             if i_sys_enable = '1' then
 
-                -- Update last data_valid signal
-                data_valid_previous_state <= i_valid;
+                -- Update current valid
+                i_valid_d1 <= i_valid;
 
                 -- Check if input data is valid
-                if (start_processing = '0' and i_valid = '1' and data_valid_previous_state = '0') then
+                if (start_processing = '0' and i_valid = '1' and i_valid_d1 = '0') then
                     start_processing <= '1';
-                end if;
 
-                if start_processing = '1' then
-
+                elsif start_processing = '1' then
                     -- Update counter signals.
                     if current_col = KERNEL_SIZE - 1 then
                         if current_row = KERNEL_SIZE - 1 then

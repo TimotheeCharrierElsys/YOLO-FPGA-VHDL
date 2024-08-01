@@ -35,7 +35,7 @@ architecture conv2d_layer_mac_tb_arch of conv2d_layer_mac_tb is
     signal i_data       : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input image
     signal i_valid      : std_logic := '0';
     signal i_kernels    : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input kernels
-    signal i_bias       : std_logic_vector(BITWIDTH - 1 downto 0);                                                                          --! Input bias
+    signal i_bias       : std_logic_vector(2 * BITWIDTH - 1 downto 0);                                                                      --! Input bias
     signal o_result     : std_logic_vector(2 * BITWIDTH - 1 downto 0);                                                                      --! Output result
 
     -------------------------------------------------------------------------------------
@@ -55,7 +55,7 @@ architecture conv2d_layer_mac_tb_arch of conv2d_layer_mac_tb is
             i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_valid      : in std_logic;
             i_kernels    : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_bias       : in std_logic_vector(BITWIDTH - 1 downto 0);
+            i_bias       : in std_logic_vector(2 * BITWIDTH - 1 downto 0);
             o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
         );
     end component;
@@ -86,7 +86,7 @@ begin
     clock <= not clock after i_clk_period / 2;
 
     -- Apply input vectors
-    i_bias <= std_logic_vector(to_signed(1, BITWIDTH));
+    i_bias <= std_logic_vector(to_signed(1, 2 * BITWIDTH));
 
     -------------------------------------------------------------------------------------
     -- TEST PROCESS
@@ -153,7 +153,7 @@ begin
 
         wait for 100 ns;
         i_valid <= '1';
-        wait for i_clk_period/2;
+        wait for i_clk_period;
         i_valid <= '0';
 
         -- Finish the simulation
