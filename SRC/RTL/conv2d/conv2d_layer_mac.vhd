@@ -111,7 +111,7 @@ begin
         i_sys_enable => i_sys_enable,
         i_clear      => clear_output_sum,
         i_operand1   => current_operand,
-        i_operand2 => (others => '1'),
+        i_operand2   => (others => '0'),
         o_result     => o_result
     );
 
@@ -125,9 +125,9 @@ begin
             intermediate_multiplier1(i) <= i_data(i)(current_col)(current_row);
             intermediate_multiplier2(i) <= i_kernels(i)(current_col)(current_row);
             current_operand             <= r_results(current_channel) when current_row /= CHANNEL_NUMBER else
-                i_bias;
+                                           i_bias;
             clear_output_sum <= '1' when current_row = KERNEL_SIZE - 1 and current_col = KERNEL_SIZE - 2 else
-                '0';
+                                '0';
         end loop;
     end process;
 
