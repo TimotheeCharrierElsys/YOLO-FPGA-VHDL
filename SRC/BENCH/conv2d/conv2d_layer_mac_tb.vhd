@@ -43,7 +43,6 @@ architecture conv2d_layer_mac_tb_arch of conv2d_layer_mac_tb is
     -------------------------------------------------------------------------------------
     component conv2d_layer_mac
         generic (
-            DO_PIPELINE    : std_logic;
             BITWIDTH       : integer;
             CHANNEL_NUMBER : integer;
             KERNEL_SIZE    : integer
@@ -66,7 +65,6 @@ begin
     -------------------------------------------------------------------------------------
     UUT : conv2d_layer_mac
     generic map(
-        DO_PIPELINE    => DO_PIPELINE,
         BITWIDTH       => BITWIDTH,
         CHANNEL_NUMBER => CHANNEL_NUMBER,
         KERNEL_SIZE    => KERNEL_SIZE

@@ -16,10 +16,9 @@ use LIB_RTL.TYPES_PKG.all;
 --! This entity implements a convolution layer using a pipelined MAC unit with a 3x3 kernel.
 entity conv2d_layer_mac is
     generic (
-        DO_PIPELINE    : std_logic := '1'; --! Define if the design is pipelined ('1') or not ('0')
-        BITWIDTH       : integer   := 8;   --! Bit width of each operand
-        CHANNEL_NUMBER : integer   := 3;   --! Number of channels in the image
-        KERNEL_SIZE    : integer   := 3    --! Size of the kernel (e.g., 3 for a 3x3 kernel)
+        BITWIDTH       : integer := 8; --! Bit width of each operand
+        CHANNEL_NUMBER : integer := 3; --! Number of channels in the image
+        KERNEL_SIZE    : integer := 3  --! Size of the kernel (e.g., 3 for a 3x3 kernel)
     );
     port (
         clock        : in std_logic;                                                                                                        --! Clock signal
@@ -111,23 +110,21 @@ begin
         i_sys_enable => i_sys_enable,
         i_clear      => clear_output_sum,
         i_operand1   => current_operand,
-        i_operand2   => (others => '0'),
+        i_operand2 => (others => '0'),
         o_result     => o_result
     );
-
-    -- Add bias to r_result last position
-    r_results(CHANNEL_NUMBER) <= std_logic_vector(resize(signed(i_bias), 2 * BITWIDTH));
 
     -- Process to update the intermediate signals
     process (all)
     begin
         for i in 0 to CHANNEL_NUMBER - 1 loop
+            r_results(CHANNEL_NUMBER)   <= std_logic_vector(resize(signed(i_bias), 2 * BITWIDTH)); -- Add bias to r_result last position
             intermediate_multiplier1(i) <= i_data(i)(current_col)(current_row);
             intermediate_multiplier2(i) <= i_kernels(i)(current_col)(current_row);
             current_operand             <= r_results(current_channel) when current_row /= CHANNEL_NUMBER else
-                                           i_bias;
+                i_bias;
             clear_output_sum <= '1' when current_row = KERNEL_SIZE - 1 and current_col = KERNEL_SIZE - 2 else
-                                '0';
+                '0';
         end loop;
     end process;
 

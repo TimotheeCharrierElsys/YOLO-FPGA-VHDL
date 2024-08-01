@@ -32,7 +32,6 @@ architecture accumulative_mac_tb_arch of accumulative_mac_tb is
     signal reset_n      : std_logic := '1';                            --! Reset signal, active at low state
     signal i_sys_enable : std_logic := '0';                            --! Enable signal, active at high state
     signal i_clear      : std_logic := '0';                            --! Clear signal, active high
-    signal i_enable     : std_logic := '0';                            --! Input enable, active high
     signal i_operand1   : std_logic_vector(INTPUT_WIDTH - 1 downto 0); --! First mult operand
     signal i_operand2   : std_logic_vector(INTPUT_WIDTH - 1 downto 0); --! Second mult operand
     signal o_result     : std_logic_vector(OUTPUT_WIDTH - 1 downto 0); --! Output data
@@ -51,7 +50,6 @@ architecture accumulative_mac_tb_arch of accumulative_mac_tb is
             reset_n      : in std_logic;
             i_sys_enable : in std_logic;
             i_clear      : in std_logic;
-            i_enable     : in std_logic;
             i_operand1   : in std_logic_vector(INTPUT_WIDTH - 1 downto 0);
             i_operand2   : in std_logic_vector(INTPUT_WIDTH - 1 downto 0);
             o_result     : out std_logic_vector(OUTPUT_WIDTH - 1 downto 0)
@@ -73,7 +71,6 @@ begin
         reset_n      => reset_n,
         i_sys_enable => i_sys_enable,
         i_clear      => i_clear,
-        i_enable     => i_enable,
         i_operand1   => i_operand1,
         i_operand2   => i_operand2,
         o_result     => o_result
@@ -93,7 +90,6 @@ begin
 
         -- Enable the mac unit
         i_sys_enable <= '1';
-        i_enable     <= '1';
 
         -- Apply input vectors
         i_operand1 <= std_logic_vector(to_signed(5, INTPUT_WIDTH));
@@ -118,7 +114,6 @@ begin
             severity error;
 
         wait for i_clk_period;
-        i_enable <= '0';
 
         -- Finish the simulation
         wait;

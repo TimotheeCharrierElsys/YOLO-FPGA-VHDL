@@ -28,7 +28,7 @@ entity conv2d_layer is
         i_sys_enable : in std_logic;                                                                                                        --! Enable signal, active at high state
         i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data  (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
         i_kernels    : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Kernel data (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
-        i_bias       : in std_logic_vector(BITWIDTH - 1 downto 0);                                                                          --! Input bias value
+        i_bias       : in std_logic_vector(2 * BITWIDTH - 1 downto 0);                                                                      --! Input bias value
         o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0)                                                                      --! Output value
     );
 end conv2d_layer;
@@ -117,7 +117,7 @@ begin
     );
 
     -- Add bias to r_result last position
-    r_results(CHANNEL_NUMBER) <= std_logic_vector(resize(signed(i_bias), 2 * BITWIDTH));
+    r_results(CHANNEL_NUMBER) <= i_bias;
 
 end conv2d_layer_fc_arch;
 

@@ -18,7 +18,7 @@ use LIB_RTL.types_pkg.all;
 --! This entity implements a convolution operation
 entity conv2d is
     generic (
-        USE_MAC_ARCH   : std_logic := '1'; --! Define if the design is using mac architecture ('1') or not ('0')
+        USE_MAC_ARCH   : std_logic := '1'; --! Define if the design is using mac ('1') or adder ('0')
         DO_PIPELINE    : std_logic := '1'; --! Define if the design is pipelined ('1') or not ('0')
         BITWIDTH       : integer   := 8;   --! Bit width of each operand
         INPUT_SIZE     : integer   := 5;   --! Width and Height of the input
@@ -35,7 +35,7 @@ entity conv2d is
         i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);                                                                                       --! Input data (CHANNEL_NUMBER x (INPUT_SIZE x INPUT_SIZE x BITWIDTH) bits)
         i_data_valid : in std_logic;                                                                                                                                                                                            --! Data valid signal, active high
         i_kernel     : in t_input_feature(KERNEL_NUMBER - 1 downto 0)(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);                                                  --! Kernel data (KERNEL_NUMBER x CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
-        i_bias       : in t_vec(KERNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);                                                                                                                                             --! Input bias value
+        i_bias       : in t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                                                                                                                         --! Input bias value
         o_data       : out t_volume(KERNEL_NUMBER - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Output data
         o_data_valid : out std_logic                                                                                                                                                                                            --! Output valid signal
     );
@@ -54,14 +54,13 @@ architecture conv2d_arch of conv2d is
     constant N_OUTPUT_REG            : integer := 1;                                                    --! Number of output registers.
     constant DFF_DELAY_NON_PIPELINED : integer := N_MULT_REG + N_OUTPUT_REG + 1;                        --! Total delay when not pipelined
     constant DFF_DELAY_PIPELINED     : integer := N_STAGES + N_MULT_REG + N_OUTPUT_REG + 2;             --! Total delay when pipelined
-    constant DFF_DELAY_MAC_ARCH      : integer := KERNEL_SIZE * KERNEL_SIZE + N_OUTPUT_REG + 1;         --! Total delay due to flip-flops and computation (+1 for clear)
+    constant DFF_DELAY_MAC_ARCH      : integer := KERNEL_SIZE * KERNEL_SIZE + CHANNEL_NUMBER + 1;       --! Total delay due to flip-flops and computation
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
     signal padded_input_data   : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Matrix volume with input padded on all channels
     signal sliced_input_volume : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);             --! Sliced volume for conv2d_layer input
-    signal output_data_reg     : t_volume(KERNEL_NUMBER - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(2 * BITWIDTH - 1 downto 0);          --! Register to store the output data
     signal conv2d_result       : t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                                                 --! Output result of the conv2d_layer
     signal conv2d_start        : std_logic;                                                                                                                    --! Signal to start convolution
     signal conv2d_layer_done   : std_logic;                                                                                                                    --! Signal indicating convolution layer completion
@@ -109,7 +108,7 @@ architecture conv2d_arch of conv2d is
             i_sys_enable : in std_logic;
             i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_kernels    : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_bias       : in std_logic_vector(BITWIDTH - 1 downto 0);
+            i_bias       : in std_logic_vector(2 * BITWIDTH - 1 downto 0);
             o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
         );
     end component;
@@ -127,7 +126,7 @@ architecture conv2d_arch of conv2d is
             i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_valid      : in std_logic;
             i_kernels    : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_bias       : in std_logic_vector(BITWIDTH - 1 downto 0);
+            i_bias       : in std_logic_vector(2 * BITWIDTH - 1 downto 0);
             o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
         );
     end component;
@@ -285,21 +284,18 @@ begin
     begin
         if reset_n = '0' then
             -- Reset output register to zeros
-            output_data_reg <= (others => (others => (others => (others => '0'))));
+            o_data <= (others => (others => (others => (others => '0'))));
         elsif rising_edge(clock) then
             if i_sys_enable = '1' then
                 -- Update output
                 if conv2d_layer_done = '1' then
                     for i in 0 to KERNEL_NUMBER - 1 loop
-                        output_data_reg(i)(to_integer(unsigned(row_index)))(to_integer(unsigned(col_index))) <= conv2d_result(i);
+                        o_data(i)(to_integer(unsigned(row_index)))(to_integer(unsigned(col_index))) <= conv2d_result(i);
                     end loop;
                 end if;
             end if;
         end if;
     end process conv2d_control;
-
-    -- Assign output data
-    o_data <= output_data_reg;
 
 end architecture;
 

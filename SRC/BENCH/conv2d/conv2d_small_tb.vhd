@@ -12,7 +12,7 @@ architecture conv2d_small_tb_arch of conv2d_small_tb is
     -- Clock period
     constant i_clk_period : time := 5 ns;
     -- Generics
-    constant USE_MAC_ARCH   : std_logic := '0';
+    constant USE_MAC_ARCH   : std_logic := '1';
     constant DO_PIPELINE    : std_logic := '0';
     constant BITWIDTH       : integer   := 16;
     constant INPUT_SIZE     : integer   := 5;
@@ -28,7 +28,7 @@ architecture conv2d_small_tb_arch of conv2d_small_tb is
     signal i_data_valid : std_logic                                                                                                                                           := '0';
     signal i_data       : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)                                      := (others => (others => (others => (others => '0'))));
     signal i_kernel     : t_input_feature(KERNEL_NUMBER - 1 downto 0)(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0) := (others => (others => (others => (others => (others => '0')))));
-    signal i_bias       : t_vec(KERNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
+    signal i_bias       : t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
     signal o_data       : t_volume(KERNEL_NUMBER - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
     signal o_data_valid : std_logic;
 
@@ -51,7 +51,7 @@ architecture conv2d_small_tb_arch of conv2d_small_tb is
             i_data_valid : in std_logic;
             i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_kernel     : in t_input_feature(KERNEL_NUMBER - 1 downto 0)(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_bias       : in t_vec(KERNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_bias       : in t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
             o_data       : out t_volume(KERNEL_NUMBER - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
             o_data_valid : out std_logic
         );
@@ -83,7 +83,7 @@ begin
         o_data_valid => o_data_valid
     );
 
-    i_bias <= (others => std_logic_vector(to_signed(-1, BITWIDTH)));
+    i_bias <= (others => std_logic_vector(to_signed(-1, 2 * BITWIDTH)));
 
     -- Clock generation
     clock <= not clock after i_clk_period / 2;
@@ -146,8 +146,108 @@ begin
         wait for i_clk_period;
         i_data_valid <= '0';
 
-        -- Wait for output to be valid and write to file
+        -- Wait for output to be valid
         wait until o_data_valid = '1';
+
+        assert o_data(0)(0)(0) = std_logic_vector(to_signed(-951, 2 * BITWIDTH))
+        report "Output do not match expected value -951 - Gotten = " & integer'image(to_integer(signed(o_data(0)(0)(0))))
+            severity error;
+
+        assert o_data(0)(0)(1) = std_logic_vector(to_signed(-3022, 2 * BITWIDTH))
+        report "Output do not match expected value -3022 - Gotten = " & integer'image(to_integer(signed(o_data(0)(0)(1))))
+            severity error;
+
+        assert o_data(0)(0)(2) = std_logic_vector(to_signed(641, 2 * BITWIDTH))
+        report "Output do not match expected value 641 - Gotten = " & integer'image(to_integer(signed(o_data(0)(0)(2))))
+            severity error;
+
+        assert o_data(0)(0)(3) = std_logic_vector(to_signed(-1041, 2 * BITWIDTH))
+        report "Output do not match expected value -1041 - Gotten = " & integer'image(to_integer(signed(o_data(0)(0)(3))))
+            severity error;
+
+        assert o_data(0)(0)(4) = std_logic_vector(to_signed(-1805, 2 * BITWIDTH))
+        report "Output do not match expected value -1805 - Gotten = " & integer'image(to_integer(signed(o_data(0)(0)(4))))
+            severity error;
+
+        assert o_data(0)(1)(0) = std_logic_vector(to_signed(-649, 2 * BITWIDTH))
+        report "Output do not match expected value -649 - Gotten = " & integer'image(to_integer(signed(o_data(0)(1)(0))))
+            severity error;
+
+        assert o_data(0)(1)(1) = std_logic_vector(to_signed(559, 2 * BITWIDTH))
+        report "Output do not match expected value 559 - Gotten = " & integer'image(to_integer(signed(o_data(0)(1)(1))))
+            severity error;
+
+        assert o_data(0)(1)(2) = std_logic_vector(to_signed(-3011, 2 * BITWIDTH))
+        report "Output do not match expected value -3011 - Gotten = " & integer'image(to_integer(signed(o_data(0)(1)(2))))
+            severity error;
+
+        assert o_data(0)(1)(3) = std_logic_vector(to_signed(1026, 2 * BITWIDTH))
+        report "Output do not match expected value 1026 - Gotten = " & integer'image(to_integer(signed(o_data(0)(1)(3))))
+            severity error;
+
+        assert o_data(0)(1)(4) = std_logic_vector(to_signed(-814, 2 * BITWIDTH))
+        report "Output do not match expected value -814 - Gotten = " & integer'image(to_integer(signed(o_data(0)(1)(4))))
+            severity error;
+
+        assert o_data(0)(2)(0) = std_logic_vector(to_signed(-3831, 2 * BITWIDTH))
+        report "Output do not match expected value -3831 - Gotten = " & integer'image(to_integer(signed(o_data(0)(2)(0))))
+            severity error;
+
+        assert o_data(0)(2)(1) = std_logic_vector(to_signed(8638, 2 * BITWIDTH))
+        report "Output do not match expected value 8638 - Gotten = " & integer'image(to_integer(signed(o_data(0)(2)(1))))
+            severity error;
+
+        assert o_data(0)(2)(2) = std_logic_vector(to_signed(-1709, 2 * BITWIDTH))
+        report "Output do not match expected value -1709 - Gotten = " & integer'image(to_integer(signed(o_data(0)(2)(2))))
+            severity error;
+
+        assert o_data(0)(2)(3) = std_logic_vector(to_signed(3254, 2 * BITWIDTH))
+        report "Output do not match expected value 3254 - Gotten = " & integer'image(to_integer(signed(o_data(0)(2)(3))))
+            severity error;
+
+        assert o_data(0)(2)(4) = std_logic_vector(to_signed(2247, 2 * BITWIDTH))
+        report "Output do not match expected value 2247 - Gotten = " & integer'image(to_integer(signed(o_data(0)(2)(4))))
+            severity error;
+
+        assert o_data(0)(3)(0) = std_logic_vector(to_signed(3507, 2 * BITWIDTH))
+        report "Output do not match expected value 3507 - Gotten = " & integer'image(to_integer(signed(o_data(0)(3)(0))))
+            severity error;
+
+        assert o_data(0)(3)(1) = std_logic_vector(to_signed(-6115, 2 * BITWIDTH))
+        report "Output do not match expected value -6115 - Gotten = " & integer'image(to_integer(signed(o_data(0)(3)(1))))
+            severity error;
+
+        assert o_data(0)(3)(2) = std_logic_vector(to_signed(2924, 2 * BITWIDTH))
+        report "Output do not match expected value 2924 - Gotten = " & integer'image(to_integer(signed(o_data(0)(3)(2))))
+            severity error;
+
+        assert o_data(0)(3)(3) = std_logic_vector(to_signed(-2109, 2 * BITWIDTH))
+        report "Output do not match expected value -2109 - Gotten = " & integer'image(to_integer(signed(o_data(0)(3)(3))))
+            severity error;
+
+        assert o_data(0)(3)(4) = std_logic_vector(to_signed(246, 2 * BITWIDTH))
+        report "Output do not match expected value 246 - Gotten = " & integer'image(to_integer(signed(o_data(0)(3)(4))))
+            severity error;
+
+        assert o_data(0)(4)(0) = std_logic_vector(to_signed(-1750, 2 * BITWIDTH))
+        report "Output do not match expected value -1750 - Gotten = " & integer'image(to_integer(signed(o_data(0)(4)(0))))
+            severity error;
+
+        assert o_data(0)(4)(1) = std_logic_vector(to_signed(2689, 2 * BITWIDTH))
+        report "Output do not match expected value 2689 - Gotten = " & integer'image(to_integer(signed(o_data(0)(4)(1))))
+            severity error;
+
+        assert o_data(0)(4)(2) = std_logic_vector(to_signed(661, 2 * BITWIDTH))
+        report "Output do not match expected value 661 - Gotten = " & integer'image(to_integer(signed(o_data(0)(4)(2))))
+            severity error;
+
+        assert o_data(0)(4)(3) = std_logic_vector(to_signed(2526, 2 * BITWIDTH))
+        report "Output do not match expected value 2526 - Gotten = " & integer'image(to_integer(signed(o_data(0)(4)(3))))
+            severity error;
+
+        assert o_data(0)(4)(4) = std_logic_vector(to_signed(-1257, 2 * BITWIDTH))
+        report "Output do not match expected value -1257 - Gotten = " & integer'image(to_integer(signed(o_data(0)(4)(4))))
+            severity error;
 
         -- End simulation
         wait;
