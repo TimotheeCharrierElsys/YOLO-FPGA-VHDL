@@ -35,9 +35,9 @@ architecture accumulative_mac_arch of accumulative_mac is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal mac_out               : std_logic_vector(OUTPUT_WIDTH - 1 downto 0); --! MUX output value
-    signal multiplication_result : std_logic_vector(OUTPUT_WIDTH - 1 downto 0);
-    signal sum_result            : std_logic_vector(OUTPUT_WIDTH - 1 downto 0);
+    signal o_result_reg          : std_logic_vector(OUTPUT_WIDTH - 1 downto 0); --! Output result register
+    signal multiplication_result : std_logic_vector(OUTPUT_WIDTH - 1 downto 0); --! Signal containing the multiplication result 
+    signal sum_result            : std_logic_vector(OUTPUT_WIDTH - 1 downto 0); --! Signal containing the addition result 
 
 begin
 
@@ -45,14 +45,14 @@ begin
         process (all)
         begin
             multiplication_result <= std_logic_vector(signed(i_operand1) * signed(i_operand2));
-            sum_result            <= std_logic_vector(signed(mac_out) + signed(multiplication_result));
+            sum_result            <= std_logic_vector(signed(o_result_reg) + signed(multiplication_result));
         end process;
     end generate gen_multiplication;
 
     do_not_gen_multiplication : if DO_MULTIPLICATION = '0' generate
         process (all)
         begin
-            sum_result <= std_logic_vector(resize(signed(i_operand1), OUTPUT_WIDTH) + signed(mac_out));
+            sum_result <= std_logic_vector(resize(signed(i_operand1), OUTPUT_WIDTH) + signed(o_result_reg));
         end process;
     end generate do_not_gen_multiplication;
 
@@ -65,19 +65,19 @@ begin
     begin
         if reset_n = '0' then
             -- Reset output register to zeros
-            mac_out <= (others => '0');
+            o_result_reg <= (others => '0');
         elsif rising_edge(clock) then
             if i_sys_enable = '1' then
                 if i_clear = '1' then
-                    mac_out <= (others => '0');
+                    o_result_reg <= (others => '0');
                 else
-                    mac_out <= sum_result(OUTPUT_WIDTH - 1 downto 0);
+                    o_result_reg <= sum_result(OUTPUT_WIDTH - 1 downto 0);
                 end if;
             end if;
         end if;
     end process;
 
     -- Output update
-    o_result <= mac_out;
+    o_result <= o_result_reg;
 
 end accumulative_mac_arch;
