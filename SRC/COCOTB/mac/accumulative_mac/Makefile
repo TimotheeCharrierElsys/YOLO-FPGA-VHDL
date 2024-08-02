@@ -8,17 +8,14 @@ SIM                 := ghdl
 SIM_BUILD           := build
 
 COMPILE_ARGS        := --std=08
-COMPILE_ARGS        += --work=LIB_RTL
 SIM_ARGS            += --vcd=$(WAVE_FILE)
-SIM_ARGS            += -gBITWIDTH=8
-
-
+SIM_ARGS            += -gINPUT_WIDTH=8 -gOUTPUT_WIDTH=16
 PWD=$(shell pwd)
 
 export PYTHONPATH   := $(PWD)/../model:$(PYTHONPATH)
 
 ifeq ($(TOPLEVEL_LANG),vhdl)
-    VHDL_SOURCES    = /home/tim/YOLO-FPGA-VHDL/SRC/RTL/mac/accumulative_mac.vhd
+    VHDL_SOURCES    = ../../../RTL/mac/accumulative_mac.vhd
 else
     $(error A valid value (verilog or vhdl) was not provided for TOPLEVEL_LANG=$(TOPLEVEL_LANG))
 endif
