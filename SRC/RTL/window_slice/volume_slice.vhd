@@ -48,12 +48,12 @@ architecture volume_slice_arch of volume_slice is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal current_row               : integer range 0 to OUTPUT_SIZE - 1;                                                                               --! Current row counter for slicing
-    signal current_col               : integer range 0 to OUTPUT_SIZE - 1;                                                                               --! Current column counter for slicing
-    signal start_processing          : std_logic;                                                                                                        --! Signal to start processing
-    signal data_valid_previous_state : std_logic;                                                                                                        --! Previous state of the data_valid signal
-    signal sliced_output_data        : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Buffer for output data
-    signal o_done_previous_state     : std_logic;                                                                                                        --! Signal to delay the o_done to deal with the (0,0) index when conv is done
+    signal current_row        : integer range 0 to OUTPUT_SIZE - 1;                                                                               --! Current row counter for slicing
+    signal current_col        : integer range 0 to OUTPUT_SIZE - 1;                                                                               --! Current column counter for slicing
+    signal start_processing   : std_logic;                                                                                                        --! Signal to start processing
+    signal i_data_valid_d1    : std_logic;                                                                                                        --! Previous state of the data_valid signal
+    signal sliced_output_data : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Buffer for output data
+    signal o_done_d1          : std_logic;                                                                                                        --! Signal to delay the o_done to deal with the (0,0) index when conv is done
 
 begin
 
@@ -78,34 +78,29 @@ begin
     begin
         if reset_n = '0' then
             -- Reset output register, counters, and selector to initial states.
-            current_row               <= 0;
-            current_col               <= 0;
-            start_processing          <= '0';
-            data_valid_previous_state <= '0';
-            o_done_previous_state     <= '0';
-            o_computation_start       <= '0';
+            current_row         <= 0;
+            current_col         <= 0;
+            start_processing    <= '0';
+            i_data_valid_d1     <= '0';
+            o_done_d1           <= '0';
+            o_computation_start <= '0';
 
         elsif rising_edge(clock) then
             if i_sys_enable = '1' then
 
                 -- Update last data_valid signal
-                data_valid_previous_state <= i_data_valid;
+                i_data_valid_d1 <= i_data_valid;
 
                 -- Output update
                 o_data <= sliced_output_data;
 
                 -- Check if input data is valid
-                if (start_processing = '0' and i_data_valid = '1' and data_valid_previous_state = '0') then
+                if (start_processing = '0' and i_data_valid = '1' and i_data_valid_d1 = '0') then
                     start_processing    <= '1';
                     o_computation_start <= '1';
-                else
-                    o_done_previous_state <= '0';
-                    o_computation_start   <= '0';
-                end if;
-
-                -- If input data is valid, start the index computation
-                if (start_processing = '1') then
-                    if (i_last_computation_done = '1') then
+                elsif start_processing = '1' then
+                    -- If input data is valid, start the index computation
+                    if i_last_computation_done = '1' then
 
                         -- Start next computation
                         o_computation_start <= '1';
@@ -114,9 +109,9 @@ begin
                         if current_col = OUTPUT_SIZE - 1 then
                             current_col <= 0;
                             if current_row = OUTPUT_SIZE - 1 then
-                                current_row           <= 0;
-                                o_done_previous_state <= '1';
-                                start_processing      <= '0';
+                                current_row      <= 0;
+                                o_done_d1        <= '1';
+                                start_processing <= '0';
                             else
                                 current_row <= current_row + 1;
                             end if;
@@ -126,6 +121,9 @@ begin
                     else
                         o_computation_start <= '0';
                     end if;
+                else
+                    o_done_d1           <= '0';
+                    o_computation_start <= '0';
                 end if;
             end if;
         end if;
@@ -134,6 +132,6 @@ begin
     -- Output signals update for control
     o_current_row <= std_logic_vector(to_unsigned(current_row, integer(ceil(log2(real(OUTPUT_SIZE))))));
     o_current_col <= std_logic_vector(to_unsigned(current_col, integer(ceil(log2(real(OUTPUT_SIZE))))));
-    o_done        <= o_done_previous_state;
+    o_done        <= o_done_d1;
 
 end volume_slice_arch;
