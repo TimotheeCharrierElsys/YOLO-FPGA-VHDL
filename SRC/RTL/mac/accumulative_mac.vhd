@@ -52,7 +52,7 @@ begin
     do_not_gen_multiplication : if DO_MULTIPLICATION = '0' generate
         process (all)
         begin
-            sum_result <= std_logic_vector(resize(signed(i_operand1), OUTPUT_WIDTH) + signed(o_result_reg));
+            sum_result <= std_logic_vector(signed(i_operand1) + signed(o_result_reg));
         end process;
     end generate do_not_gen_multiplication;
 

@@ -12,7 +12,7 @@ use IEEE.NUMERIC_STD.all;
 
 --! Entity mac
 --! This entity implements a Multiply-Accumulate (mac) unit.
---!        It multiplies two operands and then adds a third operand.
+--! It multiplies two operands and then adds a third operand.
 entity mac is
     generic (
         BITWIDTH : integer := 8 --! Bit width of each operand

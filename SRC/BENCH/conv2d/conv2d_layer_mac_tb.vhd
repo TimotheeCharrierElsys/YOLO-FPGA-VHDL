@@ -37,6 +37,7 @@ architecture conv2d_layer_mac_tb_arch of conv2d_layer_mac_tb is
     signal i_kernels    : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input kernels
     signal i_bias       : std_logic_vector(2 * BITWIDTH - 1 downto 0);                                                                      --! Input bias
     signal o_result     : std_logic_vector(2 * BITWIDTH - 1 downto 0);                                                                      --! Output result
+    signal o_valid      : std_logic;
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -55,7 +56,8 @@ architecture conv2d_layer_mac_tb_arch of conv2d_layer_mac_tb is
             i_valid      : in std_logic;
             i_kernels    : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_bias       : in std_logic_vector(2 * BITWIDTH - 1 downto 0);
-            o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
+            o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0);
+            o_valid      : out std_logic
         );
     end component;
 
@@ -77,7 +79,8 @@ begin
         i_valid      => i_valid,
         i_kernels    => i_kernels,
         i_bias       => i_bias,
-        o_result     => o_result
+        o_result     => o_result,
+        o_valid      => o_valid
     );
 
     -- Clock generation
@@ -100,39 +103,39 @@ begin
         i_sys_enable <= '1';
 
         i_data(0) <= (
-        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
-        (std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
-        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)))
+        (std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(2, BITWIDTH)), std_logic_vector(to_signed(3, BITWIDTH))),
+        (std_logic_vector(to_signed(4, BITWIDTH)), std_logic_vector(to_signed(5, BITWIDTH)), std_logic_vector(to_signed(6, BITWIDTH))),
+        (std_logic_vector(to_signed(7, BITWIDTH)), std_logic_vector(to_signed(8, BITWIDTH)), std_logic_vector(to_signed(9, BITWIDTH)))
         );
 
         i_data(1) <= (
-        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
-        (std_logic_vector(to_signed(2, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
-        (std_logic_vector(to_signed(2, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)))
+        (std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(2, BITWIDTH)), std_logic_vector(to_signed(3, BITWIDTH))),
+        (std_logic_vector(to_signed(4, BITWIDTH)), std_logic_vector(to_signed(5, BITWIDTH)), std_logic_vector(to_signed(6, BITWIDTH))),
+        (std_logic_vector(to_signed(7, BITWIDTH)), std_logic_vector(to_signed(8, BITWIDTH)), std_logic_vector(to_signed(9, BITWIDTH)))
         );
 
         i_data(2) <= (
-        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
-        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
-        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(2, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)))
+        (std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(2, BITWIDTH)), std_logic_vector(to_signed(3, BITWIDTH))),
+        (std_logic_vector(to_signed(4, BITWIDTH)), std_logic_vector(to_signed(5, BITWIDTH)), std_logic_vector(to_signed(6, BITWIDTH))),
+        (std_logic_vector(to_signed(7, BITWIDTH)), std_logic_vector(to_signed(8, BITWIDTH)), std_logic_vector(to_signed(9, BITWIDTH)))
         );
 
         i_kernels(0) <= (
-        (std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
-        (std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH))),
-        (std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH)))
+        (std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(2, BITWIDTH)), std_logic_vector(to_signed(3, BITWIDTH))),
+        (std_logic_vector(to_signed(4, BITWIDTH)), std_logic_vector(to_signed(5, BITWIDTH)), std_logic_vector(to_signed(6, BITWIDTH))),
+        (std_logic_vector(to_signed(7, BITWIDTH)), std_logic_vector(to_signed(8, BITWIDTH)), std_logic_vector(to_signed(9, BITWIDTH)))
         );
 
         i_kernels(1) <= (
-        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH))),
-        (std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH))),
-        (std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH)))
+        (std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(2, BITWIDTH)), std_logic_vector(to_signed(3, BITWIDTH))),
+        (std_logic_vector(to_signed(4, BITWIDTH)), std_logic_vector(to_signed(5, BITWIDTH)), std_logic_vector(to_signed(6, BITWIDTH))),
+        (std_logic_vector(to_signed(7, BITWIDTH)), std_logic_vector(to_signed(8, BITWIDTH)), std_logic_vector(to_signed(9, BITWIDTH)))
         );
 
         i_kernels(2) <= (
-        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH))),
-        (std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH))),
-        (std_logic_vector(to_signed(0, BITWIDTH)), std_logic_vector(to_signed(-1, BITWIDTH)), std_logic_vector(to_signed(0, BITWIDTH)))
+        (std_logic_vector(to_signed(1, BITWIDTH)), std_logic_vector(to_signed(2, BITWIDTH)), std_logic_vector(to_signed(3, BITWIDTH))),
+        (std_logic_vector(to_signed(4, BITWIDTH)), std_logic_vector(to_signed(5, BITWIDTH)), std_logic_vector(to_signed(6, BITWIDTH))),
+        (std_logic_vector(to_signed(7, BITWIDTH)), std_logic_vector(to_signed(8, BITWIDTH)), std_logic_vector(to_signed(9, BITWIDTH)))
         );
 
         wait for i_clk_period/2;

@@ -54,7 +54,6 @@ architecture conv2d_arch of conv2d is
     constant N_OUTPUT_REG            : integer := 1;                                                    --! Number of output registers.
     constant DFF_DELAY_NON_PIPELINED : integer := N_MULT_REG + N_OUTPUT_REG + 1;                        --! Total delay when not pipelined
     constant DFF_DELAY_PIPELINED     : integer := N_STAGES + N_MULT_REG + N_OUTPUT_REG + 2;             --! Total delay when pipelined
-    constant DFF_DELAY_MAC_ARCH      : integer := KERNEL_SIZE * KERNEL_SIZE + CHANNEL_NUMBER + 1;       --! Total delay due to flip-flops and computation
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
@@ -127,7 +126,8 @@ architecture conv2d_arch of conv2d is
             i_valid      : in std_logic;
             i_kernels    : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_bias       : in std_logic_vector(2 * BITWIDTH - 1 downto 0);
-            o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
+            o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0);
+            o_valid      : out std_logic
         );
     end component;
 
@@ -256,24 +256,10 @@ begin
                 i_data       => sliced_input_volume,
                 i_kernels    => i_kernel(i),
                 i_bias       => i_bias(i),
-                o_result     => conv2d_result(i)
+                o_result     => conv2d_result(i),
+                o_valid      => conv2d_layer_done
             );
         end generate gen_conv2d_layers;
-
-        -------------------------------------------------------------------------------------
-        -- pipeline INSTANTIATION
-        -------------------------------------------------------------------------------------
-        pipeline_inst : pipeline
-        generic map(
-            N_STAGES => DFF_DELAY_MAC_ARCH
-        )
-        port map(
-            clock        => clock,
-            reset_n      => reset_n,
-            i_sys_enable => i_sys_enable,
-            i_data       => conv2d_start,
-            o_data       => conv2d_layer_done
-        );
     end generate gen_mac_arch;
 
     -------------------------------------------------------------------------------------
