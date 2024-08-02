@@ -16,7 +16,7 @@ use IEEE.NUMERIC_STD.all;
 entity accumulative_mac is
     generic (
         DO_MULTIPLICATION : std_logic := '1'; --! Define if it is a mac ('1') or an additionner ('0')
-        INTPUT_WIDTH      : integer   := 8;   --! Bit width of input operands
+        INPUT_WIDTH       : integer   := 8;   --! Bit width of input operands
         OUTPUT_WIDTH      : integer   := 16   --! Bit width of output result
     );
     port (
@@ -24,8 +24,8 @@ entity accumulative_mac is
         reset_n      : in std_logic;                                   --! Reset signal, active low
         i_sys_enable : in std_logic;                                   --! Global enable signal, active high
         i_clear      : in std_logic;                                   --! Clear signal, active high
-        i_operand1   : in std_logic_vector(INTPUT_WIDTH - 1 downto 0); --! First multiplication operand
-        i_operand2   : in std_logic_vector(INTPUT_WIDTH - 1 downto 0); --! Second multiplication operand
+        i_operand1   : in std_logic_vector(INPUT_WIDTH - 1 downto 0);  --! First multiplication operand
+        i_operand2   : in std_logic_vector(INPUT_WIDTH - 1 downto 0);  --! Second multiplication operand
         o_result     : out std_logic_vector(OUTPUT_WIDTH - 1 downto 0) --! Output result value
     );
 end accumulative_mac;
@@ -37,7 +37,7 @@ architecture accumulative_mac_arch of accumulative_mac is
     -------------------------------------------------------------------------------------
     signal mac_out               : std_logic_vector(OUTPUT_WIDTH - 1 downto 0); --! MUX output value
     signal multiplication_result : std_logic_vector(OUTPUT_WIDTH - 1 downto 0);
-    signal sum_result            : std_logic_vector(OUTPUT_WIDTH downto 0);
+    signal sum_result            : std_logic_vector(OUTPUT_WIDTH - 1 downto 0);
 
 begin
 
@@ -45,14 +45,14 @@ begin
         process (all)
         begin
             multiplication_result <= std_logic_vector(signed(i_operand1) * signed(i_operand2));
-            sum_result            <= std_logic_vector(resize(signed(mac_out), OUTPUT_WIDTH + 1) + resize(signed(multiplication_result), OUTPUT_WIDTH + 1));
+            sum_result            <= std_logic_vector(signed(mac_out) + signed(multiplication_result));
         end process;
     end generate gen_multiplication;
 
     do_not_gen_multiplication : if DO_MULTIPLICATION = '0' generate
         process (all)
         begin
-            sum_result <= std_logic_vector(resize(signed(i_operand1), OUTPUT_WIDTH + 1) + resize(signed(mac_out), OUTPUT_WIDTH + 1));
+            sum_result <= std_logic_vector(resize(signed(i_operand1), OUTPUT_WIDTH) + signed(mac_out));
         end process;
     end generate do_not_gen_multiplication;
 
