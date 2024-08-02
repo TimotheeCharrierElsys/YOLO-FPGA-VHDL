@@ -148,6 +148,44 @@ async def accumulative_mac_test(dut):
         await clear_dut(dut)  # Ensure the accumulator is cleared
         dut.i_clear.value = 0
 
+# @cocotb.test()
+async def addition_test(dut):
+    # Start the clock
+    clock = Clock(dut.clock, 10, units="ns")
+    cocotb.start_soon(clock.start(start_high=False))
+    dut.reset_n.value = 0
+    dut.i_sys_enable.value = 0
+    dut.i_clear.value = 0
+    dut.i_operand1.value = to_signed(0, dut.i_operand1.value.n_bits)
+    dut.i_operand2.value = to_signed(0, dut.i_operand2.value.n_bits)
+
+    await reset_dut(dut)
+    await enable_dut(dut)
+    dut.i_clear.value = 0
+
+    # Test loop
+    for i in range(1000):
+        expected_val = 0
+
+        # Inner loop to apply and check multiple test vectors
+        for j in range(10):
+            operand1, operand2 = generate_random_test_vector(dut, max_val=25)
+
+            # Convert to signed values for correct computation
+            signed_operand1 = to_signed(operand1, dut.i_operand1.value.n_bits)
+            signed_operand2 = 0
+
+            # Update expected value
+            expected_val += signed_operand1
+
+            # Apply test vector and check result
+            await apply_test_vector(dut, operand1, operand2)
+
+        # Check the final accumulated result
+        await check_result(dut, expected_val)
+        await clear_dut(dut)  # Ensure the accumulator is cleared
+        dut.i_clear.value = 0
+
 
 @cocotb.test()
 async def reset_test(dut):
