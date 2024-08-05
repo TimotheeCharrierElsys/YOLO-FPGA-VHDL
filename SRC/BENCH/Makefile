@@ -5,7 +5,7 @@ SRC_DIR     := ../RTL
 BENCH_DIR   := .
 
 TOP_ENTITY  := conv_tb
-STOP_TIME   := 800us
+STOP_TIME   := 1ms
 
 # VHDL Source Files
 SOURCES     := $(SRC_DIR)/types_pkg.vhd \
@@ -13,7 +13,6 @@ SOURCES     := $(SRC_DIR)/types_pkg.vhd \
                $(SRC_DIR)/common/adder_tree.vhd \
                $(SRC_DIR)/common/silu_activation.vhd \
                $(SRC_DIR)/common/square_root.vhd \
-               $(SRC_DIR)/mac/mac.vhd \
                $(SRC_DIR)/mac/accumulative_mac.vhd \
                $(SRC_DIR)/mac/fc_layer.vhd \
                $(SRC_DIR)/window_slice/volume_slice.vhd \
@@ -30,7 +29,6 @@ TESTBENCHES := $(BENCH_DIR)/common/pipeline_tb.vhd \
                $(BENCH_DIR)/common/adder_tree_tb.vhd \
                $(BENCH_DIR)/common/silu_activation_tb.vhd \
                $(BENCH_DIR)/common/square_root_tb.vhd \
-               $(BENCH_DIR)/mac/mac_tb.vhd \
                $(BENCH_DIR)/mac/accumulative_mac_tb.vhd \
                $(BENCH_DIR)/mac/fc_layer_tb.vhd \
                $(BENCH_DIR)/window_slice/volume_slice_tb.vhd \
@@ -51,7 +49,7 @@ WORK_DIR    := work
 LIB 		:= LIB_RTL
 FLAGS       := --std=08 --ieee=standard --work=$(LIB) --workdir=$(WORK_DIR) -O2
 WARNINGS	:= -Wdefault-binding -Wparenthesis -Wothers -Wstatic -Werror
-SIM_FLAGS   := --stop-time=$(STOP_TIME) --wave=$(WORK_DIR)/wave_$(TOP_ENTITY).ghw
+SIM_FLAGS   := --stop-time=$(STOP_TIME) #--wave=$(WORK_DIR)/wave_$(TOP_ENTITY).ghw
 
 # Default target
 all: simulate
