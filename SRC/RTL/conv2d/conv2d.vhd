@@ -49,11 +49,12 @@ architecture conv2d_arch of conv2d is
     constant INPUT_PADDED_SIZE : integer := INPUT_SIZE + 2 * PADDING;                              --! Input matrix size with padding
     constant OUTPUT_SIZE       : integer := (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE) / STRIDE + 1; --! Size of the output 
 
-    constant N_STAGES                : integer := integer(ceil(log2(real(KERNEL_SIZE * KERNEL_SIZE)))); --! Number of stages required to complete the addition process.
-    constant N_MULT_REG              : integer := 1;                                                    --! Number of addition registers.
-    constant N_OUTPUT_REG            : integer := 1;                                                    --! Number of output registers.
-    constant DFF_DELAY_NON_PIPELINED : integer := N_MULT_REG + N_OUTPUT_REG + 1;                        --! Total delay when not pipelined
-    constant DFF_DELAY_PIPELINED     : integer := N_STAGES + N_MULT_REG + N_OUTPUT_REG + 2;             --! Total delay when pipelined
+    constant N_STAGES                : integer := integer(ceil(log2(real(KERNEL_SIZE * KERNEL_SIZE))));          --! Number of stages required to complete the addition process.
+    constant N_MULT_REG              : integer := 1;                                                             --! Number of addition registers.
+    constant N_OUTPUT_REG            : integer := 1;                                                             --! Number of output registers.
+    constant DFF_DELAY_NON_PIPELINED : integer := N_MULT_REG + N_OUTPUT_REG + 1;                                 --! Total delay when not pipelined
+    constant DFF_DELAY_PIPELINED     : integer := N_STAGES + N_MULT_REG + N_OUTPUT_REG + 2;                      --! Total delay when pipelined
+    constant DFF_DELAY_MAC_ARCH      : integer := KERNEL_SIZE * KERNEL_SIZE + CHANNEL_NUMBER + 1 + N_OUTPUT_REG; --! Total delay when using MAC architecture
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
@@ -65,6 +66,16 @@ architecture conv2d_arch of conv2d is
     signal conv2d_layer_done   : std_logic;                                                                                                                    --! Signal indicating convolution layer completion
     signal row_index           : std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                                        --! Current row index
     signal col_index           : std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                                        --! Current column index
+
+    -- Counters for the mac architecture
+    signal current_row     : integer range 0 to KERNEL_SIZE - 1; --! Counter to track the current position within the kernel.
+    signal current_col     : integer range 0 to KERNEL_SIZE - 1; --! Counter to track the current position within the kernel.
+    signal current_channel : integer range 0 to CHANNEL_NUMBER;  --! Counter to track the current position within the channels.
+
+    -- Control signals
+    signal i_valid_d1        : std_logic; --! Delayed input valid signal
+    signal is_processing_mac : std_logic; --! Flag to indicate if the MAC is processing
+    signal is_processing_add : std_logic; --! Flag to indicate if the adder is processing
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -119,15 +130,19 @@ architecture conv2d_arch of conv2d is
             KERNEL_SIZE    : integer
         );
         port (
-            clock        : in std_logic;
-            reset_n      : in std_logic;
-            i_sys_enable : in std_logic;
-            i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_valid      : in std_logic;
-            i_kernels    : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_bias       : in std_logic_vector(2 * BITWIDTH - 1 downto 0);
-            o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0);
-            o_valid      : out std_logic
+            clock             : in std_logic;
+            reset_n           : in std_logic;
+            i_sys_enable      : in std_logic;
+            i_data            : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_valid           : in std_logic;
+            i_kernels         : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_bias            : in std_logic_vector(2 * BITWIDTH - 1 downto 0);
+            is_processing_mac : in std_logic;
+            is_processing_add : in std_logic;
+            current_channel   : in integer range 0 to CHANNEL_NUMBER;
+            current_col       : in integer range 0 to KERNEL_SIZE - 1;
+            current_row       : in integer range 0 to KERNEL_SIZE - 1;
+            o_result          : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
         );
     end component;
 
@@ -249,17 +264,90 @@ begin
                 KERNEL_SIZE    => KERNEL_SIZE
             )
             port map(
-                clock        => clock,
-                reset_n      => reset_n,
-                i_sys_enable => i_sys_enable,
-                i_valid      => conv2d_start,
-                i_data       => sliced_input_volume,
-                i_kernels    => i_kernel(i),
-                i_bias       => i_bias(i),
-                o_result     => conv2d_result(i),
-                o_valid      => conv2d_layer_done
+                clock             => clock,
+                reset_n           => reset_n,
+                i_sys_enable      => i_sys_enable,
+                i_valid           => conv2d_start,
+                i_data            => sliced_input_volume,
+                i_kernels         => i_kernel(i),
+                i_bias            => i_bias(i),
+                is_processing_mac => is_processing_mac,
+                is_processing_add => is_processing_add,
+                current_row       => current_row,
+                current_col       => current_col,
+                current_channel   => current_channel,
+                o_result          => conv2d_result(i)
             );
         end generate gen_conv2d_layers;
+
+        -- Pipeline for MAC architecture
+        pipeline_inst : pipeline
+        generic map(
+            N_STAGES => DFF_DELAY_MAC_ARCH
+        )
+        port map(
+            clock        => clock,
+            reset_n      => reset_n,
+            i_sys_enable => i_sys_enable,
+            i_data       => conv2d_start,
+            o_data       => conv2d_layer_done
+        );
+
+        -------------------------------------------------------------------------------------
+        -- PROCESS
+        -------------------------------------------------------------------------------------
+        --! Process
+        --! Handles the synchronous and asynchronous operations.
+        process (clock, reset_n)
+        begin
+            if reset_n = '0' then
+                current_row       <= 0;
+                current_col       <= 0;
+                current_channel   <= 0;
+                i_valid_d1        <= '0';
+                is_processing_mac <= '0';
+                is_processing_add <= '0';
+
+            elsif rising_edge(clock) then
+                if i_sys_enable = '1' then
+
+                    -- Update i_valid delayed by one clock cycle
+                    i_valid_d1 <= conv2d_start;
+
+                    -- Check if it needs to start computation
+                    if (is_processing_mac = '0' and is_processing_add = '0' and conv2d_start = '1' and i_valid_d1 = '0') then
+                        is_processing_mac <= '1';
+
+                    elsif is_processing_mac = '1' then
+
+                        -- Process the MAC unit
+                        if current_col = KERNEL_SIZE - 1 then
+                            current_col <= 0;
+                            if current_row = KERNEL_SIZE - 1 then
+                                current_row       <= 0;
+                                is_processing_mac <= '0';
+                                is_processing_add <= '1';
+
+                            else
+                                current_row <= current_row + 1;
+                            end if;
+                        else
+                            current_col <= current_col + 1;
+                        end if;
+
+                    elsif is_processing_add = '1' then
+
+                        -- Process the adder
+                        if current_channel = CHANNEL_NUMBER then
+                            current_channel   <= 0;
+                            is_processing_add <= '0';
+                        else
+                            current_channel <= current_channel + 1;
+                        end if;
+                    end if;
+                end if;
+            end if;
+        end process;
     end generate gen_mac_arch;
 
     -------------------------------------------------------------------------------------

@@ -14,7 +14,7 @@ architecture conv2d_tb_arch of conv2d_tb is
     -- Clock period
     constant i_clk_period : time := 5 ns;
     -- Generics
-    constant USE_MAC_ARCH   : std_logic := '0';
+    constant USE_MAC_ARCH   : std_logic := '1';
     constant DO_PIPELINE    : std_logic := '0';
     constant BITWIDTH       : integer   := 16;
     constant INPUT_SIZE     : integer   := 64;
