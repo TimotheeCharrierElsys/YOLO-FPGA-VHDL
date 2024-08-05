@@ -24,18 +24,19 @@ filters = {
     "filter_laplacian_gaussian": [np.array([[0, 0, -1, 0, 0], [0, -1, -2, -1, 0], [-1, -2, 16, -2, -1], [0, -1, -2, -1, 0], [0, 0, -1, 0, 0]]) for _ in range(3)],
     "filter_randoml_33": [np.array([[random.randint(-1, 1) for _ in range(3)] for _ in range(3)]) for _ in range(3)],
     "filter_randoml_55": [np.array([[random.randint(-1, 1) for _ in range(5)] for _ in range(5)]) for _ in range(3)],
-    "filter_test": [np.array([[11, 11, 11], [11, 11, 11], [11, 11, 11]]) for _ in range(3)]
+    "filter_test": [np.array([[-10, 2, -9], [4, 7, -7], [-4, 9, -4]]) for _ in range(3)]
 }
 
 
 class conv2d:
-    def __init__(self, img, filter, stride=1, padding=1):
+    def __init__(self, img, filter, stride=1, padding=1, bias=0):
         self.img = img
         self.img_padded = np.pad(img, ((
             padding, padding), (padding, padding), (0, 0)), mode='constant', constant_values=0)
         self.filter = filter
         self.stride = stride
         self.padding = padding
+        self.bias = bias
         self.conv2d_output = self.convolution2d()
 
     def convolution2d(self, bias=0):
@@ -54,7 +55,7 @@ class conv2d:
         conv_B = convolve2d(B, F_B, mode='valid')
 
         # Sum all the convolutions
-        conv = conv_R + conv_G + conv_B + bias
+        conv = conv_R + conv_G + conv_B + self.bias
 
         toc = time.perf_counter_ns()
         print(f"Executed in {(toc - tic)/1000:0.4f} us")
@@ -128,6 +129,7 @@ def reconstruct_image(file_path, image_width):
         images.append(image_matrix)
 
     return images
+
 
 def binary_to_signed(binary_str):
     # Convert binary string to signed integer
@@ -234,43 +236,43 @@ def plot_image(img):
 def testbench_comparaison(img):
     filter_output = []
     filter_output.append(conv2d(
-        img, filters["filter_edge"]).conv2d_output)
+        img, filters["filter_edge"], bias=-1).conv2d_output)
 
     filter_output.append(conv2d(
-        img, filters["filter_emboss"]).conv2d_output)
+        img, filters["filter_emboss"], bias=-1).conv2d_output)
 
     filter_output.append(conv2d(
-        img, filters["filter_identity"]).conv2d_output)
+        img, filters["filter_identity"], bias=-1).conv2d_output)
 
     filter_output.append(conv2d(
-        img, filters["filter_laplacian_diag"]).conv2d_output)
+        img, filters["filter_laplacian_diag"], bias=-1).conv2d_output)
 
     filter_output.append(conv2d(
-        img, filters["filter_prewitt_x"]).conv2d_output)
+        img, filters["filter_prewitt_x"], bias=-1).conv2d_output)
 
     filter_output.append(conv2d(
-        img, filters["filter_prewitt_y"]).conv2d_output)
+        img, filters["filter_prewitt_y"], bias=-1).conv2d_output)
 
     filter_output.append(conv2d(
-        img, filters["filter_test"]).conv2d_output)
+        img, filters["filter_test"], bias=-1).conv2d_output)
 
     filter_output.append(conv2d(
-        img, filters["filter_ridge"]).conv2d_output)
+        img, filters["filter_ridge"], bias=-1).conv2d_output)
 
     filter_output.append(conv2d(
-        img, filters["filter_sharp"]).conv2d_output)
+        img, filters["filter_sharp"], bias=-1).conv2d_output)
 
     filter_output.append(conv2d(
-        img, filters["filter_sobel_x"]).conv2d_output)
+        img, filters["filter_sobel_x"], bias=-1).conv2d_output)
 
     filter_output.append(conv2d(
-        img, filters["filter_sobel_y"]).conv2d_output)
+        img, filters["filter_sobel_y"], bias=-1).conv2d_output)
 
     filter_output.append(conv2d(
-        img, filters["filter_blur"]).conv2d_output)
+        img, filters["filter_blur"], bias=-1).conv2d_output)
 
     filter_output.append(conv2d(
-        img, filters["filter_gaussian_33"]).conv2d_output)
+        img, filters["filter_gaussian_33"], bias=-1).conv2d_output)
 
     images = reconstruct_image(r"./SRC/BENCH/conv2d_output_results.txt", 64)
 
@@ -290,7 +292,6 @@ def testbench_comparaison(img):
         plt.axis('off')
 
         # Plot the heatmap of the differences
-        # Plot the heatmap of the differences
         plt.subplot(1, 3, 3)
         # Compute the absolute differences
         difference = np.abs(filter_output[idx] - img)
@@ -305,11 +306,12 @@ def testbench_comparaison(img):
 
         # Save the entire figure containing the subplot
         plt.savefig(f"subplot_image_{idx}.png")
-        plt.show()
+        # plt.show()
 
         plt.close()  # Close the figure to free memory
 
 
 if __name__ == "__main__":
-    img = plt.imread(
-        r"./SRC/COCOTB/conv2d/wolf.jpg")
+    img = plt.imread(r"./SRC/COCOTB/conv2d/wolf.jpg")
+
+    testbench_comparaison(img)
