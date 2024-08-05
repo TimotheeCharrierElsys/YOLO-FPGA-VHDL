@@ -21,7 +21,8 @@ architecture conv_tb_arch of conv_tb is
     -------------------------------------------------------------------------------------
     -- CONSTANTS
     -------------------------------------------------------------------------------------
-    constant i_clk_period   : time      := 10 ns; --! Clock period
+    constant i_clk_period   : time      := 10 ns;
+    constant USE_MAC_ARCH   : std_logic := '1';
     constant DO_PIPELINE    : std_logic := '1';
     constant BITWIDTH       : integer   := 16;
     constant INPUT_SIZE     : integer   := 64;
@@ -41,7 +42,7 @@ architecture conv_tb_arch of conv_tb is
     signal i_data_valid       : std_logic := '0';
     signal i_data             : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
     signal i_kernel           : t_input_feature(KERNEL_NUMBER - 1 downto 0)(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-    signal i_bias_conv2d      : t_vec(KERNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
+    signal i_bias_conv2d      : t_vec(KERNEL_NUMBER - 1 downto 0)(2 *BITWIDTH - 1 downto 0);
     signal i_running_mean     : t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
     signal i_running_var      : t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
     signal i_weight           : t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
@@ -57,6 +58,7 @@ architecture conv_tb_arch of conv_tb is
     -------------------------------------------------------------------------------------
     component conv
         generic (
+            USE_MAC_ARCH   : std_logic;
             DO_PIPELINE    : std_logic;
             BITWIDTH       : integer;
             INPUT_SIZE     : integer;
@@ -74,7 +76,7 @@ architecture conv_tb_arch of conv_tb is
             i_data_valid       : in std_logic;
             i_data             : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_kernel           : in t_input_feature(KERNEL_NUMBER - 1 downto 0)(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_bias_conv2d      : in t_vec(KERNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_bias_conv2d      : in t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
             i_running_mean     : in t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
             i_running_var      : in t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
             i_weight           : in t_vec(CHANNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
@@ -90,6 +92,7 @@ begin
     -------------------------------------------------------------------------------------
     UUT : conv
     generic map(
+        USE_MAC_ARCH   => USE_MAC_ARCH,
         DO_PIPELINE    => DO_PIPELINE,
         BITWIDTH       => BITWIDTH,
         INPUT_SIZE     => INPUT_SIZE,
@@ -120,7 +123,7 @@ begin
     clock <= not clock after i_clk_period / 2;
 
     -- Apply input vectors
-    i_bias_conv2d <= (others => std_logic_vector(to_signed(1, BITWIDTH)));
+    i_bias_conv2d <= (others => std_logic_vector(to_signed(1, 2 * BITWIDTH)));
 
     i_running_mean     <= (std_logic_vector(to_signed(110, 2 * BITWIDTH)), std_logic_vector(to_signed(113, 2 * BITWIDTH)), std_logic_vector(to_signed(107, 2 * BITWIDTH)));
     i_running_var      <= (std_logic_vector(to_signed(3975, 2 * BITWIDTH)), std_logic_vector(to_signed(3399, 2 * BITWIDTH)), std_logic_vector(to_signed(2503, 2 * BITWIDTH)));
@@ -387,6 +390,7 @@ begin
 
         -- Wait for output to be valid and write to file
         wait until o_data_valid = '1';
+        report "End of computation at time " & time'image(now);
         
         for k in 0 to KERNEL_NUMBER - 1 loop
             for i in ((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1) downto 0 loop

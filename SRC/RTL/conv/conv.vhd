@@ -16,6 +16,7 @@ use LIB_RTL.types_pkg.all;
 --! This entity implements a conv module
 entity conv is
     generic (
+        USE_MAC_ARCH   : std_logic := '1'; --! Define if the design uses the mac architecture ('1') or not ('0')
         DO_PIPELINE    : std_logic := '1'; --! Define if the design is pipelined ('1') or not ('0')
         BITWIDTH       : integer   := 16;  --! Bit width of each operand
         INPUT_SIZE     : integer   := 5;   --! Width and Height of the input
@@ -38,7 +39,7 @@ entity conv is
 
         i_data        : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);                                      --! Input data (CHANNEL_NUMBER x (INPUT_SIZE x INPUT_SIZE x BITWIDTH) bits)
         i_kernel      : in t_input_feature(KERNEL_NUMBER - 1 downto 0)(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Kernel data (KERNEL_NUMBER x CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
-        i_bias_conv2d : in t_vec(KERNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);                                                                                            --! Input bias vector for conv2d
+        i_bias_conv2d : in t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                                                                        --! Input bias vector for conv2d
 
         -- 
         -- batchnorm2d inputs
@@ -76,6 +77,7 @@ architecture conv_arch of conv is
     -------------------------------------------------------------------------------------
     component conv2d
         generic (
+            USE_MAC_ARCH   : std_logic;
             DO_PIPELINE    : std_logic;
             BITWIDTH       : integer;
             INPUT_SIZE     : integer;
@@ -92,7 +94,7 @@ architecture conv_arch of conv is
             i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_data_valid : in std_logic;
             i_kernel     : in t_input_feature(KERNEL_NUMBER - 1 downto 0)(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_bias       : in t_vec(KERNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_bias       : in t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
             o_data       : out t_volume(KERNEL_NUMBER - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
             o_data_valid : out std_logic
         );
@@ -124,6 +126,7 @@ begin
 
     conv2d_inst : conv2d
     generic map(
+        USE_MAC_ARCH   => USE_MAC_ARCH,
         DO_PIPELINE    => DO_PIPELINE,
         BITWIDTH       => BITWIDTH,
         INPUT_SIZE     => INPUT_SIZE,
@@ -171,7 +174,7 @@ configuration conv_conf of conv is
     for conv_arch
 
         for all : conv2d
-            use configuration LIB_RTL.conv2d_fc_conf;
+            use configuration LIB_RTL.conv2d_conf;
         end for;
 
         for all : batchnorm2d
