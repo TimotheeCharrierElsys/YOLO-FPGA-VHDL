@@ -1,7 +1,7 @@
 # Directory containing VHDL source files
 SRC_DIR     := RTL
 
-TOP_ENTITY  := silu_activation
+TOP_ENTITY  := conv2d_layer_mac
 
 # VHDL Source Files
 SOURCES     := $(SRC_DIR)/types_pkg.vhd \
@@ -58,7 +58,7 @@ convert: analyze
 # Generate High Level Netlist (add, mul,...)
 generate_hl_netlist: convert
 	@echo "Synthesizing design..."
-	yosys -p 'read_verilog $(VERILOG_FILE); hierarchy -check -top $(TOP_ENTITY); proc; opt; wreduce; peepopt; share; opt_clean; write_json $(JSON_FILE); write_verilog -noattr $(TOP_ENTITY)_synth.v; stat' || { echo "Yosys synthesis failed"; exit 1; }
+	yosys -p 'read_verilog $(VERILOG_FILE); hierarchy -check -top $(TOP_ENTITY); opt_expr; opt_clean; check; opt; fsm; opt; proc; opt -fast -mux_undef -undriven -fine; wreduce; peepopt; opt_clean; share; opt_expr; opt_clean; opt_expr; opt_clean; memory; opt_clean; wreduce; peepopt; opt_clean; check; stat; write_json $(JSON_FILE); write_verilog -noattr $(TOP_ENTITY)_synth.v;' || { echo "Yosys synthesis failed"; exit 1; }
 	@echo "High-Level Netlist generated."
 
 # Generate a schematic from the synthesized design
@@ -70,7 +70,7 @@ schematic: generate_hl_netlist
 # Synthesize the design
 synthesize: convert
 	@echo "Synthesizing design..."
-	yosys -p 'read_verilog $(VERILOG_FILE); hierarchy -check -top $(TOP_ENTITY); proc; opt; fsm; opt; memory; opt; abc -dff; opt; write_json $(JSON_FILE); write_verilog -noattr $(WORK_DIR)/$(TOP_ENTITY)_synth.v; stat' || { echo "Yosys synthesis failed"; exit 1; }
+	yosys -p 'read_verilog $(VERILOG_FILE); hierarchy -check -top $(TOP_ENTITY); proc; opt; fsm; opt; memory; opt; abc -dff; opt; write_json $(JSON_FILE); write_verilog -noattr -noattr $(WORK_DIR)/$(TOP_ENTITY)_synth.v; stat' || { echo "Yosys synthesis failed"; exit 1; }
 	@echo "Synthesize done."
 
 # Generate detailed synthesis reports
