@@ -3,7 +3,7 @@
 # Directory containing VHDL source files
 SRC_DIR 	:= RTL
 
-TOP_ENTITY  := pipeline
+TOP_ENTITY  := conv2d
 
 # VHDL Source Files
 SOURCES		:= $(SRC_DIR)/types_pkg.vhd \
@@ -11,7 +11,6 @@ SOURCES		:= $(SRC_DIR)/types_pkg.vhd \
 			$(SRC_DIR)/common/adder_tree.vhd \
 			$(SRC_DIR)/common/silu_activation.vhd \
 			$(SRC_DIR)/common/square_root.vhd \
-			$(SRC_DIR)/mac/mac.vhd \
 			$(SRC_DIR)/mac/accumulative_mac.vhd \
 			$(SRC_DIR)/mac/fc_layer.vhd \
 			$(SRC_DIR)/window_slice/volume_slice.vhd \
@@ -22,7 +21,7 @@ SOURCES		:= $(SRC_DIR)/types_pkg.vhd \
 			$(SRC_DIR)/maxpool2d/maxpool2d.vhd \
 			$(SRC_DIR)/batchnorm2d/batchnorm2d_layer.vhd \
 			$(SRC_DIR)/batchnorm2d/batchnorm2d.vhd \
-			$(SRC_DIR)/conv/conv.vhd
+			# $(SRC_DIR)/conv/conv.vhd
 
 # Work Directory
 WORK_DIR 	:= work
