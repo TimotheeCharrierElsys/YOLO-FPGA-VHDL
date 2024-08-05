@@ -32,12 +32,12 @@ architecture silu_activation_arch of silu_activation is
     -------------------------------------------------------------------------------------
     -- CONSTANTS
     -------------------------------------------------------------------------------------
-    constant DIVISION_SCALE_FACTOR        : integer := 2 ** DIVISION_SCALE_FACTOR_POWER_OF_2;
-    constant HARDSWISH_POSITIVE_THRESHOLD : integer := 3 * 2 ** SCALE_FACTOR_POWER_OF_2;
-    constant HARDSWISH_NEGATIVE_THRESHOLD : integer := - 3 * 2 ** SCALE_FACTOR_POWER_OF_2;
-    constant HARDSWISH_ADDITION_CONSTANT  : integer := 3 * 2 ** SCALE_FACTOR_POWER_OF_2;
-    constant RELU6_POSITIVE_THRESHOLD     : integer := 6 * 2 ** SCALE_FACTOR_POWER_OF_2;
-    constant HARDSWISH_DIVISION_FACTOR    : integer := DIVISION_SCALE_FACTOR / 6;
+    constant DIVISION_SCALE_FACTOR        : integer := 2 ** DIVISION_SCALE_FACTOR_POWER_OF_2; --! Division scale factor
+    constant HARDSWISH_POSITIVE_THRESHOLD : integer := 3 * 2 ** SCALE_FACTOR_POWER_OF_2;      --! Negative threshold for hardswish function
+    constant HARDSWISH_NEGATIVE_THRESHOLD : integer := - 3 * 2 ** SCALE_FACTOR_POWER_OF_2;    --! Positive threshold for hardswish function
+    constant HARDSWISH_ADDITION_CONSTANT  : integer := 3 * 2 ** SCALE_FACTOR_POWER_OF_2;      --! Addition constant for hardswish function
+    constant RELU6_POSITIVE_THRESHOLD     : integer := 6 * 2 ** SCALE_FACTOR_POWER_OF_2;      --! Positive threshold for relu6 function
+    constant HARDSWISH_DIVISION_FACTOR    : integer := DIVISION_SCALE_FACTOR / 6;             --! Division factor for hardswish function
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
@@ -63,7 +63,7 @@ begin
             hardswish_addition       := (others => '0');
             hardswish_multiplication := (others => '0');
             hardswish_division       := (others => '0');
-            o_data                   <= (others => '0');
+            o_data <= (others                   => '0');
 
         elsif rising_edge(clock) then
             if i_sys_enable = '1' then
@@ -82,7 +82,7 @@ begin
                     hardswish_division := hardswish_multiplication * to_signed(HARDSWISH_DIVISION_FACTOR, BITWIDTH);
                     hardswish_division := SHIFT_RIGHT(hardswish_division, DIVISION_SCALE_FACTOR_POWER_OF_2 + SCALE_FACTOR_POWER_OF_2);
 
-                else -- Test if x > 3
+                else                                                           -- Test if x > 3
                     hardswish_division := resize(i_data_signed, 3 * BITWIDTH) + 1; -- +1 fix the reisze offset
                 end if;
 
