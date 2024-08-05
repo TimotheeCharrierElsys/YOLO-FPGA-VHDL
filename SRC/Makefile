@@ -1,7 +1,7 @@
 # Directory containing VHDL source files
 SRC_DIR     := RTL
 
-TOP_ENTITY  := conv
+TOP_ENTITY  := silu_activation
 
 # VHDL Source Files
 SOURCES     := $(SRC_DIR)/types_pkg.vhd \
@@ -55,17 +55,23 @@ convert: analyze
 	yosys -m ghdl -p 'ghdl $(FLAGS) $(SOURCES) -e $(TOP_ENTITY); write_verilog $(VERILOG_FILE)' || { echo "Yosys conversion failed"; exit 1; }
 	@echo "Convert done."
 
+# Generate High Level Netlist (add, mul,...)
+generate_hl_netlist: convert
+	@echo "Synthesizing design..."
+	yosys -p 'read_verilog $(VERILOG_FILE); hierarchy -check -top $(TOP_ENTITY); proc; opt; wreduce; peepopt; share; opt_clean; write_json $(JSON_FILE); write_verilog -noattr $(TOP_ENTITY)_synth.v; stat' || { echo "Yosys synthesis failed"; exit 1; }
+	@echo "High-Level Netlist generated."
+
+# Generate a schematic from the synthesized design
+schematic: generate_hl_netlist
+	@echo "Generating schematic..."
+	netlistsvg ${JSON_FILE} -o $(SVG_FILE) --skin ../docs/source/fig/skin.svg
+	@echo "Schematic done."
+
 # Synthesize the design
 synthesize: convert
 	@echo "Synthesizing design..."
-	yosys -p 'read_verilog $(VERILOG_FILE); hierarchy -check -top $(TOP_ENTITY); proc; opt; fsm; opt; memory; opt; abc -dff; opt; write_json $(JSON_FILE); write_verilog -noattr $(TOP_ENTITY)_synth.v; stat' || { echo "Yosys synthesis failed"; exit 1; }
+	yosys -p 'read_verilog $(VERILOG_FILE); hierarchy -check -top $(TOP_ENTITY); proc; opt; fsm; opt; memory; opt; abc -dff; opt; write_json $(JSON_FILE); write_verilog -noattr $(WORK_DIR)/$(TOP_ENTITY)_synth.v; stat' || { echo "Yosys synthesis failed"; exit 1; }
 	@echo "Synthesize done."
-
-# Generate a schematic from the synthesized design
-schematic: synthesize
-	@echo "Generating schematic..."
-	yosys -p 'read_json $(JSON_FILE); show -format svg -prefix $(TOP_ENTITY) $(TOP_ENTITY)' || { echo "Schematic generation failed"; exit 1; }
-	@echo "Schematic done."
 
 # Generate detailed synthesis reports
 report: synthesize
@@ -77,4 +83,4 @@ report: synthesize
 clean:
 	rm -rf $(WORK_DIR) $(VERILOG_FILE) $(SYNTH_SCRIPT) $(JSON_FILE) $(TOP_ENTITY)_synth.v $(TOP_ENTITY) *.o $(SVG_FILE) *.dot $(TOP_ENTITY)_stat.txt $(TOP_ENTITY)_report.txt
 
-.PHONY: all analyze convert synthesize schematic report clean
+.PHONY: all analyze convert generate_hl_netlist synthesize schematic report clean
