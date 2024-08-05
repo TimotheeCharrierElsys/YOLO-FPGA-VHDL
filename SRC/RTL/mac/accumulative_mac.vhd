@@ -15,7 +15,7 @@ use IEEE.NUMERIC_STD.all;
 --! It multiplies two operands and then adds the output.
 entity accumulative_mac is
     generic (
-        DO_MULTIPLICATION : std_logic := '1'; --! Define if it is a mac ('1') or an additionner ('0')
+        DO_MULTIPLICATION : std_logic := '1'; --! Define if it is a MAC ('1') or an adder ('0')
         INPUT_WIDTH       : integer   := 8;   --! Bit width of input operands
         OUTPUT_WIDTH      : integer   := 16   --! Bit width of output result
     );
@@ -35,22 +35,25 @@ architecture accumulative_mac_arch of accumulative_mac is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal o_result_reg          : std_logic_vector(OUTPUT_WIDTH - 1 downto 0); --! Output result register
-    signal multiplication_result : std_logic_vector(OUTPUT_WIDTH - 1 downto 0); --! Signal containing the multiplication result 
-    signal sum_result            : std_logic_vector(OUTPUT_WIDTH - 1 downto 0); --! Signal containing the addition result 
+    signal o_result_reg : std_logic_vector(OUTPUT_WIDTH - 1 downto 0); --! Output result register
+    signal sum_result   : std_logic_vector(OUTPUT_WIDTH - 1 downto 0); --! Signal containing the addition result 
 
 begin
 
+    -------------------------------------------------------------------------------------
+    -- GENERATE BLOCKS
+    -------------------------------------------------------------------------------------
+    --! Generate block for multiplication and accumulation
     gen_multiplication : if DO_MULTIPLICATION = '1' generate
-        process (all)
+        process (i_operand1, i_operand2, o_result_reg)
         begin
-            multiplication_result <= std_logic_vector(signed(i_operand1) * signed(i_operand2));
-            sum_result            <= std_logic_vector(signed(o_result_reg) + signed(multiplication_result));
+            sum_result <= std_logic_vector(signed(o_result_reg) + signed(i_operand1) * signed(i_operand2));
         end process;
     end generate gen_multiplication;
 
+    --! Generate block for addition only
     do_not_gen_multiplication : if DO_MULTIPLICATION = '0' generate
-        process (all)
+        process (i_operand1, o_result_reg)
         begin
             sum_result <= std_logic_vector(signed(i_operand1) + signed(o_result_reg));
         end process;
@@ -66,6 +69,7 @@ begin
         if reset_n = '0' then
             -- Reset output register to zeros
             o_result_reg <= (others => '0');
+
         elsif rising_edge(clock) then
             if i_sys_enable = '1' then
                 if i_clear = '1' then
@@ -77,7 +81,5 @@ begin
         end if;
     end process;
 
-    -- Output update
     o_result <= o_result_reg;
-
 end accumulative_mac_arch;
