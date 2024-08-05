@@ -1,46 +1,43 @@
-# Makefile for synthesizing VHDL code with GHDL and Yosys
-
 # Directory containing VHDL source files
-SRC_DIR 	:= RTL
+SRC_DIR     := RTL
 
-TOP_ENTITY  := conv2d
+TOP_ENTITY  := conv
 
 # VHDL Source Files
-SOURCES		:= $(SRC_DIR)/types_pkg.vhd \
-			$(SRC_DIR)/common/pipeline.vhd \
-			$(SRC_DIR)/common/adder_tree.vhd \
-			$(SRC_DIR)/common/silu_activation.vhd \
-			$(SRC_DIR)/common/square_root.vhd \
-			$(SRC_DIR)/mac/accumulative_mac.vhd \
-			$(SRC_DIR)/mac/fc_layer.vhd \
-			$(SRC_DIR)/window_slice/volume_slice.vhd \
-			$(SRC_DIR)/conv2d/conv2d_layer.vhd \
-			$(SRC_DIR)/conv2d/conv2d_layer_mac.vhd \
-			$(SRC_DIR)/conv2d/conv2d.vhd \
-			$(SRC_DIR)/maxpool2d/maxpool2d_layer.vhd \
-			$(SRC_DIR)/maxpool2d/maxpool2d.vhd \
-			$(SRC_DIR)/batchnorm2d/batchnorm2d_layer.vhd \
-			$(SRC_DIR)/batchnorm2d/batchnorm2d.vhd \
-			# $(SRC_DIR)/conv/conv.vhd
+SOURCES     := $(SRC_DIR)/types_pkg.vhd \
+               $(SRC_DIR)/common/pipeline.vhd \
+               $(SRC_DIR)/common/adder_tree.vhd \
+               $(SRC_DIR)/common/silu_activation.vhd \
+               $(SRC_DIR)/common/square_root.vhd \
+               $(SRC_DIR)/mac/accumulative_mac.vhd \
+               $(SRC_DIR)/mac/fc_layer.vhd \
+               $(SRC_DIR)/window_slice/volume_slice.vhd \
+               $(SRC_DIR)/conv2d/conv2d_layer.vhd \
+               $(SRC_DIR)/conv2d/conv2d_layer_mac.vhd \
+               $(SRC_DIR)/conv2d/conv2d.vhd \
+               $(SRC_DIR)/maxpool2d/maxpool2d_layer.vhd \
+               $(SRC_DIR)/maxpool2d/maxpool2d.vhd \
+               $(SRC_DIR)/batchnorm2d/batchnorm2d_layer.vhd \
+               $(SRC_DIR)/batchnorm2d/batchnorm2d.vhd \
+               $(SRC_DIR)/conv/conv.vhd
 
 # Work Directory
-WORK_DIR 	:= work
+WORK_DIR    := work
 
 # Synthesis Script
 SYNTH_SCRIPT := $(WORK_DIR)/synth.ys
 
 # Output Files
 VERILOG_FILE := $(TOP_ENTITY).v
-JSON_FILE 	 := $(TOP_ENTITY).json
-SVG_FILE	 := $(TOP_ENTITY).svg
+JSON_FILE    := $(TOP_ENTITY).json
+SVG_FILE     := $(TOP_ENTITY).svg
 
 # VHDL Standard and Library
-LIB 		:= LIB_RTL
+LIB         := LIB_RTL
 FLAGS       := --std=08 --ieee=standard --work=$(LIB) --workdir=$(WORK_DIR)
-WARNINGS	:= -Wdefault-binding -Wparenthesis -Wothers -Wstatic -Werror
+WARNINGS    := -Wdefault-binding -Wparenthesis -Wothers -Wstatic -Werror
 
-# Default target
-all: analyze elaborate convert synthesize
+all: synthesize
 
 # Create work directory if it doesn't exist
 $(WORK_DIR):
@@ -52,41 +49,32 @@ analyze: $(WORK_DIR)
 	ghdl -a $(FLAGS) $(WARNINGS) $(SOURCES)
 	@echo "Analyze done."
 
-# Elaborate the design
-elaborate: analyze
-	@echo "Elaborating $(TOP_ENTITY)..."
-	ghdl -e $(FLAGS) $(WARNINGS) -Wdelayed-checks --syn-binding $(TOP_ENTITY)
-	@echo "Elaborate done."
-
-# Convert VHDL to Verilog using GHDL
-convert: elaborate
-	@echo "Converting $(TOP_ENTITY)..."
-	ghdl --synth $(FLAGS) --out=verilog $(TOP_ENTITY) > $(VERILOG_FILE)
+# Convert VHDL to Verilog using Yosys
+convert: analyze
+	@echo "Converting VHDL to Verilog..."
+	yosys -m ghdl -p 'ghdl $(FLAGS) $(SOURCES) -e $(TOP_ENTITY); write_verilog $(VERILOG_FILE)' || { echo "Yosys conversion failed"; exit 1; }
 	@echo "Convert done."
 
-# Target to synthesize the design and generate JSON and DOT files
+# Synthesize the design
 synthesize: convert
-	@echo "Generating Yosys synthesis script..."
-	@echo "read_verilog $(VERILOG_FILE)" > $(SYNTH_SCRIPT)
-	@echo "hierarchy -check -top $(TOP_ENTITY)" >> $(SYNTH_SCRIPT)
-	@echo "synth -top $(TOP_ENTITY)" >> $(SYNTH_SCRIPT)
-	@echo "write_json $(TOP_ENTITY).json" >> $(SYNTH_SCRIPT)
-	@echo "write_verilog -noattr $(TOP_ENTITY)_synth.v" >> $(SYNTH_SCRIPT)
-	@echo "stat" >> $(SYNTH_SCRIPT)
-	@echo "Executing Yosys synthesis..."
-	yosys -s $(SYNTH_SCRIPT)
+	@echo "Synthesizing design..."
+	yosys -p 'read_verilog $(VERILOG_FILE); hierarchy -check -top $(TOP_ENTITY); proc; opt; fsm; opt; memory; opt; abc -dff; opt; write_json $(JSON_FILE); write_verilog -noattr $(TOP_ENTITY)_synth.v; stat' || { echo "Yosys synthesis failed"; exit 1; }
+	@echo "Synthesize done."
 
+# Generate a schematic from the synthesized design
 schematic: synthesize
-	@echo "Generating Yosys schematic script..."
-	@echo "proc" >> $(SYNTH_SCRIPT)
-	@echo "write_json $(JSON_FILE)" >> $(SYNTH_SCRIPT)
-	@echo "stat" >> $(SYNTH_SCRIPT)
-	@echo "Executing Yosys for schematic generation..."
-	yosys -m ghdl -p "script $(SYNTH_SCRIPT)"
-	netlistsvg $(JSON_FILE) -o $(SVG_FILE)
+	@echo "Generating schematic..."
+	yosys -p 'read_json $(JSON_FILE); show -format svg -prefix $(TOP_ENTITY) $(TOP_ENTITY)' || { echo "Schematic generation failed"; exit 1; }
+	@echo "Schematic done."
+
+# Generate detailed synthesis reports
+report: synthesize
+	@echo "Generating detailed synthesis report..."
+	yosys -p 'read_json $(JSON_FILE); stat -top $(TOP_ENTITY); check -assert' || { echo "Report generation failed"; exit 1; }
+	@echo "Report done."
 
 # Clean up the generated files
 clean:
-	rm -rf $(WORK_DIR) $(VERILOG_FILE) $(SYNTH_SCRIPT) $(JSON_FILE) $(TOP_ENTITY)_synth.v $(TOP_ENTITY) *.o $(SVG_FILE)
+	rm -rf $(WORK_DIR) $(VERILOG_FILE) $(SYNTH_SCRIPT) $(JSON_FILE) $(TOP_ENTITY)_synth.v $(TOP_ENTITY) *.o $(SVG_FILE) *.dot $(TOP_ENTITY)_stat.txt $(TOP_ENTITY)_report.txt
 
-.PHONY: all analyze elaborate convert synthesize schematic clean
+.PHONY: all analyze convert synthesize schematic report clean
