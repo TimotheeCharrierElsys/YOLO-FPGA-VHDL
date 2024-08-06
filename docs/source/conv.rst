@@ -16,8 +16,8 @@ In the YOLO model, each conv layer is implemented as a sequence of three key com
 
 3. Activation Function: A nonlinear activation function, hardswish in our case, an approximation of SiLU activation function. This allows the network to learn more complex patterns.
 
-.. image:: fig/conv/conv_layer_architecture.svg
-   :target: fig/conv/conv_layer_architecture.svg
+.. image:: _static/conv/conv_layer_architecture.svg
+   :target: _static/conv/conv_layer_architecture.svg
    :align: center
    :alt: Diagram
 
@@ -39,16 +39,16 @@ Emboss Filter
 #############
 
 .. raw:: html
-   :file: html/conv/filter_Emboss_heatmap.html
+   :file: _static//html/conv/filter_Emboss_heatmap.html
 
 Identity Filter
 ###############
 
 .. raw:: html
-   :file: html/conv/filter_Identity_heatmap.html
+   :file: _static//html/conv/filter_Identity_heatmap.html
 
 Sharp Filter
 ############
 
 .. raw:: html
-   :file: html/conv/filter_Sharp_heatmap.html
+   :file: _static//html/conv/filter_Sharp_heatmap.html

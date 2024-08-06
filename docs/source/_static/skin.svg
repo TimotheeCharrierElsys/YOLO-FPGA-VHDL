@@ -520,7 +520,6 @@
         <g s:x="-1" s:y="30" s:pid="C" />
         <g s:x="-1" s:y="10" s:pid="D" />
         <g s:x="15" s:y="40" s:pid="ARST" />
-        <g s:x="15" s:y="40" s:pid="SRST" />
     </g>
 
     <g s:type="adffe" transform="translate(50,500)" s:width="30" s:height="80" id="cell_id">
@@ -529,24 +528,21 @@
         <s:alias val="$_ADFFE_" />
         <s:alias val="$__ADFFE__P_" />
 
-        <!-- Label for the component -->
-        <text x="15" y="-4" class="nodelabel" s:attribute="ref">$adffe</text>
-
-        <!-- Main rectangle for the flip-flop body -->
         <rect width="30" height="80" s:generic="body" fill="#D9DBF1" />
+        <path d="M0,75 L5,70 L0,65" class="$cell_id" />
 
         <!-- Input ports -->
-        <g transform="translate(0,10)" s:x="0" s:y="10" s:pid="ARST" id="ARST">
-            <text x="-3" y="-4" class="inputPortLabel">ARST</text>
-        </g>
-        <g transform="translate(0,30)" s:x="0" s:y="30" s:pid="CLK" id="CLK">
-            <text x="-3" y="-4" class="inputPortLabel">CLK</text>
-        </g>
-        <g transform="translate(0,50)" s:x="0" s:y="50" s:pid="D" id="D">
+        <g transform="translate(0,10)" s:x="0" s:y="10" s:pid="D" id="D">
             <text x="-3" y="-4" class="inputPortLabel">D</text>
         </g>
-        <g transform="translate(0,70)" s:x="0" s:y="70" s:pid="EN" id="EN">
-            <text x="-3" y="-4" class="inputPortLabel">EN</text>
+        <g transform="translate(0,30)" s:x="0" s:y="30" s:pid="EN" id="EN">
+            <text x="-3" y="-4" class="inputPortLabel">enable</text>
+        </g>
+        <g transform="translate(0,50)" s:x="0" s:y="50" s:pid="ARST" id="ARST">
+            <text x="-3" y="-4" class="inputPortLabel">reset_n</text>
+        </g>
+        <g transform="translate(0,70)" s:x="0" s:y="70" s:pid="CLK" id="CLK">
+            <text x="-3" y="-4" class="inputPortLabel">clock</text>
         </g>
 
         <!-- Output port -->

@@ -43,5 +43,7 @@ html_theme_options = {
     "top_of_page_button": "edit",
 }
 
+html_static_path = ['_static']
+
 pygments_style = "emacs"
 pygments_dark_style = "monokai"

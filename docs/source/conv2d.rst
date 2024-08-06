@@ -20,8 +20,8 @@ This architecture uses a fully connected layer approach to perform the convoluti
 - The outputs of the fully connected layers are summed and added to the bias.
 - The design ensures proper delay handling using a constant `DFF_DELAY` and the design can be fully pipelined or only the output can be pipelined according to needs.
 
-.. image:: fig/architecture-conv2d_layer_fc_arch.drawio.svg
-   :target: fig/architecture-conv2d_layer_fc_arch.drawio.svg
+.. image:: _static/conv2d/architecture-conv2d_layer_fc_arch.drawio.svg
+   :target: _static/conv2d/architecture-conv2d_layer_fc_arch.drawio.svg
    :alt: Diagram
 
 2. **One MAC per Channel Architecture**
@@ -35,8 +35,8 @@ This architecture uses one MAC unit per channel. The MAC units are controlled us
 - The MAC outputs are summed together, and the result is updated based on a selector signal.
 - The architecture includes handling of synchronous and asynchronous operations with proper reset logic.
 
-.. image:: fig/architecture-conv2d_layer_one_mac_arch.drawio.svg
-   :target: fig/architecture-conv2d_layer_one_mac_arch.drawio.svg
+.. image:: _static/conv2d/architecture-conv2d_layer_one_mac_arch.drawio.svg
+   :target: _static/conv2d/architecture-conv2d_layer_one_mac_arch.drawio.svg
    :alt: Diagram
 
 3. **Conv layer architecture**
@@ -60,8 +60,8 @@ The con2d architecture is based on conv2d_layer and volume_slicer entities.
 
 The following image illustrates the architecture of maxpool2d, by applying a convolution operation with 4 filters to an RGB image.
 
-.. image:: fig/architecture-conv2d.drawio.svg
-   :target: fig/architecture-conv2d.drawio.svg
+.. image:: _static/conv2d/architecture-conv2d.drawio.svg
+   :target: _static/conv2d/architecture-conv2d.drawio.svg
    :alt: Diagram
 
 Output Table
@@ -71,136 +71,136 @@ This is an example of the output of the conv2d layer where the input image is a 
 used are: *Stride=1*, *Padding=1* and with a *Kernel Size=3*. The output size is a 64x64 gray image.
 
 .. raw:: html
-   :file: html/input_image.html
+   :file: _static//html/input_image.html
 
-+--------------------+-----------------------------------------------+------------------------------------------+
-|     Operation      |                    Kernels                    |               Image result               |
-+====================+===============================================+==========================================+
-|                    |                                               |                                          |
-| Identity           | .. math::                                     | .. image:: fig/filters/identity.png      |
-|                    |                                               |                                          |
-|                    |    \begin{bmatrix}                            |                                          |
-|                    |    0 & 0 & 0 \\                               |                                          |
-|                    |    0 & 1 & 0 \\                               |                                          |
-|                    |    0 & 0 & 0                                  |                                          |
-|                    |    \end{bmatrix}                              |                                          |
-|                    |                                               |                                          |
-+--------------------+-----------------------------------------------+------------------------------------------+
-| Ridge              | .. math::                                     | .. image:: fig/filters/ridge.png         |
-|                    |                                               |                                          |
-|                    |    \begin{bmatrix}                            |                                          |
-|                    |    0 & -1 & 0 \\                              |                                          |
-|                    |    -1 & 4 & -1 \\                             |                                          |
-|                    |    0 & -1 & 0                                 |                                          |
-|                    |    \end{bmatrix}                              |                                          |
-|                    |                                               |                                          |
-+--------------------+-----------------------------------------------+------------------------------------------+
-| Edge               | .. math::                                     | .. image:: fig/filters/edge.png          |
-|                    |                                               |                                          |
-|                    |    \begin{bmatrix}                            |                                          |
-|                    |    -1 & -1 & -1 \\                            |                                          |
-|                    |    -1 & 8 & -1 \\                             |                                          |
-|                    |    -1 & -1 & -1                               |                                          |
-|                    |    \end{bmatrix}                              |                                          |
-|                    |                                               |                                          |
-+--------------------+-----------------------------------------------+------------------------------------------+
-| Sharp              | .. math::                                     | .. image:: fig/filters/sharp.png         |
-|                    |                                               |                                          |
-|                    |    \begin{bmatrix}                            |                                          |
-|                    |    0 & -1 & 0 \\                              |                                          |
-|                    |    -1 & 5 & -1 \\                             |                                          |
-|                    |    0 & -1 & 0                                 |                                          |
-|                    |    \end{bmatrix}                              |                                          |
-|                    |                                               |                                          |
-+--------------------+-----------------------------------------------+------------------------------------------+
-| Blur               | .. math::                                     | .. image:: fig/filters/blur.png          |
-|                    |                                               |                                          |
-|                    |    \frac{1}{9}                                |                                          |
-|                    |    \begin{bmatrix}                            |                                          |
-|                    |    1 & 1 & 1 \\                               |                                          |
-|                    |    1 & 1 & 1 \\                               |                                          |
-|                    |    1 & 1 & 1                                  |                                          |
-|                    |    \end{bmatrix}                              |                                          |
-|                    |                                               |                                          |
-+--------------------+-----------------------------------------------+------------------------------------------+
-| Gaussian (3x3)     | .. math::                                     | .. image:: fig/filters/gaussian_33.png   |
-|                    |                                               |                                          |
-|                    |    \frac{1}{16}                               |                                          |
-|                    |    \begin{bmatrix}                            |                                          |
-|                    |    1 & 2 & 1 \\                               |                                          |
-|                    |    2 & 4 & 2 \\                               |                                          |
-|                    |    1 & 2 & 1                                  |                                          |
-|                    |    \end{bmatrix}                              |                                          |
-|                    |                                               |                                          |
-+--------------------+-----------------------------------------------+------------------------------------------+
-| Emboss             | .. math::                                     | .. image:: fig/filters/emboss.png        |
-|                    |                                               |                                          |
-|                    |    \begin{bmatrix}                            |                                          |
-|                    |    -2 & -1 & 0 \\                             |                                          |
-|                    |    -1 & 1 & 1 \\                              |                                          |
-|                    |    0 & 1 & 2                                  |                                          |
-|                    |    \end{bmatrix}                              |                                          |
-|                    |                                               |                                          |
-+--------------------+-----------------------------------------------+------------------------------------------+
-| Sobel X            | .. math::                                     | .. image:: fig/filters/sobel_x.png       |
-|                    |                                               |                                          |
-|                    |    \begin{bmatrix}                            |                                          |
-|                    |    -1 & 0 & 1 \\                              |                                          |
-|                    |    -2 & 0 & 2 \\                              |                                          |
-|                    |    -1 & 0 & 1                                 |                                          |
-|                    |    \end{bmatrix}                              |                                          |
-|                    |                                               |                                          |
-+--------------------+-----------------------------------------------+------------------------------------------+
-| Sobel Y            | .. math::                                     | .. image:: fig/filters/sobel_y.png       |
-|                    |                                               |                                          |
-|                    |    \begin{bmatrix}                            |                                          |
-|                    |    -1 & -2 & -1 \\                            |                                          |
-|                    |    0 & 0 & 0 \\                               |                                          |
-|                    |    1 & 2 & 1                                  |                                          |
-|                    |    \end{bmatrix}                              |                                          |
-|                    |                                               |                                          |
-+--------------------+-----------------------------------------------+------------------------------------------+
-| Prewitt X          | .. math::                                     | .. image:: fig/filters/prewitt_x.png     |
-|                    |                                               |                                          |
-|                    |    \begin{bmatrix}                            |                                          |
-|                    |    -1 & 0 & 1 \\                              |                                          |
-|                    |    -1 & 0 & 1 \\                              |                                          |
-|                    |    -1 & 0 & 1                                 |                                          |
-|                    |    \end{bmatrix}                              |                                          |
-|                    |                                               |                                          |
-+--------------------+-----------------------------------------------+------------------------------------------+
-| Prewitt Y          | .. math::                                     | .. image:: fig/filters/prewitt_y.png     |
-|                    |                                               |                                          |
-|                    |    \begin{bmatrix}                            |                                          |
-|                    |    -1 & -1 & -1 \\                            |                                          |
-|                    |    0 & 0 & 0 \\                               |                                          |
-|                    |    1 & 1 & 1                                  |                                          |
-|                    |    \end{bmatrix}                              |                                          |
-|                    |                                               |                                          |
-+--------------------+-----------------------------------------------+------------------------------------------+
-| Laplacian          | .. math::                                     | .. image:: fig/filters/laplacian.png     |
-|                    |                                               |                                          |
-|                    |    \begin{bmatrix}                            |                                          |
-|                    |    0 & 1 & 0 \\                               |                                          |
-|                    |    1 & -4 & 1 \\                              |                                          |
-|                    |    0 & 1 & 0                                  |                                          |
-|                    |    \end{bmatrix}                              |                                          |
-|                    |                                               |                                          |
-+--------------------+-----------------------------------------------+------------------------------------------+
-| Laplacian Diagonal | .. math::                                     | .. image:: fig/filters/laplacian_diag.png|
-|                    |                                               |                                          |
-|                    |    \begin{bmatrix}                            |                                          |
-|                    |    1 & 1 & 1 \\                               |                                          |
-|                    |    1 & -8 & 1 \\                              |                                          |
-|                    |    1 & 1 & 1                                  |                                          |
-|                    |    \end{bmatrix}                              |                                          |
-|                    |                                               |                                          |
-+--------------------+-----------------------------------------------+------------------------------------------+
-| Random (3x3)       | .. math::                                     | .. image:: fig/filters/random_33.png     |
-|                    |                                               |                                          |
-|                    |    \begin{bmatrix}                            |                                          |
-|                    |    -10 & 2 & -9 \\                            |                                          |
-|                    |    4 & 7 & -7 \\                              |                                          |
-|                    |    -4 & 9 & -4                                |                                          |
-|                    |    \end{bmatrix}                              |                                          |
-+--------------------+-----------------------------------------------+------------------------------------------+
++--------------------+-----------------------------------------------+--------------------------------------------------+
+|     Operation      |                    Kernels                    |               Image result                       |
++====================+===============================================+==================================================+
+|                    |                                               |                                                  |
+| Identity           | .. math::                                     | .. image:: _static/filters/identity.png          |
+|                    |                                               |                                                  |
+|                    |    \begin{bmatrix}                            |                                                  |
+|                    |    0 & 0 & 0 \\                               |                                                  |
+|                    |    0 & 1 & 0 \\                               |                                                  |
+|                    |    0 & 0 & 0                                  |                                                  |
+|                    |    \end{bmatrix}                              |                                                  |
+|                    |                                               |                                                  |
++--------------------+-----------------------------------------------+--------------------------------------------------+
+| Ridge              | .. math::                                     | .. image:: _static/filters/ridge.png             |
+|                    |                                               |                                                  |
+|                    |    \begin{bmatrix}                            |                                                  |
+|                    |    0 & -1 & 0 \\                              |                                                  |
+|                    |    -1 & 4 & -1 \\                             |                                                  |
+|                    |    0 & -1 & 0                                 |                                                  |
+|                    |    \end{bmatrix}                              |                                                  |
+|                    |                                               |                                                  |
++--------------------+-----------------------------------------------+--------------------------------------------------+
+| Edge               | .. math::                                     | .. image:: _static/filters/edge.png              |
+|                    |                                               |                                                  |
+|                    |    \begin{bmatrix}                            |                                                  |
+|                    |    -1 & -1 & -1 \\                            |                                                  |
+|                    |    -1 & 8 & -1 \\                             |                                                  |
+|                    |    -1 & -1 & -1                               |                                                  |
+|                    |    \end{bmatrix}                              |                                                  |
+|                    |                                               |                                                  |
++--------------------+-----------------------------------------------+--------------------------------------------------+
+| Sharp              | .. math::                                     | .. image:: _static/filters/sharp.png             |
+|                    |                                               |                                                  |
+|                    |    \begin{bmatrix}                            |                                                  |
+|                    |    0 & -1 & 0 \\                              |                                                  |
+|                    |    -1 & 5 & -1 \\                             |                                                  |
+|                    |    0 & -1 & 0                                 |                                                  |
+|                    |    \end{bmatrix}                              |                                                  |
+|                    |                                               |                                                  |
++--------------------+-----------------------------------------------+--------------------------------------------------+
+| Blur               | .. math::                                     | .. image:: _static/filters/blur.png              |
+|                    |                                               |                                                  |
+|                    |    \frac{1}{9}                                |                                                  |
+|                    |    \begin{bmatrix}                            |                                                  |
+|                    |    1 & 1 & 1 \\                               |                                                  |
+|                    |    1 & 1 & 1 \\                               |                                                  |
+|                    |    1 & 1 & 1                                  |                                                  |
+|                    |    \end{bmatrix}                              |                                                  |
+|                    |                                               |                                                  |
++--------------------+-----------------------------------------------+--------------------------------------------------+
+| Gaussian (3x3)     | .. math::                                     | .. image:: _static/filters/gaussian_33.png       |
+|                    |                                               |                                                  |
+|                    |    \frac{1}{16}                               |                                                  |
+|                    |    \begin{bmatrix}                            |                                                  |
+|                    |    1 & 2 & 1 \\                               |                                                  |
+|                    |    2 & 4 & 2 \\                               |                                                  |
+|                    |    1 & 2 & 1                                  |                                                  |
+|                    |    \end{bmatrix}                              |                                                  |
+|                    |                                               |                                                  |
++--------------------+-----------------------------------------------+--------------------------------------------------+
+| Emboss             | .. math::                                     | .. image:: _static/filters/emboss.png            |
+|                    |                                               |                                                  |
+|                    |    \begin{bmatrix}                            |                                                  |
+|                    |    -2 & -1 & 0 \\                             |                                                  |
+|                    |    -1 & 1 & 1 \\                              |                                                  |
+|                    |    0 & 1 & 2                                  |                                                  |
+|                    |    \end{bmatrix}                              |                                                  |
+|                    |                                               |                                                  |
++--------------------+-----------------------------------------------+--------------------------------------------------+
+| Sobel X            | .. math::                                     | .. image:: _static/filters/sobel_x.png           |
+|                    |                                               |                                                  |
+|                    |    \begin{bmatrix}                            |                                                  |
+|                    |    -1 & 0 & 1 \\                              |                                                  |
+|                    |    -2 & 0 & 2 \\                              |                                                  |
+|                    |    -1 & 0 & 1                                 |                                                  |
+|                    |    \end{bmatrix}                              |                                                  |
+|                    |                                               |                                                  |
++--------------------+-----------------------------------------------+--------------------------------------------------+
+| Sobel Y            | .. math::                                     | .. image:: _static/filters/sobel_y.png           |
+|                    |                                               |                                                  |
+|                    |    \begin{bmatrix}                            |                                                  |
+|                    |    -1 & -2 & -1 \\                            |                                                  |
+|                    |    0 & 0 & 0 \\                               |                                                  |
+|                    |    1 & 2 & 1                                  |                                                  |
+|                    |    \end{bmatrix}                              |                                                  |
+|                    |                                               |                                                  |
++--------------------+-----------------------------------------------+--------------------------------------------------+
+| Prewitt X          | .. math::                                     | .. image:: _static/filters/prewitt_x.png         |
+|                    |                                               |                                                  |
+|                    |    \begin{bmatrix}                            |                                                  |
+|                    |    -1 & 0 & 1 \\                              |                                                  |
+|                    |    -1 & 0 & 1 \\                              |                                                  |
+|                    |    -1 & 0 & 1                                 |                                                  |
+|                    |    \end{bmatrix}                              |                                                  |
+|                    |                                               |                                                  |
++--------------------+-----------------------------------------------+--------------------------------------------------+
+| Prewitt Y          | .. math::                                     | .. image:: _static/filters/prewitt_y.png         |
+|                    |                                               |                                                  |
+|                    |    \begin{bmatrix}                            |                                                  |
+|                    |    -1 & -1 & -1 \\                            |                                                  |
+|                    |    0 & 0 & 0 \\                               |                                                  |
+|                    |    1 & 1 & 1                                  |                                                  |
+|                    |    \end{bmatrix}                              |                                                  |
+|                    |                                               |                                                  |
++--------------------+-----------------------------------------------+--------------------------------------------------+
+| Laplacian          | .. math::                                     | .. image:: _static/filters/laplacian.png         |
+|                    |                                               |                                                  |
+|                    |    \begin{bmatrix}                            |                                                  |
+|                    |    0 & 1 & 0 \\                               |                                                  |
+|                    |    1 & -4 & 1 \\                              |                                                  |
+|                    |    0 & 1 & 0                                  |                                                  |
+|                    |    \end{bmatrix}                              |                                                  |
+|                    |                                               |                                                  |
++--------------------+-----------------------------------------------+--------------------------------------------------+
+| Laplacian Diagonal | .. math::                                     | .. image:: _static/filters/laplacian_diag.png    |
+|                    |                                               |                                                  |
+|                    |    \begin{bmatrix}                            |                                                  |
+|                    |    1 & 1 & 1 \\                               |                                                  |
+|                    |    1 & -8 & 1 \\                              |                                                  |
+|                    |    1 & 1 & 1                                  |                                                  |
+|                    |    \end{bmatrix}                              |                                                  |
+|                    |                                               |                                                  |
++--------------------+-----------------------------------------------+--------------------------------------------------+
+| Random (3x3)       | .. math::                                     | .. image:: _static/filters/random_33.png         |
+|                    |                                               |                                                  |
+|                    |    \begin{bmatrix}                            |                                                  |
+|                    |    -10 & 2 & -9 \\                            |                                                  |
+|                    |    4 & 7 & -7 \\                              |                                                  |
+|                    |    -4 & 9 & -4                                |                                                  |
+|                    |    \end{bmatrix}                              |                                                  |
++--------------------+-----------------------------------------------+--------------------------------------------------+

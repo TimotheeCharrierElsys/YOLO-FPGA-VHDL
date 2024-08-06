@@ -1,7 +1,7 @@
 YOLO HDL implementation
 =======================
 
-.. |pic_repository| image:: fig/repository.svg
+.. |pic_repository| image:: _static/repository.svg
   :alt: Repository
   :target: https://github.com/TimotheeCharrierElsys/doc/tree/dev
 
