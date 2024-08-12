@@ -39,13 +39,20 @@ end batchnorm2d;
 architecture batchnorm2d_arch of batchnorm2d is
 
     -------------------------------------------------------------------------------------
+    -- CONSTANTS
+    -------------------------------------------------------------------------------------
+    constant N_OUTPUT_REG : integer := 2;            --! Number of output registers
+    constant DFF_DELAY    : integer := N_OUTPUT_REG; --! Total delay due to flip-flops
+
+    -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal r_o_data          : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0); --! Signal Output Data Registers
-    signal r_o_data_valid    : std_logic_vector(CHANNEL_NUMBER - 1 downto 0);             --! Signal Output valid signal
-    signal current_row       : integer range 0 to INPUT_SIZE - 1;                         --! Current row index
-    signal current_col       : integer range 0 to INPUT_SIZE - 1;                         --! Current column index
-    signal intermediate_data : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0); --! Intermediate signal
+    signal r_o_data             : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0); --! Signal Output Data Registers
+    signal r_o_data_valid       : std_logic_vector(CHANNEL_NUMBER - 1 downto 0);             --! Signal Output valid signal
+    signal current_row          : integer range 0 to INPUT_SIZE - 1;                         --! Current row index
+    signal current_col          : integer range 0 to INPUT_SIZE - 1;                         --! Current column index
+    signal intermediate_data    : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0); --! Intermediate signal
+    signal batchnorm_layer_done : std_logic;
 
     signal start_processing          : std_logic; --! Signal to start processing
     signal data_valid_previous_state : std_logic; --! Previous state of the data_valid signal
@@ -70,8 +77,20 @@ architecture batchnorm2d_arch of batchnorm2d is
             i_weight     : in std_logic_vector(BITWIDTH - 1 downto 0);
             i_bias       : in std_logic_vector(BITWIDTH - 1 downto 0);
             i_valid      : in std_logic;
-            o_data       : out std_logic_vector(BITWIDTH - 1 downto 0);
-            o_data_valid : out std_logic
+            o_data       : out std_logic_vector(BITWIDTH - 1 downto 0)
+        );
+    end component;
+
+    component pipeline
+        generic (
+            N_STAGES : integer
+        );
+        port (
+            clock        : in std_logic;
+            reset_n      : in std_logic;
+            i_sys_enable : in std_logic;
+            i_data       : in std_logic;
+            o_data       : out std_logic
         );
     end component;
 
@@ -98,10 +117,24 @@ begin
             i_weight     => i_weight(i),
             i_bias       => i_bias(i),
             i_valid      => computation_start,
-            o_data       => r_o_data(i),
-            o_data_valid => r_o_data_valid(i)
+            o_data       => r_o_data(i)
         );
     end generate gen_batchnorm2d_layer;
+
+    -------------------------------------------------------------------------------------
+    -- pipeline INSTANTIATION
+    -------------------------------------------------------------------------------------
+    pipeline_inst : pipeline
+    generic map(
+        N_STAGES => DFF_DELAY
+    )
+    port map(
+        clock        => clock,
+        reset_n      => reset_n,
+        i_sys_enable => i_sys_enable,
+        i_data       => computation_start,
+        o_data       => batchnorm_layer_done
+    );
 
     -- Process to update the intermediate signals
     process (all)
@@ -145,7 +178,7 @@ begin
 
                 -- If input data is valid, start the index computation
                 if (start_processing = '1') then
-                    if (r_o_data_valid = "111") then
+                    if (batchnorm_layer_done = '1') then
 
                         -- Start next computation
                         computation_start <= '1';
@@ -187,6 +220,10 @@ configuration batchnorm2d_conf of batchnorm2d is
             for batchnorm2d_layer_inst : batchnorm2d_layer
                 use configuration LIB_RTL.batchnorm2d_layer_conf;
             end for;
+        end for;
+
+        for all : pipeline
+            use entity LIB_RTL.pipeline(pipeline_arch);
         end for;
     end for;
 end configuration batchnorm2d_conf;

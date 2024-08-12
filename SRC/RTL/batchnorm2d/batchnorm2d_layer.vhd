@@ -20,16 +20,15 @@ entity batchnorm2d_layer is
         K        : integer := 10
     );
     port (
-        clock        : in std_logic;                                --! Clock signal
-        reset_n      : in std_logic;                                --! Reset signal, active low
-        i_sys_enable : in std_logic;                                --! Global enable signal, active high
-        i_data       : in std_logic_vector(BITWIDTH - 1 downto 0);  --! Input data
-        i_mean       : in std_logic_vector(BITWIDTH - 1 downto 0);  --! Input mean value
-        i_weight     : in std_logic_vector(BITWIDTH - 1 downto 0);  --! Input weight value
-        i_bias       : in std_logic_vector(BITWIDTH - 1 downto 0);  --! Input bias value
-        i_valid      : in std_logic;                                --! Input valid signal
-        o_data       : out std_logic_vector(BITWIDTH - 1 downto 0); --! Channel-wise output data
-        o_data_valid : out std_logic                                --! Output valid signal
+        clock        : in std_logic;                               --! Clock signal
+        reset_n      : in std_logic;                               --! Reset signal, active low
+        i_sys_enable : in std_logic;                               --! Global enable signal, active high
+        i_data       : in std_logic_vector(BITWIDTH - 1 downto 0); --! Input data
+        i_mean       : in std_logic_vector(BITWIDTH - 1 downto 0); --! Input mean value
+        i_weight     : in std_logic_vector(BITWIDTH - 1 downto 0); --! Input weight value
+        i_bias       : in std_logic_vector(BITWIDTH - 1 downto 0); --! Input bias value
+        i_valid      : in std_logic;                               --! Input valid signal
+        o_data       : out std_logic_vector(BITWIDTH - 1 downto 0) --! Channel-wise output data
     );
 end batchnorm2d_layer;
 
@@ -38,31 +37,13 @@ architecture batchnorm2d_layer_arch of batchnorm2d_layer is
     -------------------------------------------------------------------------------------
     -- CONSTANTS
     -------------------------------------------------------------------------------------
-    constant N_OUTPUT_REG                     : integer := 2;            --! Number of output registers
-    constant DFF_DELAY_PIPELINED              : integer := N_OUTPUT_REG; --! Total delay due to flip-flops when pipelined
-    constant SCALE_FACTOR_POWER_OF_2          : integer := 13;           --! Scale factor for integer computation power (e.g., 10 -> 2**10)
-    constant DIVISION_SCALE_FACTOR_POWER_OF_2 : integer := 10;           --! Scale factor to compute the division by 6
+    constant SCALE_FACTOR_POWER_OF_2          : integer := 13; --! Scale factor for integer computation power (e.g., 10 -> 2**10)
+    constant DIVISION_SCALE_FACTOR_POWER_OF_2 : integer := 10; --! Scale factor to compute the division by 6
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
     signal r_data_to_silu : std_logic_vector(BITWIDTH - 1 downto 0); --! Signal to store the numerator computation result
-
-    -------------------------------------------------------------------------------------
-    -- COMPONENTS
-    -------------------------------------------------------------------------------------
-    component pipeline
-        generic (
-            N_STAGES : integer
-        );
-        port (
-            clock        : in std_logic;
-            reset_n      : in std_logic;
-            i_sys_enable : in std_logic;
-            i_data       : in std_logic;
-            o_data       : out std_logic
-        );
-    end component;
 
     component square_root
         generic (
@@ -95,21 +76,6 @@ architecture batchnorm2d_layer_arch of batchnorm2d_layer is
     end component;
 
 begin
-
-    -------------------------------------------------------------------------------------
-    -- pipeline INSTANTIATION
-    -------------------------------------------------------------------------------------
-    pipeline_inst : pipeline
-    generic map(
-        N_STAGES => DFF_DELAY_PIPELINED
-    )
-    port map(
-        clock        => clock,
-        reset_n      => reset_n,
-        i_sys_enable => i_sys_enable,
-        i_data       => i_valid,
-        o_data       => o_data_valid
-    );
 
     -------------------------------------------------------------------------------------
     -- SiLU INSTANTIATION
@@ -162,10 +128,6 @@ end batchnorm2d_layer_arch;
 
 configuration batchnorm2d_layer_conf of batchnorm2d_layer is
     for batchnorm2d_layer_arch
-
-        for all : pipeline
-            use entity LIB_RTL.pipeline(pipeline_arch);
-        end for;
 
         for all : silu_activation
             use entity LIB_RTL.silu_activation(silu_activation_arch);
