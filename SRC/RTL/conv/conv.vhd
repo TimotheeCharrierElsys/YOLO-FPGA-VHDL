@@ -46,7 +46,6 @@ entity conv is
         --  
 
         i_running_mean     : in t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Input mean vector
-        i_running_var      : in t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Input variance vector
         i_weight           : in t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Input weight vector
         i_bias_batchnorm2d : in t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Input bias vector for batchnorm2d   
 
@@ -113,7 +112,6 @@ architecture conv_arch of conv is
             i_sys_enable   : in std_logic;
             i_data         : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_running_mean : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_running_var  : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_weight       : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_bias         : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_data_valid   : in std_logic;
@@ -161,7 +159,6 @@ begin
         i_sys_enable   => i_sys_enable,
         i_data         => r_conv2d_output,
         i_running_mean => i_running_mean,
-        i_running_var  => i_running_var,
         i_weight       => i_weight,
         i_bias         => i_bias_batchnorm2d,
         i_data_valid   => r_conv2d_output_valid,

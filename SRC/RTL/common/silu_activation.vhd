@@ -82,8 +82,8 @@ begin
                     hardswish_division := hardswish_multiplication * to_signed(HARDSWISH_DIVISION_FACTOR, BITWIDTH);
                     hardswish_division := SHIFT_RIGHT(hardswish_division, DIVISION_SCALE_FACTOR_POWER_OF_2 + SCALE_FACTOR_POWER_OF_2);
 
-                else                                                           -- Test if x > 3
-                    hardswish_division := resize(i_data_signed, 3 * BITWIDTH) + 1; -- +1 fix the reisze offset
+                else -- Test if x > 3
+                    hardswish_division := resize(signed(i_data), 3 * BITWIDTH) + 1;
                 end if;
 
                 -- Update Output

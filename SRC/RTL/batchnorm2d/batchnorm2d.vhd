@@ -28,7 +28,6 @@ entity batchnorm2d is
         i_sys_enable   : in std_logic;                                                                                                       --! System enable signal, active high                                                                                                                                                     
         i_data         : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);  --! Input data (CHANNEL_NUMBER x (INPUT_SIZE x INPUT_SIZE x BITWIDTH) bits)
         i_running_mean : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);                                                       --! Input mean vector
-        i_running_var  : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);                                                       --! Input variance vector
         i_weight       : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);                                                       --! Input weight vector
         i_bias         : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);                                                       --! Input bias vector
         i_data_valid   : in std_logic;                                                                                                       --! Data valid signal, active high
@@ -59,7 +58,8 @@ architecture batchnorm2d_arch of batchnorm2d is
     component batchnorm2d_layer
         generic (
             BITWIDTH : integer;
-            EPSILON  : integer
+            EPSILON  : integer;
+            K        : integer
         );
         port (
             clock        : in std_logic;
@@ -67,7 +67,6 @@ architecture batchnorm2d_arch of batchnorm2d is
             i_sys_enable : in std_logic;
             i_data       : in std_logic_vector(BITWIDTH - 1 downto 0);
             i_mean       : in std_logic_vector(BITWIDTH - 1 downto 0);
-            i_var        : in std_logic_vector(BITWIDTH - 1 downto 0);
             i_weight     : in std_logic_vector(BITWIDTH - 1 downto 0);
             i_bias       : in std_logic_vector(BITWIDTH - 1 downto 0);
             i_valid      : in std_logic;
@@ -87,7 +86,8 @@ begin
         batchnorm2d_layer_inst : batchnorm2d_layer
         generic map(
             BITWIDTH => BITWIDTH,
-            EPSILON  => EPSILON
+            EPSILON  => EPSILON,
+            K        => 10
         )
         port map(
             clock        => clock,
@@ -95,7 +95,6 @@ begin
             i_sys_enable => i_sys_enable,
             i_data       => intermediate_data(i),
             i_mean       => i_running_mean(i),
-            i_var        => i_running_var(i),
             i_weight     => i_weight(i),
             i_bias       => i_bias(i),
             i_valid      => computation_start,

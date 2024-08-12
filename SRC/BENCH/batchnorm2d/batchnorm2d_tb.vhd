@@ -34,7 +34,6 @@ architecture batchnorm2d_tb_arch of batchnorm2d_tb is
     signal i_data_valid   : std_logic := '0';
     signal i_data         : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
     signal i_running_mean : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
-    signal i_running_var  : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
     signal i_weight       : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
     signal i_bias         : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
     signal o_data         : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
@@ -56,7 +55,6 @@ architecture batchnorm2d_tb_arch of batchnorm2d_tb is
             i_sys_enable   : in std_logic;
             i_data         : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_running_mean : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_running_var  : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_weight       : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_bias         : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_data_valid   : in std_logic;
@@ -82,7 +80,6 @@ begin
         i_sys_enable   => i_sys_enable,
         i_data         => i_data,
         i_running_mean => i_running_mean,
-        i_running_var  => i_running_var,
         i_weight       => i_weight,
         i_bias         => i_bias,
         i_data_valid   => i_data_valid,
@@ -123,8 +120,7 @@ begin
         (std_logic_vector(to_signed(160, BITWIDTH)), std_logic_vector(to_signed(170, BITWIDTH)), std_logic_vector(to_signed(180, BITWIDTH))));
 
         i_running_mean <= (others => std_logic_vector(to_unsigned(100, BITWIDTH)));
-        i_running_var  <= (others => std_logic_vector(to_unsigned(50, BITWIDTH)));
-        i_weight       <= (others => std_logic_vector(to_signed(3, BITWIDTH)));
+        i_weight       <= (others => std_logic_vector(to_signed(434, BITWIDTH)));
         i_bias         <= (others => std_logic_vector(to_signed(1, BITWIDTH)));
 
         i_data_valid <= '1';

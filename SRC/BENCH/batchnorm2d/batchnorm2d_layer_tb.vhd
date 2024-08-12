@@ -21,6 +21,7 @@ architecture batchnorm2d_layer_tb_arch of batchnorm2d_layer_tb is
     -------------------------------------------------------------------------------------
     constant i_clk_period : time    := 10 ns; --! Clock period
     constant BITWIDTH     : integer := 16;
+    constant K            : integer := 10;
     constant EPSILON      : integer := 0;
 
     -------------------------------------------------------------------------------------
@@ -31,7 +32,6 @@ architecture batchnorm2d_layer_tb_arch of batchnorm2d_layer_tb is
     signal i_sys_enable : std_logic                               := '0';
     signal i_data       : std_logic_vector(BITWIDTH - 1 downto 0) := (others => '0');
     signal i_mean       : std_logic_vector(BITWIDTH - 1 downto 0) := (others => '0');
-    signal i_var        : std_logic_vector(BITWIDTH - 1 downto 0) := (others => '0');
     signal i_weight     : std_logic_vector(BITWIDTH - 1 downto 0) := (others => '0');
     signal i_bias       : std_logic_vector(BITWIDTH - 1 downto 0) := (others => '0');
     signal i_valid      : std_logic                               := '0';
@@ -44,7 +44,8 @@ architecture batchnorm2d_layer_tb_arch of batchnorm2d_layer_tb is
     component batchnorm2d_layer
         generic (
             BITWIDTH : integer;
-            EPSILON  : integer
+            EPSILON  : integer;
+            K        : integer
         );
         port (
             clock        : in std_logic;
@@ -52,7 +53,6 @@ architecture batchnorm2d_layer_tb_arch of batchnorm2d_layer_tb is
             i_sys_enable : in std_logic;
             i_data       : in std_logic_vector(BITWIDTH - 1 downto 0);
             i_mean       : in std_logic_vector(BITWIDTH - 1 downto 0);
-            i_var        : in std_logic_vector(BITWIDTH - 1 downto 0);
             i_weight     : in std_logic_vector(BITWIDTH - 1 downto 0);
             i_bias       : in std_logic_vector(BITWIDTH - 1 downto 0);
             i_valid      : in std_logic;
@@ -68,7 +68,8 @@ begin
     UUT : batchnorm2d_layer
     generic map(
         BITWIDTH => BITWIDTH,
-        EPSILON  => EPSILON
+        EPSILON  => EPSILON,
+        K        => K
     )
     port map(
         clock        => clock,
@@ -76,7 +77,6 @@ begin
         i_sys_enable => i_sys_enable,
         i_data       => i_data,
         i_mean       => i_mean,
-        i_var        => i_var,
         i_weight     => i_weight,
         i_bias       => i_bias,
         i_valid      => i_valid,
@@ -103,8 +103,7 @@ begin
         -- Set values
         i_data   <= std_logic_vector(to_unsigned(150, BITWIDTH));
         i_mean   <= std_logic_vector(to_signed(100, BITWIDTH));
-        i_var    <= std_logic_vector(to_signed(60, BITWIDTH));
-        i_weight <= std_logic_vector(to_signed(3, BITWIDTH));
+        i_weight <= std_logic_vector(to_signed(3 * 132, BITWIDTH));
         i_bias   <= std_logic_vector(to_signed(1, BITWIDTH));
 
         i_valid <= '1';
