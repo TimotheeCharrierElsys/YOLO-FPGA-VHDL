@@ -122,9 +122,9 @@ begin
     --! Handles the assignment of the input data to the intermediate signals.
     process (all)
     begin
-        r_results(CHANNEL_NUMBER) <= i_bias;                                                      --! Initialize the output with the bias value
-        intermediate_result       <= r_results(current_channel) when is_processing_add = '1' else --! Intermediate signal to hold the output of each MAC unit for each channel.
-            (others => '0');
+        r_results(CHANNEL_NUMBER) <= std_logic_vector(shift_left(signed(i_bias), 12));                                                       --! Initialize the output with the bias value
+        intermediate_result       <= std_logic_vector(shift_right(signed(r_results(current_channel)), 12)) when is_processing_add = '1' else --! Intermediate signal to hold the output of each MAC unit for each channel.
+            (others => '0');                                                                                                                     -- TODO repalce 12 by a generic value
 
         for i in 0 to CHANNEL_NUMBER - 1 loop
             intermediate_multiplier1(i) <= i_data(i)(current_col)(current_row) when is_processing_mac = '1' else
