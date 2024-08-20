@@ -4,8 +4,8 @@
 SRC_DIR     := ../RTL
 BENCH_DIR   := .
 
-TOP_ENTITY  := conv_mnist
-STOP_TIME   := 35us
+TOP_ENTITY  := conv_mnist_2_layers
+STOP_TIME   := 100us
 
 # VHDL Source Files
 SOURCES     := $(SRC_DIR)/types_pkg.vhd \
@@ -41,7 +41,7 @@ TESTBENCHES := $(BENCH_DIR)/common/pipeline_tb.vhd \
 			   $(BENCH_DIR)/batchnorm2d/batchnorm2d_layer_tb.vhd \
 			   $(BENCH_DIR)/batchnorm2d/batchnorm2d_tb.vhd \
 			   $(BENCH_DIR)/conv/conv_tb.vhd \
-			   $(BENCH_DIR)/conv/conv_comparaison_tb.vhd \
+			   $(BENCH_DIR)/conv/conv_mnist_2_layers.vhd \
 			   $(BENCH_DIR)/conv/conv_mnist.vhd
 
 # Work Directory
@@ -51,7 +51,7 @@ WORK_DIR    := work
 LIB 		:= LIB_RTL
 FLAGS       := --std=08 --ieee=standard --work=$(LIB) --workdir=$(WORK_DIR) -O2
 WARNINGS	:= -Wdefault-binding -Wparenthesis -Wothers -Wstatic -Werror
-SIM_FLAGS   := --stop-time=$(STOP_TIME) --wave=$(WORK_DIR)/wave_$(TOP_ENTITY).ghw
+SIM_FLAGS   := --stop-time=$(STOP_TIME) #--wave=$(WORK_DIR)/wave_$(TOP_ENTITY).ghw
 
 # Default target
 all: simulate
