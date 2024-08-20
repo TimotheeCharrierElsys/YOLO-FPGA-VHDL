@@ -84,31 +84,6 @@ architecture conv_mnist_arch of conv_mnist is
         );
     end component;
 
-    component conv2d
-        generic (
-            USE_MAC_ARCH   : std_logic;
-            DO_PIPELINE    : std_logic;
-            BITWIDTH       : integer;
-            INPUT_SIZE     : integer;
-            CHANNEL_NUMBER : integer;
-            KERNEL_SIZE    : integer;
-            KERNEL_NUMBER  : integer;
-            PADDING        : integer;
-            STRIDE         : integer
-        );
-        port (
-            clock        : in std_logic;
-            reset_n      : in std_logic;
-            i_sys_enable : in std_logic;
-            i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_data_valid : in std_logic;
-            i_kernel     : in t_input_feature(KERNEL_NUMBER - 1 downto 0)(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_bias       : in t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
-            o_data       : out t_volume(KERNEL_NUMBER - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
-            o_data_valid : out std_logic
-        );
-    end component;
-
 begin
     -------------------------------------------------------------------------------------
     -- UNIT UNDER TEST (UUT)
@@ -140,31 +115,6 @@ begin
         o_data             => o_data,
         o_data_valid       => o_data_valid
     );
-
-    -- UUT : conv2d
-    -- generic map(
-    --     USE_MAC_ARCH   => USE_MAC_ARCH,
-    --     DO_PIPELINE    => DO_PIPELINE,
-    --     BITWIDTH       => BITWIDTH,
-    --     INPUT_SIZE     => INPUT_SIZE,
-    --     CHANNEL_NUMBER => CHANNEL_NUMBER,
-    --     KERNEL_SIZE    => KERNEL_SIZE,
-    --     KERNEL_NUMBER  => KERNEL_NUMBER,
-    --     PADDING        => PADDING,
-    --     STRIDE         => STRIDE
-    -- )
-    -- port map(
-    --     clock        => clock,
-    --     reset_n      => reset_n,
-    --     i_sys_enable => i_sys_enable,
-    --     i_data_valid => i_data_valid,
-    --     i_data       => i_data,
-    --     i_kernel     => i_kernel,
-    --     i_bias       => i_bias_conv2d,
-    --     o_data       => o_data,
-    --     o_data_valid => o_data_valid
-    -- );
-
     -- Clock generation
     clock <= not clock after i_clk_period / 2;
 

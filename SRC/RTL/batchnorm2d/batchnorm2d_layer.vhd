@@ -37,7 +37,7 @@ architecture batchnorm2d_layer_arch of batchnorm2d_layer is
     -------------------------------------------------------------------------------------
     -- CONSTANTS
     -------------------------------------------------------------------------------------
-    constant SCALE_FACTOR_POWER_OF_2          : integer := 13; --! Scale factor for integer computation power (e.g., 10 -> 2**10)
+    constant SCALE_FACTOR_POWER_OF_2          : integer := 12; --! Scale factor for integer computation power (e.g., 10 -> 2**10)
     constant DIVISION_SCALE_FACTOR_POWER_OF_2 : integer := 10; --! Scale factor to compute the division by 6
 
     -------------------------------------------------------------------------------------

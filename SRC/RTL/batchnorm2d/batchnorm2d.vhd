@@ -106,7 +106,7 @@ begin
         generic map(
             BITWIDTH => BITWIDTH,
             EPSILON  => EPSILON,
-            K        => 10
+            K        => 12
         )
         port map(
             clock        => clock,
