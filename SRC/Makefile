@@ -1,7 +1,7 @@
 # Directory containing VHDL source files
 SRC_DIR     := RTL
 
-TOP_ENTITY  := conv2d_layer_mac
+TOP_ENTITY  := conv
 
 # VHDL Source Files
 SOURCES     := $(SRC_DIR)/types_pkg.vhd \
@@ -58,29 +58,23 @@ convert: analyze
 # Generate High Level Netlist (add, mul,...)
 generate_hl_netlist: convert
 	@echo "Synthesizing design..."
-	yosys -p 'read_verilog $(VERILOG_FILE); hierarchy -check -top $(TOP_ENTITY); opt_expr; opt_clean; check; opt; fsm; opt; proc; opt -fast -mux_undef -undriven -fine; wreduce; peepopt; opt_clean; share; opt_expr; opt_clean; opt_expr; opt_clean; memory; opt_clean; wreduce; peepopt; opt_clean; check; stat; write_json $(JSON_FILE); write_verilog -noattr $(TOP_ENTITY)_synth.v;' || { echo "Yosys synthesis failed"; exit 1; }
+	yosys -p 'read_verilog $(VERILOG_FILE); hierarchy -check -top $(TOP_ENTITY); proc; opt_expr; opt_clean; check; opt; fsm; opt; proc; opt -fast -mux_undef -undriven -fine; wreduce; peepopt; opt_clean; share; opt_expr; opt_clean; opt_expr; opt_clean; memory; opt_clean; wreduce; peepopt; opt_clean; check; stat; write_json $(JSON_FILE); write_verilog -noattr $(TOP_ENTITY)_synth.v;' || { echo "Yosys synthesis failed"; exit 1; }
 	@echo "High-Level Netlist generated."
 
 # Generate a schematic from the synthesized design
 schematic: generate_hl_netlist
 	@echo "Generating schematic..."
-	netlistsvg ${JSON_FILE} -o $(SVG_FILE) --skin ../docs/source/fig/skin.svg
+	netlistsvg ${JSON_FILE} -o $(SVG_FILE) --skin ../docs/source/_static/skin.svg
 	@echo "Schematic done."
 
 # Synthesize the design
 synthesize: convert
 	@echo "Synthesizing design..."
-	yosys -p 'read_verilog $(VERILOG_FILE); hierarchy -check -top $(TOP_ENTITY); proc; opt; fsm; opt; memory; opt; abc -dff; opt; write_json $(JSON_FILE); write_verilog -noattr -noattr $(WORK_DIR)/$(TOP_ENTITY)_synth.v; stat' || { echo "Yosys synthesis failed"; exit 1; }
+	yosys -p 'read_verilog $(VERILOG_FILE); hierarchy -check -top $(TOP_ENTITY); proc; opt; fsm; opt; memory; opt; abc -dff; opt; synth; opt; write_json $(JSON_FILE); write_verilog -noattr -noattr $(WORK_DIR)/$(TOP_ENTITY)_synth.v; stat' || { echo "Yosys synthesis failed"; exit 1; }
 	@echo "Synthesize done."
-
-# Generate detailed synthesis reports
-report: synthesize
-	@echo "Generating detailed synthesis report..."
-	yosys -p 'read_json $(JSON_FILE); stat -top $(TOP_ENTITY); check -assert' || { echo "Report generation failed"; exit 1; }
-	@echo "Report done."
 
 # Clean up the generated files
 clean:
-	rm -rf $(WORK_DIR) $(VERILOG_FILE) $(SYNTH_SCRIPT) $(JSON_FILE) $(TOP_ENTITY)_synth.v $(TOP_ENTITY) *.o $(SVG_FILE) *.dot $(TOP_ENTITY)_stat.txt $(TOP_ENTITY)_report.txt
+	rm -rf $(WORK_DIR) $(VERILOG_FILE) $(SYNTH_SCRIPT) $(JSON_FILE) $(TOP_ENTITY)_synth.v $(TOP_ENTITY) *.o $(SVG_FILE) *.dot $(TOP_ENTITY)_report.txt
 
-.PHONY: all analyze convert generate_hl_netlist synthesize schematic report clean
+.PHONY: all analyze convert generate_hl_netlist synthesize schematic clean
