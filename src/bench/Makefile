@@ -12,8 +12,7 @@ SOURCES     := $(SRC_DIR)/types_pkg.vhd \
 			   $(SRC_DIR)/common/pipeline.vhd \
 			   $(SRC_DIR)/common/adder_tree.vhd \
 			   $(SRC_DIR)/common/silu_activation.vhd \
-			   $(SRC_DIR)/common/square_root.vhd \
-			   $(SRC_DIR)/mac/accumulative_mac.vhd \
+			   $(SRC_DIR)/mac/mac.vhd \
 			   $(SRC_DIR)/mac/fc_layer.vhd \
 			   $(SRC_DIR)/window_slice/volume_slice.vhd \
 			   $(SRC_DIR)/conv2d/conv2d_layer.vhd \
@@ -28,8 +27,7 @@ SOURCES     := $(SRC_DIR)/types_pkg.vhd \
 TESTBENCHES := $(BENCH_DIR)/common/pipeline_tb.vhd \
 			   $(BENCH_DIR)/common/adder_tree_tb.vhd \
 			   $(BENCH_DIR)/common/silu_activation_tb.vhd \
-			   $(BENCH_DIR)/common/square_root_tb.vhd \
-			   $(BENCH_DIR)/mac/accumulative_mac_tb.vhd \
+			   $(BENCH_DIR)/mac/mac_tb.vhd \
 			   $(BENCH_DIR)/mac/fc_layer_tb.vhd \
 			   $(BENCH_DIR)/window_slice/volume_slice_tb.vhd \
 			   $(BENCH_DIR)/conv2d/conv2d_layer_fc_tb.vhd \

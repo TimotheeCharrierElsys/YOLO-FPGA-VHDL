@@ -329,7 +329,6 @@ if __name__ == "__main__":
     running_mean, running_var = compute_mean_variance(img_path)
     running_mean, running_var = [round(i) for i in running_mean], [round(i) for i in running_var]
     weight, bias = [3, 3, 3], [15, 15, 15]
-    print(running_mean, running_var)
 
     conv2d_bias = 1
 
