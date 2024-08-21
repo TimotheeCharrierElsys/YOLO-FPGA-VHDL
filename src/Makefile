@@ -1,5 +1,5 @@
 # Directory containing VHDL source files
-SRC_DIR     := RTL
+SRC_DIR     := rtl
 
 TOP_ENTITY  := conv
 

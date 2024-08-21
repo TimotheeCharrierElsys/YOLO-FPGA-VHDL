@@ -1,7 +1,7 @@
 # Makefile for simulating VHDL code with GHDL
 
 # Directory containing VHDL source files
-SRC_DIR     := ../RTL
+SRC_DIR     := ../rtl
 BENCH_DIR   := .
 
 TOP_ENTITY  := conv_mnist_2_layers
