@@ -138,62 +138,45 @@ def main_export_model_to_vhdl(model, data):
 
 
 def compare_conv(model, data, target):
-
+    # Prepare data and model
+    data = data.unsqueeze(0)
     extracted_model = ExtractedNetConv(model)
 
     with torch.no_grad():
-        output_first_layer = extracted_model.forward_first_layer(
-            (data.unsqueeze(0)))
-        output_first_layer = output_first_layer.numpy()
-        output_first_layer_approximate = extracted_model.forward_first_layer_approximate(
-            (data.unsqueeze(0)))
-        output_first_layer_approximate = output_first_layer_approximate.numpy()
+        # First layer comparison
+        images_first_layer = extract_and_compare_layers(
+            data,
+            extracted_model.forward_first_layer,
+            extracted_model.forward_first_layer_approximate,
+            layer_num=14,
+            file_path=r'src/bench/conv_output_results_first_layer.txt',
+            scaling_factor=4096
+        )
 
-        output_second_layer = extracted_model.forward_second_layer(
-            (data.unsqueeze(0)))
-        output_second_layer = output_second_layer.numpy()
-        output_second_layer_approximate = extracted_model.forward_second_layer_approximate(
-            (data.unsqueeze(0)))
-        output_second_layer_approximate = output_second_layer_approximate.numpy()
+        # Second layer comparison
+        images_second_layer = extract_and_compare_layers(
+            data,
+            extracted_model.forward_second_layer,
+            extracted_model.forward_second_layer_approximate,
+            layer_num=12,
+            file_path=r'src/bench/conv_output_results_second_layer.txt',
+            scaling_factor=4096
+        )
 
-        output, conf = extracted_model.estimate((data.unsqueeze(0)))
-        pred = output.argmax(dim=1).item()
-        is_correct = pred == target.item()
+        pred, conf, is_correct = classify_and_visualize(
+            extracted_model.estimate, data, target, title_suffix="(Original Model)")
+        pred_approx, conf_approx, is_correct_approx = classify_and_visualize(
+            extracted_model.estimate_approximate, data, target, title_suffix="(Approximate Model)")
 
-        output_appoximate, conf_approx = extracted_model.estimate_approximate(
-            (data.unsqueeze(0)))
-        pred_approximate = output_appoximate.argmax(dim=1).item()
-        is_correct_approximate = pred_approximate == target.item()
-
-    export = ExportToVHDL()
-    images_first_layer = export.to_python(
-        r'src/bench/conv_output_results_first_layer.txt', 14)
-    comparaison_first_layer = Compare(
-        output_first_layer[0][0]/4096, images_first_layer[0][0]/4096).create_fig()
-    comparaison_first_layer_approximate = Compare(
-        output_first_layer_approximate[0][0]/4096, images_first_layer[0][0]/4096).create_fig()
-
-    images_second_layer = export.to_python(
-        r'src/bench/conv_output_results_second_layer.txt', 12)
-    comparaison_second_layer = Compare(
-        output_second_layer[0][0]/4096, images_second_layer[0][0]/4096).create_fig()
-    comparaison_second_layer_approximate = Compare(
-        output_second_layer_approximate[0][0]/4096, images_second_layer[0][0]/4096).create_fig()
-
-    output_reconstructed_forward, conf_reconstructed_forward = extracted_model.estimate_last_layers(
-        torch.from_numpy(images_second_layer).float())
-    pred_reconstructed_forward = output_reconstructed_forward.argmax(
-        dim=1).item()
-    is_correct_approximate = pred_reconstructed_forward == target.item()
-
-    print(f"Image {target} classified as {pred} (conf={conf})")
-    print(f"Image {target} classified as {
-          pred_approximate} (conf={conf_approx})")
-    print(f"Image {target} classified as {
-          pred_reconstructed_forward} (conf={conf_reconstructed_forward})")
+        # Classification with reconstructed second layer output
+        reconstructed_data = torch.from_numpy(images_second_layer).float()
+        pred_reconstructed, conf_reconstructed, is_correct_reconstructed = classify_and_visualize(
+            extracted_model.estimate_last_layers, reconstructed_data, target, title_suffix="(Reconstructed Output)"
+        )
 
 
 if __name__ == '__main__':
-    model, data, target = load_dataset("/home/tim/Project/script/mnist_cnn.pt")
-    # main_export_model_to_vhdl(model, data)
+    model, data, target = load_dataset(
+        "/home/tim/Project/script/mnist_cnn.pt")
+    # main_export_model_to_vhdl(model)
     compare_conv(model, data, target)

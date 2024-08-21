@@ -100,16 +100,12 @@ def load_dataset(model_path):
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,))
     ])
-    dataset = datasets.MNIST('../data', train=False, transform=transform)
-    test_loader = DataLoader(dataset, batch_size=50, shuffle=False)
-    data, target = next(iter(test_loader))
-    data, target = data[18], target[18]
 
-    # Define transformations and load dataset
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.1307,), (0.3081,))
-    ])
+    dataset = datasets.MNIST('../data', train=False, transform=transform)
+    test_loader = DataLoader(dataset, batch_size=500, shuffle=False)
+    data, target = next(iter(test_loader))
+    data, target = data[321], target[321]
+
     return model, data, target
 
 

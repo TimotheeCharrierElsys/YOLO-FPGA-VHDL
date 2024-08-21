@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import torch
 
 
 class ExportToVHDL:
@@ -196,45 +197,86 @@ class ExportToVHDL:
         plt.show()
 
 
-class Compare():
-    def __init__(self, expected, gotten):
-        self.expected = expected
-        self.gotten = gotten
-        self.error = np.abs(gotten - expected)
+def extract_and_compare_layers(data, layer_func, layer_func_approx, layer_num, file_path, scaling_factor):
+    """
+    Extract and compare the outputs of the specified layers and their approximations.
+    """
+    # Get the outputs from the model
+    output = layer_func(data).numpy()
+    output_approx = layer_func_approx(data).numpy()
 
-    def create_fig(self):
+    # Load the VHDL exported images
+    export = ExportToVHDL()
+    images = export.to_python(file_path, layer_num)
 
-        # Compute min/max/avg
-        error_min = np.min(self.error)
-        error_max = np.max(self.error)
-        error_avg = np.mean(self.error)
+    # Calculate the difference between the original and approximate outputs
+    absolute_error = np.abs(
+        output[0][0] / scaling_factor - output_approx[0][0] / scaling_factor)
 
-        # Create subplots
-        fig, axs = plt.subplots(2, 2, figsize=(12, 10))
+    # Calculate error metrics
+    min_error = np.min(absolute_error)
+    max_error = np.max(absolute_error)
+    mean_error = np.mean(absolute_error)
 
-        # Plot the error as an image
-        axs[0, 0].imshow(self.error, cmap='viridis')
-        axs[0, 0].set_title('Error Map')
-        axs[0, 0].axis('off')
+    # Visualization of original, approximate, and difference heatmaps
+    fig, axes = plt.subplots(1, 3, figsize=(18, 5))
 
-        # Display min, max, and average error values
-        axs[0, 1].text(0.5, 0.7, f'Min Error: {
-                       error_min:.3f}', fontsize=14, ha='center')
-        axs[0, 1].text(0.5, 0.5, f'Max Error: {
-                       error_max:.3f}', fontsize=14, ha='center')
-        axs[0, 1].text(0.5, 0.3, f'Avg Error: {
-                       error_avg:.3f}', fontsize=14, ha='center')
-        axs[0, 1].axis('off')
+    # Original layer output
+    im0 = axes[0].imshow(output[0][0] / scaling_factor, cmap='viridis')
+    axes[0].set_title('Original Layer Output')
+    axes[0].axis('off')
+    fig.colorbar(im0, ax=axes[0])
 
-        # Plot the expected values
-        axs[1, 0].imshow(self.expected, cmap='coolwarm')
-        axs[1, 0].set_title('Expected Values')
-        axs[1, 0].axis('off')
+    # Approximate layer output
+    im1 = axes[1].imshow(output_approx[0][0] /
+                         scaling_factor, cmap='viridis')
+    axes[1].set_title('Approximate Layer Output')
+    axes[1].axis('off')
+    fig.colorbar(im1, ax=axes[1])
 
-        # Plot the gotten values
-        axs[1, 1].imshow(self.gotten, cmap='coolwarm')
-        axs[1, 1].set_title('Gotten Values')
-        axs[1, 1].axis('off')
+    # Difference heatmap
+    im2 = axes[2].imshow(absolute_error, cmap='coolwarm')
+    axes[2].set_title('Absolute Difference (Original - Approximate)')
+    axes[2].axis('off')
 
-        plt.tight_layout()
-        plt.show()
+    # Add colorbar with error metrics
+    cbar = fig.colorbar(im2, ax=axes[2])
+    cbar.set_label('Difference Value')
+
+    plt.suptitle(f'Comparison for Layer {layer_num}\nMin Error: {min_error:.4f}, Max Error: {
+        max_error:.4f}, Mean Error: {mean_error:.4f}', fontsize=12)
+    plt.show()
+
+    return images
+
+
+def classify_and_visualize(estimate_func, data, target, title_suffix=""):
+    output, conf = estimate_func(data)
+
+    # Convert log-softmax values to probabilities
+    probabilities = torch.exp(output).detach().numpy()
+
+    pred = probabilities.argmax(axis=1).item()
+    is_correct = pred == target.item()
+
+    # Visualization of the prediction using matplotlib
+    plt.figure(figsize=(6, 3))
+
+    # Create a heatmap using matplotlib
+    plt.imshow(probabilities, cmap='coolwarm', aspect='auto')
+
+    # Annotate the heatmap with probabilities
+    for i in range(probabilities.shape[1]):
+        plt.text(i, 0, f'{probabilities[0, i]:.2f}', ha='center', va='center',
+                 color='white' if probabilities[0, i] > 0.5 else 'black')
+
+    cbar = plt.colorbar()
+    cbar.set_label('Probability')
+    plt.title(f'Prediction: {pred} (conf={conf:.2f}) {title_suffix}')
+
+    plt.xticks(ticks=np.arange(probabilities.shape[1]), labels=np.arange(
+        probabilities.shape[1]))
+    plt.yticks([])
+    plt.show()
+
+    return pred, conf, is_correct
