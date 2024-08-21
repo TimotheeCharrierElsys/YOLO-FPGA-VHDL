@@ -1,0 +1,199 @@
+from model import *
+from python_vhdl import *
+
+
+def relu6(x, scale_factor):
+    return np.minimum(np.maximum(x, 0), 6 * 2**scale_factor)
+
+
+def hardswish(x_prime, scale_factor):
+    return x_prime * relu6(x_prime + 3 * 2**scale_factor, scale_factor) / (6 * 2**scale_factor)
+
+
+def custom(x, model):
+    return x * process_batchnorm2d(model.bn1).view(1, 32, 1, 1) * 4096
+
+
+class ExtractedNetConv():
+    def __init__(self, model):
+        self.model = model
+        self.conv1 = model.conv1
+        self.bn1 = model.bn1
+        self.conv2 = model.conv2
+        self.bn2 = model.bn2
+
+        self.dropout1 = model.dropout1
+        self.dropout2 = model.dropout2
+
+        self.fc1 = model.fc1
+        self.fc2 = model.fc2
+
+    def forward_first_layer(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        output = F.silu(x) * 4096
+
+        return output
+
+    def forward_first_layer_approximate(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x) * 4096
+        output = hardswish(x, 12)
+
+        return output
+
+    def forward_second_layer(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = F.silu(x)
+        x = self.conv2(x)
+        x = self.bn2(x)
+        output = F.silu(x) * 4096
+
+        return output
+
+    def forward_second_layer_approximate(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x) * 4096
+        x = hardswish(x, 12) / 4096
+        x = self.conv2(x)
+        x = self.bn2(x) * 4096
+        output = hardswish(x, 12)
+
+        return output
+
+    def estimate(self, x):
+        x = self.forward_second_layer(x)
+
+        x = F.max_pool2d(x, 2)
+        x = self.dropout1(x)
+        x = torch.flatten(x, 1)
+        x = self.fc1(x)
+        x = F.silu(x)
+        x = self.dropout2(x)
+        x = self.fc2(x)
+        output = F.log_softmax(x, dim=1)
+
+        return output, self.calculate_confidence(output)
+
+    def estimate_approximate(self, x):
+        x = self.forward_second_layer_approximate(x)
+
+        x = F.max_pool2d(x, 2)
+        x = self.dropout1(x)
+        x = torch.flatten(x, 1)
+        x = self.fc1(x)
+        x = F.silu(x)
+        x = self.dropout2(x)
+        x = self.fc2(x)
+        output = F.log_softmax(x, dim=1)
+
+        return output, self.calculate_confidence(output)
+
+    def estimate_last_layers(self, x):
+        x = F.max_pool2d(x, 2)
+        x = self.dropout1(x)
+        x = torch.flatten(x, 1)
+        x = self.fc1(x)
+        x = F.silu(x)
+        x = self.dropout2(x)
+        x = self.fc2(x)
+        output = F.log_softmax(x, dim=1)
+
+        return output, self.calculate_confidence(output)
+
+    def calculate_confidence(self, log_probs):
+        # Convert log probabilities to probabilities
+        probs = torch.exp(log_probs)
+        confidence = probs.max().item()  # Get the maximum probability (confidence)
+        return confidence
+
+
+def main_export_model_to_vhdl(model, data):
+
+    export = ExportToVHDL()
+    export.export_to_matrix(data[0].rot90().rot90(),
+                            16, 4096, 'BITWIDTH', "input_data.vhd")
+    export.export_to_volume(model.conv1.weight, 32, 4096,
+                            'BITWIDTH', "conv2d1_weights.vhd")
+    export.export_to_vector(model.conv1.bias, 32, 4096,
+                            '2 * BITWIDTH', "conv2d1_bias.vhd")
+    export.export_to_vector(process_batchnorm2d(model.bn1), 32, 4096,
+                            '2 * BITWIDTH', "bn1_weight.vhd")
+    export.export_to_vector(model.bn1.bias, 32, 4096,
+                            '2 * BITWIDTH', "bn1_bias.vhd")
+    export.export_to_vector(model.bn1.running_mean, 32,
+                            4096, '2 * BITWIDTH', "bn1_running_mean.vhd")
+
+    export.export_to_volume(model.conv2.weight, 32, 4096,
+                            'BITWIDTH', "conv2d2_weights.vhd")
+    export.export_to_vector(model.conv2.bias, 32, 4096,
+                            '2 * BITWIDTH', "conv2d2_bias.vhd")
+    export.export_to_vector(process_batchnorm2d(model.bn2), 32, 4096,
+                            '2 * BITWIDTH', "bn2_weight.vhd")
+    export.export_to_vector(model.bn2.bias, 32, 4096,
+                            '2 * BITWIDTH', "bn2_bias.vhd")
+    export.export_to_vector(model.bn2.running_mean, 32,
+                            4096, '2 * BITWIDTH', "bn1_running_mean.vhd")
+
+
+def compare_conv(model, data, target):
+
+    extracted_model = ExtractedNetConv(model)
+
+    with torch.no_grad():
+        output_first_layer = extracted_model.forward_first_layer(
+            (data.unsqueeze(0)))
+        output_first_layer = output_first_layer.numpy()
+        output_first_layer_approximate = extracted_model.forward_first_layer_approximate(
+            (data.unsqueeze(0)))
+        output_first_layer_approximate = output_first_layer_approximate.numpy()
+
+        output_second_layer = extracted_model.forward_second_layer(
+            (data.unsqueeze(0)))
+        output_second_layer = output_second_layer.numpy()
+        output_second_layer_approximate = extracted_model.forward_second_layer_approximate(
+            (data.unsqueeze(0)))
+        output_second_layer_approximate = output_second_layer_approximate.numpy()
+
+        output, conf = extracted_model.estimate((data.unsqueeze(0)))
+        pred = output.argmax(dim=1).item()
+        is_correct = pred == target.item()
+
+        output_appoximate, conf_approx = extracted_model.estimate_approximate(
+            (data.unsqueeze(0)))
+        pred_approximate = output_appoximate.argmax(dim=1).item()
+        is_correct_approximate = pred_approximate == target.item()
+
+    export = ExportToVHDL()
+    images_first_layer = export.to_python(
+        r'src/bench/conv_output_results_first_layer.txt', 14)
+    comparaison_first_layer = Compare(
+        output_first_layer[0][0]/4096, images_first_layer[0][0]/4096).create_fig()
+    comparaison_first_layer_approximate = Compare(
+        output_first_layer_approximate[0][0]/4096, images_first_layer[0][0]/4096).create_fig()
+
+    images_second_layer = export.to_python(
+        r'src/bench/conv_output_results_second_layer.txt', 12)
+    comparaison_second_layer = Compare(
+        output_second_layer[0][0]/4096, images_second_layer[0][0]/4096).create_fig()
+    comparaison_second_layer_approximate = Compare(
+        output_second_layer_approximate[0][0]/4096, images_second_layer[0][0]/4096).create_fig()
+
+    output_reconstructed_forward, conf_reconstructed_forward = extracted_model.estimate_last_layers(
+        torch.from_numpy(images_second_layer).float())
+    pred_reconstructed_forward = output_reconstructed_forward.argmax(
+        dim=1).item()
+    is_correct_approximate = pred_reconstructed_forward == target.item()
+
+    print(f"Image {target} classified as {pred} (conf={conf})")
+    print(f"Image {target} classified as {
+          pred_approximate} (conf={conf_approx})")
+    print(f"Image {target} classified as {
+          pred_reconstructed_forward} (conf={conf_reconstructed_forward})")
+
+
+if __name__ == '__main__':
+    model, data, target = load_dataset("/home/tim/Project/script/mnist_cnn.pt")
+    # main_export_model_to_vhdl(model, data)
+    compare_conv(model, data, target)
