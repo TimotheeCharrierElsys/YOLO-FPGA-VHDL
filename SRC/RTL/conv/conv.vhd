@@ -16,16 +16,17 @@ use LIB_RTL.types_pkg.all;
 --! This entity implements a conv module
 entity conv is
     generic (
-        USE_MAC_ARCH   : std_logic := '1'; --! Define if the design uses the mac architecture ('1') or not ('0')
-        DO_PIPELINE    : std_logic := '1'; --! Define if the design is pipelined ('1') or not ('0')
-        BITWIDTH       : integer   := 16;  --! Bit width of each operand
-        INPUT_SIZE     : integer   := 5;   --! Width and Height of the input
-        CHANNEL_NUMBER : integer   := 3;   --! Number of channels in the input
-        KERNEL_SIZE    : integer   := 3;   --! Size of the kernel
-        KERNEL_NUMBER  : integer   := 3;   --! Number of kernels
-        PADDING        : integer   := 1;   --! Padding value
-        STRIDE         : integer   := 2;   --! Stride value 
-        EPSILON        : integer   := 0    --! A small value  added for numerical stability
+        GENERAL_SCALE_FACTOR : integer   := 12;  --! Define the general scale factor of the input data (12 -> 2**12)
+        USE_MAC_ARCH         : std_logic := '1'; --! Define if the design uses the mac architecture ('1') or not ('0')
+        DO_PIPELINE          : std_logic := '1'; --! Define if the design is pipelined ('1') or not ('0')
+        BITWIDTH             : integer   := 16;  --! Bit width of each operand
+        INPUT_SIZE           : integer   := 5;   --! Width and Height of the input
+        CHANNEL_NUMBER       : integer   := 3;   --! Number of channels in the input
+        KERNEL_SIZE          : integer   := 3;   --! Size of the kernel
+        KERNEL_NUMBER        : integer   := 3;   --! Number of kernels
+        PADDING              : integer   := 1;   --! Padding value
+        STRIDE               : integer   := 2;   --! Stride value 
+        EPSILON              : integer   := 0    --! A small value  added for numerical stability
     );
     port (
         clock        : in std_logic; --! Clock signal
@@ -76,15 +77,16 @@ architecture conv_arch of conv is
     -------------------------------------------------------------------------------------
     component conv2d
         generic (
-            USE_MAC_ARCH   : std_logic;
-            DO_PIPELINE    : std_logic;
-            BITWIDTH       : integer;
-            INPUT_SIZE     : integer;
-            CHANNEL_NUMBER : integer;
-            KERNEL_SIZE    : integer;
-            KERNEL_NUMBER  : integer;
-            PADDING        : integer;
-            STRIDE         : integer
+            GENERAL_SCALE_FACTOR : integer;
+            USE_MAC_ARCH         : std_logic;
+            DO_PIPELINE          : std_logic;
+            BITWIDTH             : integer;
+            INPUT_SIZE           : integer;
+            CHANNEL_NUMBER       : integer;
+            KERNEL_SIZE          : integer;
+            KERNEL_NUMBER        : integer;
+            PADDING              : integer;
+            STRIDE               : integer
         );
         port (
             clock        : in std_logic;
@@ -124,15 +126,16 @@ begin
 
     conv2d_inst : conv2d
     generic map(
-        USE_MAC_ARCH   => USE_MAC_ARCH,
-        DO_PIPELINE    => DO_PIPELINE,
-        BITWIDTH       => BITWIDTH,
-        INPUT_SIZE     => INPUT_SIZE,
-        CHANNEL_NUMBER => CHANNEL_NUMBER,
-        KERNEL_SIZE    => KERNEL_SIZE,
-        KERNEL_NUMBER  => KERNEL_NUMBER,
-        PADDING        => PADDING,
-        STRIDE         => STRIDE
+        GENERAL_SCALE_FACTOR => GENERAL_SCALE_FACTOR,
+        USE_MAC_ARCH         => USE_MAC_ARCH,
+        DO_PIPELINE          => DO_PIPELINE,
+        BITWIDTH             => BITWIDTH,
+        INPUT_SIZE           => INPUT_SIZE,
+        CHANNEL_NUMBER       => CHANNEL_NUMBER,
+        KERNEL_SIZE          => KERNEL_SIZE,
+        KERNEL_NUMBER        => KERNEL_NUMBER,
+        PADDING              => PADDING,
+        STRIDE               => STRIDE
     )
     port map(
         clock        => clock,

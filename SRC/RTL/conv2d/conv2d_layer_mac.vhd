@@ -16,9 +16,10 @@ use LIB_RTL.TYPES_PKG.all;
 --! This entity implements a convolution layer using a pipelined MAC unit with a 3x3 kernel.
 entity conv2d_layer_mac is
     generic (
-        BITWIDTH       : integer := 8; --! Bit width of each operand
-        CHANNEL_NUMBER : integer := 3; --! Number of channels in the image
-        KERNEL_SIZE    : integer := 3  --! Size of the kernel (e.g., 3 for a 3x3 kernel)
+        GENERAL_SCALE_FACTOR : integer := 12; --! Define the general scale factor of the input data (12 -> 2**12)
+        BITWIDTH             : integer := 8;  --! Bit width of each operand
+        CHANNEL_NUMBER       : integer := 3;  --! Number of channels in the image
+        KERNEL_SIZE          : integer := 3   --! Size of the kernel (e.g., 3 for a 3x3 kernel)
     );
     port (
         clock             : in std_logic;                                                                                                        --! Clock signal
@@ -40,7 +41,7 @@ end conv2d_layer_mac;
 -----------------------------------------------------------------------------------
 --!     @brief          This architecture implements a convolution layer using one
 --!                     mac per channel.
---!     @Dependencies:  mac.vhd, accumulative_mac.vhd, pipeline.vhd, adder_tree.vhd
+--!     @Dependencies:  mac.vhd, mac.vhd, pipeline.vhd, adder_tree.vhd
 -----------------------------------------------------------------------------------
 architecture conv2d_layer_mac_arch of conv2d_layer_mac is
 
@@ -56,7 +57,7 @@ architecture conv2d_layer_mac_arch of conv2d_layer_mac is
     -------------------------------------------------------------------------------------
     -- COMPONENTS
     -------------------------------------------------------------------------------------
-    component accumulative_mac
+    component mac
         generic (
             DO_MULTIPLICATION : std_logic;
             INPUT_WIDTH       : integer;
@@ -81,7 +82,7 @@ begin
     gen_mac_channel : for i in 0 to CHANNEL_NUMBER - 1 generate
 
         --! Instantiate one accumulative mac for each channel
-        gen_accumulative_mac_inst : accumulative_mac
+        gen_mac_inst : mac
         generic map(
             DO_MULTIPLICATION => '1',
             INPUT_WIDTH       => BITWIDTH,
@@ -99,7 +100,7 @@ begin
     end generate gen_mac_channel;
 
     --! Instantiate one accumulative adder for computing the output sum
-    gen_output_sum : accumulative_mac
+    gen_output_sum : mac
     generic map(
         DO_MULTIPLICATION => '0',
         INPUT_WIDTH       => 2 * BITWIDTH,
@@ -122,9 +123,9 @@ begin
     --! Handles the assignment of the input data to the intermediate signals.
     process (all)
     begin
-        r_results(CHANNEL_NUMBER) <= std_logic_vector(shift_left(signed(i_bias), 12));                                                       --! Initialize the output with the bias value
-        intermediate_result       <= std_logic_vector(shift_right(signed(r_results(current_channel)), 12)) when is_processing_add = '1' else --! Intermediate signal to hold the output of each MAC unit for each channel.
-            (others => '0');                                                                                                                     -- TODO repalce 12 by a generic value
+        r_results(CHANNEL_NUMBER) <= std_logic_vector(shift_left(signed(i_bias), GENERAL_SCALE_FACTOR));                                                       --! Initialize the output with the bias value
+        intermediate_result       <= std_logic_vector(shift_right(signed(r_results(current_channel)), GENERAL_SCALE_FACTOR)) when is_processing_add = '1' else --! Intermediate signal to hold the output of each MAC unit for each channel.
+            (others => '0');
 
         for i in 0 to CHANNEL_NUMBER - 1 loop
             intermediate_multiplier1(i) <= i_data(i)(current_col)(current_row) when is_processing_mac = '1' else
@@ -139,13 +140,13 @@ configuration conv2d_layer_mac_conf of conv2d_layer_mac is
 
     for conv2d_layer_mac_arch
         for gen_mac_channel
-            for all : accumulative_mac
-                use entity LIB_RTL.accumulative_mac(accumulative_mac_arch);
+            for all : mac
+                use entity LIB_RTL.mac(mac_arch);
             end for;
         end for;
 
-        for all : accumulative_mac
-            use entity LIB_RTL.accumulative_mac(accumulative_mac_arch);
+        for all : mac
+            use entity LIB_RTL.mac(mac_arch);
         end for;
     end for;
 
