@@ -15,8 +15,10 @@ def custom(x, model):
 
 
 class ExtractedNetConv():
-    def __init__(self, model):
+    def __init__(self, model, scaling_factor=4096):
         self.model = model
+        self.scaling_factor = scaling_factor
+        
         self.conv1 = model.conv1
         self.bn1 = model.bn1
         self.conv2 = model.conv2
@@ -31,13 +33,13 @@ class ExtractedNetConv():
     def forward_first_layer(self, x):
         x = self.conv1(x)
         x = self.bn1(x)
-        output = F.silu(x) * 4096
+        output = F.silu(x) * self.scaling_factor
 
         return output
 
     def forward_first_layer_approximate(self, x):
         x = self.conv1(x)
-        x = self.bn1(x) * 4096
+        x = self.bn1(x) * self.scaling_factor
         output = hardswish(x, 12)
 
         return output
@@ -48,16 +50,16 @@ class ExtractedNetConv():
         x = F.silu(x)
         x = self.conv2(x)
         x = self.bn2(x)
-        output = F.silu(x) * 4096
+        output = F.silu(x) * self.scaling_factor
 
         return output
 
     def forward_second_layer_approximate(self, x):
         x = self.conv1(x)
-        x = self.bn1(x) * 4096
-        x = hardswish(x, 12) / 4096
+        x = self.bn1(x) * self.scaling_factor
+        x = hardswish(x, 12) / self.scaling_factor
         x = self.conv2(x)
-        x = self.bn2(x) * 4096
+        x = self.bn2(x) * self.scaling_factor
         output = hardswish(x, 12)
 
         return output
@@ -178,5 +180,5 @@ def compare_conv(model, data, target):
 if __name__ == '__main__':
     model, data, target = load_dataset(
         "/home/tim/Project/script/mnist_cnn.pt")
-    # main_export_model_to_vhdl(model)
+    # main_export_model_to_vhdl(model, data)
     compare_conv(model, data, target)
