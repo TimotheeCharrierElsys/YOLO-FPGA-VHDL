@@ -110,8 +110,7 @@ class ExportToVHDL:
         """
         vector = vector.flip(dims=[0])
         with open(output_path, "w") as f:
-            f.write(self.format_row(vector, bitwidth,
-                    scale_factor, bitwidth_str) + ";")
+            f.write(self.format_row(vector, bitwidth, scale_factor, bitwidth_str) + ";")
 
     def export_to_matrix(
         self,
@@ -130,8 +129,7 @@ class ExportToVHDL:
         """
         with open(output_path, "w") as f:
             f.write(
-                self.format_matrix(
-                    matrix, bitwidth, scale_factor, bitwidth_str) + ";"
+                self.format_matrix(matrix, bitwidth, scale_factor, bitwidth_str) + ";"
             )
 
     def export_to_volume(
@@ -151,8 +149,7 @@ class ExportToVHDL:
         """
         with open(output_path, "w") as f:
             f.write(
-                self.format_volume(
-                    volume, bitwidth, scale_factor, bitwidth_str) + ";"
+                self.format_volume(volume, bitwidth, scale_factor, bitwidth_str) + ";"
             )
 
     def to_python(self, file_path, image_width):
@@ -189,8 +186,7 @@ class ExportToVHDL:
             start_index = i * pixels_per_image
             end_index = start_index + pixels_per_image
             image_data = data[start_index:end_index]
-            image_matrix = np.array(image_data).reshape(
-                (image_width, image_width))
+            image_matrix = np.array(image_data).reshape((image_width, image_width))
             image_matrix = np.rot90(np.rot90(image_matrix))
             images.append(image_matrix)
 
@@ -279,8 +275,8 @@ def extract_and_compare_layers(
     cbar.set_label("Difference Value")
 
     plt.suptitle(
-        f"Comparison for Layer {layer_num}\nMin Error: {min_error:.4f}, Max Error: {
-            max_error:.4f}, Mean Error: {mean_error:.4f}",
+        f"Comparison for Layer {layer_num}\nMin Error: {min_error:.5f}, Max Error: {
+            max_error:.5f}, Mean Error: {mean_error:.5f}",
         fontsize=12,
     )
     plt.show()

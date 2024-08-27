@@ -6,10 +6,15 @@ from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-from sklearn.metrics import mean_absolute_error, mean_squared_error, root_mean_squared_error, r2_score
+from sklearn.metrics import (
+    mean_absolute_error,
+    mean_squared_error,
+    root_mean_squared_error,
+    r2_score,
+)
 import os
 
-plt.rcParams['text.usetex'] = True
+plt.rcParams["text.usetex"] = True
 plt.rcParams["font.family"] = "Arial"
 
 
@@ -25,13 +30,13 @@ def hs(x):
     if x <= -3:
         return 0
     elif x > -3 and x < 3:
-        return x * (x+3)/6
+        return x * (x + 3) / 6
     else:
         return x
 
 
 def silu(x):
-    return x/(1 + np.exp(-x))*1024
+    return x / (1 + np.exp(-x)) * 1024
 
 
 async def reset_dut(dut):
@@ -85,10 +90,11 @@ async def computation_test(dut):
     gotten_output = []
 
     tolerance = 0.1  # Set your tolerance level here
-    tolerance_limit = tolerance * (2**(dut.o_data.value.n_bits - 1))
+    tolerance_limit = tolerance * (2 ** (dut.o_data.value.n_bits - 1))
 
     dut._log.info(
-        f"DUT computation test starting with tolerance set to {(1-tolerance) * 100}%")
+        f"DUT computation test starting with tolerance set to {(1-tolerance) * 100}%"
+    )
 
     abs_error_list = []
 
@@ -110,34 +116,34 @@ async def computation_test(dut):
         abs_error_list.append(abs_error)
 
         # Assertion with tolerance check
-        assert abs_error <= tolerance_limit, \
-            f"Output mismatch: Expected {expected_value}, Got {output_value} for input {i}"
+        assert (
+            abs_error <= tolerance_limit
+        ), f"Output mismatch: Expected {expected_value}, Got {
+                output_value} for input {i}"
 
     # Save absolute error list to a file
-    abs_error_file = os.path.join(
-        os.path.dirname(__file__), "absolute_errors8.txt")
+    abs_error_file = os.path.join(os.path.dirname(__file__), "absolute_errors8.txt")
     with open(abs_error_file, "w") as file:
         for error in abs_error_list:
             file.write(f"{error}\n")
 
-    MAE = mean_absolute_error(Y, gotten_output, multioutput='raw_values')
-    MSE = mean_squared_error(Y, gotten_output, multioutput='raw_values')
-    RMSE = root_mean_squared_error(
-        Y, gotten_output, multioutput='raw_values')
-    R2 = r2_score(Y, gotten_output, multioutput='raw_values')
+    MAE = mean_absolute_error(Y, gotten_output, multioutput="raw_values")
+    MSE = mean_squared_error(Y, gotten_output, multioutput="raw_values")
+    RMSE = root_mean_squared_error(Y, gotten_output, multioutput="raw_values")
+    R2 = r2_score(Y, gotten_output, multioutput="raw_values")
 
     dut._log.info(f"MSE={MSE}, MAE={MAE}, RMSE={RMSE}, R-Squared={R2}")
 
     # Plotting results
     plt.figure(figsize=(4, 4))
 
-    plt.plot(X, Y, label='Expected', color='blue')
-    plt.plot(X, gotten_output, label='Gotten', color='red')
+    plt.plot(X, Y, label="Expected", color="blue")
+    plt.plot(X, gotten_output, label="Gotten", color="red")
     plt.grid(True)
     plt.legend()
-    plt.xlabel('Input')
-    plt.ylabel('Output')
-    plt.title('Y = f(X)')
+    plt.xlabel("Input")
+    plt.ylabel("Output")
+    plt.title("Y = f(X)")
     plt.grid(True)
     plt.legend()
 
@@ -155,15 +161,15 @@ def read_and_plot_errors(file_path):
 
 def plot_silu():
     X = np.linspace(-7, 7, 5000)
-    Y = [silu(x)/1024 for x in X]
+    Y = [silu(x) / 1024 for x in X]
     Z = [hs(x) for x in X]
 
-    plt.plot(X, Y, linewidth=2, label='SiLU')
-    plt.plot(X, Z, linewidth=2, label='Hard-swish')
+    plt.plot(X, Y, linewidth=2, label="SiLU")
+    plt.plot(X, Z, linewidth=2, label="Hard-swish")
     plt.grid(True)
-    plt.xlabel('x', fontsize=12)
-    plt.ylabel('y', fontsize=12)
-    plt.title('y = SiLU(x)', fontsize=12)
+    plt.xlabel("x", fontsize=12)
+    plt.ylabel("y", fontsize=12)
+    plt.title("y = SiLU(x)", fontsize=12)
     plt.legend()
     plt.tight_layout()
     plt.savefig("silu_hardswish_plot.svg", format="svg")
@@ -172,20 +178,20 @@ def plot_silu():
 
 def plot_compare_error():
     X = np.linspace(-7, 7, 5000)
-    Y = [silu(x)/1024 for x in X]
+    Y = [silu(x) / 1024 for x in X]
     Z = [hs(x) for x in X]
 
     # Create a figure and a set of subplots
     fig, ax = plt.subplots()
-    ax.plot(X, Y, linewidth=2, label='SiLU')
-    ax.plot(X, Z, linewidth=2, label='Hard-swish')
+    ax.plot(X, Y, linewidth=2, label="SiLU")
+    ax.plot(X, Z, linewidth=2, label="Hard-swish")
     # Set the grid
-    ax.grid(True, linestyle='--', alpha=0.6)
-    ax.set_xlabel('x', fontsize=14)
-    ax.set_ylabel('y', fontsize=14)
-    ax.set_title('y = SiLU(x)', fontsize=16)
+    ax.grid(True, linestyle="--", alpha=0.6)
+    ax.set_xlabel("x", fontsize=14)
+    ax.set_ylabel("y", fontsize=14)
+    ax.set_title("y = SiLU(x)", fontsize=16)
     ax.legend()
-    ax.ticklabel_format(style='sci', axis='both', scilimits=(0, 0))
+    ax.ticklabel_format(style="sci", axis="both", scilimits=(0, 0))
     plt.tight_layout()
     plt.savefig("silu_hardswish_plot.svg", format="svg")
     plt.show()
@@ -195,17 +201,23 @@ def plot_error():
     X = np.arange(-7 * 1024, 7 * 1024)
 
     error10 = read_and_plot_errors(
-        r"/home/tim/YOLO-FPGA-VHDL/SRC/COCOTB/common/silu_activation/absolute_errors10.txt")
+        r"/home/tim/YOLO-FPGA-VHDL/SRC/COCOTB/common/silu_activation/absolute_errors10.txt"
+    )
     error11 = read_and_plot_errors(
-        r"/home/tim/YOLO-FPGA-VHDL/SRC/COCOTB/common/silu_activation/absolute_errors11.txt")
+        r"/home/tim/YOLO-FPGA-VHDL/SRC/COCOTB/common/silu_activation/absolute_errors11.txt"
+    )
     error12 = read_and_plot_errors(
-        r"/home/tim/YOLO-FPGA-VHDL/SRC/COCOTB/common/silu_activation/absolute_errors12.txt")
+        r"/home/tim/YOLO-FPGA-VHDL/SRC/COCOTB/common/silu_activation/absolute_errors12.txt"
+    )
     error13 = read_and_plot_errors(
-        r"/home/tim/YOLO-FPGA-VHDL/SRC/COCOTB/common/silu_activation/absolute_errors13.txt")
+        r"/home/tim/YOLO-FPGA-VHDL/SRC/COCOTB/common/silu_activation/absolute_errors13.txt"
+    )
     error9 = read_and_plot_errors(
-        r"/home/tim/YOLO-FPGA-VHDL/SRC/COCOTB/common/silu_activation/absolute_errors9.txt")
+        r"/home/tim/YOLO-FPGA-VHDL/SRC/COCOTB/common/silu_activation/absolute_errors9.txt"
+    )
     error8 = read_and_plot_errors(
-        r"/home/tim/YOLO-FPGA-VHDL/SRC/COCOTB/common/silu_activation/absolute_errors8.txt")
+        r"/home/tim/YOLO-FPGA-VHDL/SRC/COCOTB/common/silu_activation/absolute_errors8.txt"
+    )
 
     # Create a figure and a set of subplots
     fig, ax = plt.subplots()
@@ -219,23 +231,25 @@ def plot_error():
     ax.plot(X, error13, label="N=13")
 
     # Set the grid
-    ax.grid(True, linestyle='--', alpha=0.6)
+    ax.grid(True, linestyle="--", alpha=0.6)
 
     # Set the legend
-    ax.legend(loc='best', fontsize='large', title='Scale Factors')
+    ax.legend(loc="best", fontsize="large", title="Scale Factors")
 
     # Set labels and title with increased font size
-    ax.set_xlabel('Input Value', fontsize=14)
-    ax.set_ylabel('Absolute Error Value', fontsize=14)
+    ax.set_xlabel("Input Value", fontsize=14)
+    ax.set_ylabel("Absolute Error Value", fontsize=14)
     ax.set_title(
-        'Comparison of Absolute Error with Different Division Scale Factors', fontsize=16)
+        "Comparison of Absolute Error with Different Division Scale Factors",
+        fontsize=16,
+    )
 
     # Use scientific notation for large numbers on axes
-    ax.ticklabel_format(style='sci', axis='both', scilimits=(0, 0))
+    ax.ticklabel_format(style="sci", axis="both", scilimits=(0, 0))
 
     # Improve layout
     plt.tight_layout()
-    plt.savefig("absolute_error.svg", format='svg')
+    plt.savefig("absolute_error.svg", format="svg")
     # Show the plot
     plt.show()
 

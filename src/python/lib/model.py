@@ -96,15 +96,14 @@ def process_batchnorm2d(layer):
     weights = layer.weight
     running_var = layer.running_var
 
-    return weights / np.sqrt(running_var)
+    return weights / np.sqrt(running_var + layer.eps)
 
 
 def load_dataset(model_path):
     # Load the saved model weights
     model = Net()
     model.load_state_dict(
-        torch.load(model_path, weights_only=True,
-                   map_location=torch.device("cpu"))
+        torch.load(model_path, weights_only=True, map_location=torch.device("cpu"))
     )
     model.eval()
 
@@ -221,8 +220,7 @@ if __name__ == "__main__":
     transform = transforms.Compose(
         [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
     )
-    dataset1 = datasets.MNIST("../data", train=True,
-                              download=True, transform=transform)
+    dataset1 = datasets.MNIST("../data", train=True, download=True, transform=transform)
     print(dataset1)
     dataset2 = datasets.MNIST("../data", train=False, transform=transform)
     train_loader = torch.utils.data.DataLoader(dataset1, **train_kwargs)
