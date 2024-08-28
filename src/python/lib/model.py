@@ -96,7 +96,7 @@ def process_batchnorm2d(layer):
     weights = layer.weight
     running_var = layer.running_var
 
-    return weights / np.sqrt(running_var + layer.eps)
+    return weights / np.sqrt(running_var)
 
 
 def load_dataset(model_path):

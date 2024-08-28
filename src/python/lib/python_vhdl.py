@@ -242,7 +242,11 @@ def extract_and_compare_layers(
 
     # Calculate the difference between the original and approximate outputs
     absolute_error = np.abs(
-        output[0][0] / scaling_factor - output_approx[0][0] / scaling_factor
+        output[0][0] / scaling_factor - images[0][0] / scaling_factor
+    )
+
+    absolute_error_approx = np.abs(
+        output_approx[0][0] / scaling_factor - images[0][0] / scaling_factor
     )
 
     # Calculate error metrics
@@ -250,8 +254,12 @@ def extract_and_compare_layers(
     max_error = np.max(absolute_error)
     mean_error = np.mean(absolute_error)
 
-    # Visualization of original, approximate, and difference heatmaps
-    fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+    min_error_approx = np.min(absolute_error_approx)
+    max_error_approx = np.max(absolute_error_approx)
+    mean_error_approx = np.mean(absolute_error_approx)
+
+    # Visualization of original, approximate, reconstructed, and difference images
+    fig, axes = plt.subplots(1, 5, figsize=(20, 5))
 
     # Original layer output
     im0 = axes[0].imshow(output[0][0] / scaling_factor, cmap="viridis")
@@ -265,20 +273,33 @@ def extract_and_compare_layers(
     axes[1].axis("off")
     fig.colorbar(im1, ax=axes[1])
 
-    # Difference heatmap
-    im2 = axes[2].imshow(absolute_error, cmap="coolwarm")
-    axes[2].set_title("Absolute Difference (Original - Approximate)")
+    # Reconstructed layer output
+    im2 = axes[2].imshow(images[0][0] / scaling_factor, cmap="viridis")
+    axes[2].set_title("Reconstructed Layer Output")
     axes[2].axis("off")
+    fig.colorbar(im2, ax=axes[2])
 
-    # Add colorbar with error metrics
-    cbar = fig.colorbar(im2, ax=axes[2])
-    cbar.set_label("Difference Value")
+    # Difference heatmap
+    im3 = axes[3].imshow(absolute_error, cmap="coolwarm")
+    axes[3].set_title("Difference (Original)")
+    axes[3].axis("off")
+    fig.colorbar(im3, ax=axes[3])
+
+    # Difference heatmap for approximate output
+    im4 = axes[4].imshow(absolute_error_approx, cmap="coolwarm")
+    axes[4].set_title("Difference (Approximate)")
+    axes[4].axis("off")
+    fig.colorbar(im4, ax=axes[4])
 
     plt.suptitle(
-        f"Comparison for Layer {layer_num}\nMin Error: {min_error:.5f}, Max Error: {
-            max_error:.5f}, Mean Error: {mean_error:.5f}",
+        f"Layer {layer_num} Output Comparison\n"
+        f"Original: Min={min_error:.2f}, Max={
+            max_error:.2f}, Mean={mean_error:.2f}"
+        f"Approximate: Min={min_error_approx:.2f}, Max={
+            max_error_approx:.2f}, Mean={mean_error_approx:.2f}",
         fontsize=12,
     )
+
     plt.show()
 
     return images
