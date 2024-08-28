@@ -14,9 +14,8 @@ use IEEE.NUMERIC_STD.all;
 --! This entity implements an approximated silu activation function.
 entity silu_activation is
     generic (
-        BITWIDTH                         : integer := 16; --! Bit width of each operand
-        SCALE_FACTOR_POWER_OF_2          : integer := 12; --! Scale factor for integer computation power (e.g., 10 -> 2**10)
-        DIVISION_SCALE_FACTOR_POWER_OF_2 : integer := 10  --! Scale factor to compute the division by 6
+        BITWIDTH          : integer := 16; --! Bit width of each operand (input and output data)
+        DATA_SCALE_FACTOR : integer := 12  --! Input data scale factor. For example, a value of 12 means input values are scaled by 2^12.
     );
     port (
         clock        : in std_logic;                               --! Clock signal
@@ -28,26 +27,19 @@ entity silu_activation is
 end silu_activation;
 
 architecture silu_activation_arch of silu_activation is
-
-    -------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------
     -- CONSTANTS
-    -------------------------------------------------------------------------------------
-    constant DIVISION_SCALE_FACTOR        : integer := 2 ** DIVISION_SCALE_FACTOR_POWER_OF_2; --! Division scale factor
-    constant HARDSWISH_POSITIVE_THRESHOLD : integer := 3 * 2 ** SCALE_FACTOR_POWER_OF_2;      --! Negative threshold for hardswish function
-    constant HARDSWISH_NEGATIVE_THRESHOLD : integer := - 3 * 2 ** SCALE_FACTOR_POWER_OF_2;    --! Positive threshold for hardswish function
-    constant HARDSWISH_ADDITION_CONSTANT  : integer := 3 * 2 ** SCALE_FACTOR_POWER_OF_2;      --! Addition constant for hardswish function
-    constant RELU6_POSITIVE_THRESHOLD     : integer := 6 * 2 ** SCALE_FACTOR_POWER_OF_2;      --! Positive threshold for relu6 function
-    constant HARDSWISH_DIVISION_FACTOR    : integer := DIVISION_SCALE_FACTOR / 6;             --! Division factor for hardswish function
+    -----------------------------------------------------------------------------------
+    constant DIVISION_SCALE_FACTOR        : integer := 13;                           --! Scale factor used for division in HardSwish approximation
+    constant HARDSWISH_POSITIVE_THRESHOLD : integer := 3 * 2 ** DATA_SCALE_FACTOR;   --! Negative threshold for hardswish function
+    constant HARDSWISH_NEGATIVE_THRESHOLD : integer := - 3 * 2 ** DATA_SCALE_FACTOR; --! Positive threshold for hardswish function
+    constant RELU6_POSITIVE_THRESHOLD     : integer := 6 * 2 ** DATA_SCALE_FACTOR;   --! Positive threshold for relu6 function
 
-    -------------------------------------------------------------------------------------
-    -- SIGNALS
-    -------------------------------------------------------------------------------------
-    signal i_data_signed : signed(BITWIDTH - 1 downto 0);
+    -- Constants for HardSwish calculation
+    constant HARDSWISH_ADDITION_CONSTANT_SIGNED : signed(BITWIDTH - 1 downto 0)              := to_signed(3 * 2 ** DATA_SCALE_FACTOR, BITWIDTH);
+    constant HARDSWISH_DIVISION_FACTOR_SIGNED   : signed(DIVISION_SCALE_FACTOR - 2 downto 0) := to_signed(2 ** DIVISION_SCALE_FACTOR / 6, DIVISION_SCALE_FACTOR - 1);
 
 begin
-
-    -- Input conversion for computation
-    i_data_signed <= signed(i_data);
 
     -------------------------------------------------------------------------------------
     -- COMPUTATION PROCESS
@@ -55,39 +47,42 @@ begin
     --! Process
     --! Handles the computation of the activation function
     process (clock, reset_n)
-        variable hardswish_addition       : signed(BITWIDTH - 1 downto 0);     --! Variable to store the computed addition
-        variable hardswish_multiplication : signed(2 * BITWIDTH - 1 downto 0); --! Variable to store the multiplication
-        variable hardswish_division       : signed(3 * BITWIDTH - 1 downto 0); --! Variable to store the division
+        variable hardswish_addition       : signed(BITWIDTH - 1 downto 0)     := (others => '0'); --! Variable to store the computed addition
+        variable hardswish_multiplication : signed(2 * BITWIDTH - 1 downto 0) := (others => '0'); --! Variable to store the multiplication
+        variable hardswish_division       : signed(30 - 1 downto 0)           := (others => '0'); --! Variable to store the division
+
     begin
         if reset_n = '0' then
-            hardswish_addition       := (others => '0');
-            hardswish_multiplication := (others => '0');
-            hardswish_division       := (others => '0');
-            o_data <= (others                   => '0');
+            o_data <= (others => '0');
 
         elsif rising_edge(clock) then
             if i_sys_enable = '1' then
 
-                if i_data_signed < HARDSWISH_NEGATIVE_THRESHOLD then -- Test if x < -3 scaled       
-                    hardswish_division := (others => '0');
+                if signed(i_data) < HARDSWISH_NEGATIVE_THRESHOLD then -- Test if x < -3 scaled       
+                    o_data <= (others => '0');
 
-                elsif i_data_signed < HARDSWISH_POSITIVE_THRESHOLD then -- Test if x > -3  and x < 3 scaled
+                elsif signed(i_data) < HARDSWISH_POSITIVE_THRESHOLD then -- Test if x > -3  and x < 3 scaled
                     -- Compute the x + 3 scaled
-                    hardswish_addition := signed(i_data) + to_signed(HARDSWISH_ADDITION_CONSTANT, BITWIDTH);
+                    hardswish_addition := signed(i_data) + HARDSWISH_ADDITION_CONSTANT_SIGNED;
 
-                    -- Compute x * (x + 3)
-                    hardswish_multiplication := signed(i_data) * hardswish_addition;
+                    -- Compute x + (x + 3) >> DATA_SCALE_FACTOR
+                    hardswish_multiplication := hardswish_addition * signed(i_data);
+                    hardswish_multiplication :=
+                        (hardswish_multiplication'high downto hardswish_multiplication'high - DATA_SCALE_FACTOR + 1 => hardswish_multiplication(hardswish_multiplication'high)) & -- MSB  
+                        (hardswish_multiplication(hardswish_multiplication'high downto DATA_SCALE_FACTOR));                                                                       -- LSB
 
-                    -- Compute x * (x + 3) / 6
-                    hardswish_division := hardswish_multiplication * to_signed(HARDSWISH_DIVISION_FACTOR, BITWIDTH);
-                    hardswish_division := SHIFT_RIGHT(hardswish_division, DIVISION_SCALE_FACTOR_POWER_OF_2 + SCALE_FACTOR_POWER_OF_2);
+                    -- Compute x * (x + 3) / 6 >> DIVISION_SCALE_FACTOR
+                    hardswish_division := resize(hardswish_multiplication, 18) * HARDSWISH_DIVISION_FACTOR_SIGNED;
+                    hardswish_division :=
+                        (hardswish_division'high downto hardswish_division'high - DIVISION_SCALE_FACTOR + 1 => hardswish_division(hardswish_division'high)) & -- MSB
+                        (hardswish_division(hardswish_division'high downto DIVISION_SCALE_FACTOR));                                                           -- LSB
+
+                    -- Output Update
+                    o_data <= std_logic_vector(resize(hardswish_division, BITWIDTH));
 
                 else -- Test if x > 3
-                    hardswish_division := resize(signed(i_data), 3 * BITWIDTH) + 1;
+                    o_data <= i_data;
                 end if;
-
-                -- Update Output
-                o_data <= std_logic_vector(resize(hardswish_division, BITWIDTH));
             end if;
         end if;
     end process;
