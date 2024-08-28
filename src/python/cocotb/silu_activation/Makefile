@@ -1,5 +1,5 @@
-TOPLEVEL            := mac
-MODULE              := test_mac
+TOPLEVEL            := silu_activation
+MODULE              := test_silu_activation
 WAVE_FILE           := $(MODULE)_wave.vcd
 
 COCOTB_LOG_LEVEL    := DEBUG
@@ -8,20 +8,24 @@ SIM                 := ghdl
 SIM_BUILD           := build
 
 COMPILE_ARGS        := --std=08
+COMPILE_ARGS        += -Wno-error
+COMPILE_ARGS        += -g
 SIM_ARGS            += --vcd=$(WAVE_FILE)
-SIM_ARGS            += -gINPUT_WIDTH=8 -gOUTPUT_WIDTH=16
+SIM_ARGS            += -gBITWIDTH=16
+SIM_ARGS            += -gDATA_SCALE_FACTOR=12
+
 PWD=$(shell pwd)
 
 export PYTHONPATH   := $(PWD)/../model:$(PYTHONPATH)
 
 ifeq ($(TOPLEVEL_LANG),vhdl)
-    VHDL_SOURCES    = ../../../rtl/mac/mac.vhd
+    VHDL_SOURCES    = ../../../rtl/common/silu_activation.vhd
 else
     $(error A valid value (verilog or vhdl) was not provided for TOPLEVEL_LANG=$(TOPLEVEL_LANG))
 endif
 
 # Remove default GHDL options set by cocotb-config Makefile
-GHDL_ARGS :=
+GHDL_ARGS := $(COMPILE_ARGS)
 
 include $(shell cocotb-config --makefiles)/Makefile.sim
 
