@@ -18,16 +18,16 @@ use LIB_RTL.types_pkg.all;
 --! This entity implements a convolution operation
 entity conv2d is
     generic (
-        GENERAL_SCALE_FACTOR : integer   := 12;  --! Define the general scale factor of the input data (12 -> 2**12)
-        USE_MAC_ARCH         : std_logic := '1'; --! Define if the design is using mac ('1') or adder ('0')
-        DO_PIPELINE          : std_logic := '1'; --! Define if the design is pipelined ('1') or not ('0')
-        BITWIDTH             : integer   := 8;   --! Bit width of each operand
-        INPUT_SIZE           : integer   := 5;   --! Width and Height of the input
-        CHANNEL_NUMBER       : integer   := 3;   --! Number of channels in the input
-        KERNEL_SIZE          : integer   := 3;   --! Size of the kernel
-        KERNEL_NUMBER        : integer   := 3;   --! Number of kernels
-        PADDING              : integer   := 1;   --! Padding value
-        STRIDE               : integer   := 2    --! Stride value 
+        DATA_SCALE_FACTOR : integer   := 12;  --! Define the general scale factor of the input data (12 -> 2**12)
+        USE_MAC_ARCH      : std_logic := '1'; --! Define if the design is using mac ('1') or adder ('0')
+        DO_PIPELINE       : std_logic := '1'; --! Define if the design is pipelined ('1') or not ('0')
+        BITWIDTH          : integer   := 8;   --! Bit width of each operand
+        INPUT_SIZE        : integer   := 5;   --! Width and Height of the input
+        CHANNEL_NUMBER    : integer   := 3;   --! Number of channels in the input
+        KERNEL_SIZE       : integer   := 3;   --! Size of the kernel
+        KERNEL_NUMBER     : integer   := 3;   --! Number of kernels
+        PADDING           : integer   := 1;   --! Padding value
+        STRIDE            : integer   := 2    --! Stride value 
     );
     port (
         clock        : in std_logic;                                                                                                                                                                                            --! Clock signal
@@ -126,10 +126,10 @@ architecture conv2d_arch of conv2d is
 
     component conv2d_layer_mac
         generic (
-            GENERAL_SCALE_FACTOR : integer;
-            BITWIDTH             : integer;
-            CHANNEL_NUMBER       : integer;
-            KERNEL_SIZE          : integer
+            DATA_SCALE_FACTOR : integer;
+            BITWIDTH          : integer;
+            CHANNEL_NUMBER    : integer;
+            KERNEL_SIZE       : integer
         );
         port (
             clock             : in std_logic;
@@ -261,10 +261,10 @@ begin
         gen_conv2d_layers : for i in 0 to KERNEL_NUMBER - 1 generate
             conv2d_layer_inst : conv2d_layer_mac
             generic map(
-                GENERAL_SCALE_FACTOR => GENERAL_SCALE_FACTOR,
-                BITWIDTH             => BITWIDTH,
-                CHANNEL_NUMBER       => CHANNEL_NUMBER,
-                KERNEL_SIZE          => KERNEL_SIZE
+                DATA_SCALE_FACTOR => DATA_SCALE_FACTOR,
+                BITWIDTH          => BITWIDTH,
+                CHANNEL_NUMBER    => CHANNEL_NUMBER,
+                KERNEL_SIZE       => KERNEL_SIZE
             )
             port map(
                 clock             => clock,

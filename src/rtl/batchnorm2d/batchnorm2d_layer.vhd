@@ -15,9 +15,8 @@ use LIB_RTL.TYPES_PKG.all;
 --! Entity batchnorm2d_layer
 entity batchnorm2d_layer is
     generic (
-        BITWIDTH : integer := 16; --! Bit width of each operand
-        EPSILON  : integer := 0;  --! A small value  added for numerical stability
-        K        : integer := 10
+        BITWIDTH          : integer := 16; --! Bit width of each operand
+        DATA_SCALE_FACTOR : integer := 12  --! Input data scale factor. For example, a value of 12 means input values are scaled by 2^12.
     );
     port (
         clock        : in std_logic;                               --! Clock signal
@@ -35,36 +34,14 @@ end batchnorm2d_layer;
 architecture batchnorm2d_layer_arch of batchnorm2d_layer is
 
     -------------------------------------------------------------------------------------
-    -- CONSTANTS
-    -------------------------------------------------------------------------------------
-    constant SCALE_FACTOR_POWER_OF_2          : integer := 12; --! Scale factor for integer computation power (e.g., 10 -> 2**10)
-    constant DIVISION_SCALE_FACTOR_POWER_OF_2 : integer := 10; --! Scale factor to compute the division by 6
-
-    -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
     signal r_data_to_silu : std_logic_vector(BITWIDTH - 1 downto 0); --! Signal to store the numerator computation result
 
-    component square_root
-        generic (
-            BITWIDTH : integer
-        );
-        port (
-            clock        : in std_logic;
-            reset_n      : in std_logic;
-            i_sys_enable : in std_logic;
-            i_data       : in std_logic_vector (BITWIDTH - 1 downto 0);
-            i_data_valid : in std_logic;
-            o_data       : out std_logic_vector (BITWIDTH/2 - 1 downto 0);
-            o_data_valid : out std_logic
-        );
-    end component;
-
     component silu_activation
         generic (
-            BITWIDTH                         : integer;
-            SCALE_FACTOR_POWER_OF_2          : integer;
-            DIVISION_SCALE_FACTOR_POWER_OF_2 : integer
+            BITWIDTH          : integer;
+            DATA_SCALE_FACTOR : integer
         );
         port (
             clock        : in std_logic;
@@ -82,9 +59,8 @@ begin
     -------------------------------------------------------------------------------------
     silu_activation_inst : silu_activation
     generic map(
-        BITWIDTH                         => BITWIDTH,
-        SCALE_FACTOR_POWER_OF_2          => SCALE_FACTOR_POWER_OF_2,
-        DIVISION_SCALE_FACTOR_POWER_OF_2 => DIVISION_SCALE_FACTOR_POWER_OF_2
+        BITWIDTH          => BITWIDTH,
+        DATA_SCALE_FACTOR => DATA_SCALE_FACTOR
     )
     port map(
         clock        => clock,
@@ -115,7 +91,7 @@ begin
                     v_add := std_logic_vector(signed(i_data) - signed(i_mean));
 
                     v_mult := std_logic_vector(signed(v_add) * signed(i_weight));
-                    v_mult := std_logic_vector(shift_right(signed(v_mult), K));
+                    v_mult := std_logic_vector(shift_right(signed(v_mult), DATA_SCALE_FACTOR));
 
                     v_mult := std_logic_vector(signed(v_mult) + signed(i_bias));
 

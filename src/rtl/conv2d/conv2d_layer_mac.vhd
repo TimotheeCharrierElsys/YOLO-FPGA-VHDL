@@ -16,10 +16,10 @@ use LIB_RTL.TYPES_PKG.all;
 --! This entity implements a convolution layer using a pipelined MAC unit with a 3x3 kernel.
 entity conv2d_layer_mac is
     generic (
-        GENERAL_SCALE_FACTOR : integer := 12; --! Define the general scale factor of the input data (12 -> 2**12)
-        BITWIDTH             : integer := 8;  --! Bit width of each operand
-        CHANNEL_NUMBER       : integer := 3;  --! Number of channels in the image
-        KERNEL_SIZE          : integer := 3   --! Size of the kernel (e.g., 3 for a 3x3 kernel)
+        DATA_SCALE_FACTOR : integer := 12; --! Input data scale factor. For example, a value of 12 means input values are scaled by 2^12.
+        BITWIDTH          : integer := 8;  --! Bit width of each operand
+        CHANNEL_NUMBER    : integer := 3;  --! Number of channels in the image
+        KERNEL_SIZE       : integer := 3   --! Size of the kernel (e.g., 3 for a 3x3 kernel)
     );
     port (
         clock             : in std_logic;                                                                                                        --! Clock signal
@@ -123,8 +123,8 @@ begin
     --! Handles the assignment of the input data to the intermediate signals.
     process (all)
     begin
-        r_results(CHANNEL_NUMBER) <= std_logic_vector(shift_left(signed(i_bias), GENERAL_SCALE_FACTOR));                                                       --! Initialize the output with the bias value
-        intermediate_result       <= std_logic_vector(shift_right(signed(r_results(current_channel)), GENERAL_SCALE_FACTOR)) when is_processing_add = '1' else --! Intermediate signal to hold the output of each MAC unit for each channel.
+        r_results(CHANNEL_NUMBER) <= std_logic_vector(shift_left(signed(i_bias), DATA_SCALE_FACTOR));                                                       --! Initialize the output with the bias value
+        intermediate_result       <= std_logic_vector(shift_right(signed(r_results(current_channel)), DATA_SCALE_FACTOR)) when is_processing_add = '1' else --! Intermediate signal to hold the output of each MAC unit for each channel.
             (others => '0');
 
         for i in 0 to CHANNEL_NUMBER - 1 loop

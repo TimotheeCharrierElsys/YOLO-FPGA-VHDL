@@ -17,10 +17,10 @@ use LIB_RTL.TYPES_PKG.all;
 --! This entity implements a maxpool
 entity batchnorm2d is
     generic (
-        BITWIDTH       : integer := 16; --! Bit width of each operand
-        INPUT_SIZE     : integer := 5;  --! Width and Height of the input
-        CHANNEL_NUMBER : integer := 3;  --! Number of channels in the input
-        EPSILON        : integer := 0   --! A small value  added for numerical stability
+        BITWIDTH          : integer := 16; --! Bit width of each operand
+        INPUT_SIZE        : integer := 5;  --! Width and Height of the input
+        CHANNEL_NUMBER    : integer := 3;  --! Number of channels in the input
+        DATA_SCALE_FACTOR : integer := 12  --! Input data scale factor. For example, a value of 12 means input values are scaled by 2^12.
     );
     port (
         clock          : in std_logic;                                                                                                       --! Clock signal
@@ -64,9 +64,8 @@ architecture batchnorm2d_arch of batchnorm2d is
     -------------------------------------------------------------------------------------
     component batchnorm2d_layer
         generic (
-            BITWIDTH : integer;
-            EPSILON  : integer;
-            K        : integer
+            BITWIDTH          : integer;
+            DATA_SCALE_FACTOR : integer
         );
         port (
             clock        : in std_logic;
@@ -104,9 +103,8 @@ begin
     gen_batchnorm2d_layer : for i in 0 to CHANNEL_NUMBER - 1 generate
         batchnorm2d_layer_inst : batchnorm2d_layer
         generic map(
-            BITWIDTH => BITWIDTH,
-            EPSILON  => EPSILON,
-            K        => 12
+            BITWIDTH          => BITWIDTH,
+            DATA_SCALE_FACTOR => DATA_SCALE_FACTOR
         )
         port map(
             clock        => clock,
