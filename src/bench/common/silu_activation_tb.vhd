@@ -19,10 +19,9 @@ architecture silu_activation_tb_arch of silu_activation_tb is
     -------------------------------------------------------------------------------------
     -- CONSTANTS
     -------------------------------------------------------------------------------------
-    constant clock_period                     : time    := 5 ns;
-    constant BITWIDTH                         : integer := 16;
-    constant SCALE_FACTOR_POWER_OF_2          : integer := 10;
-    constant DIVISION_SCALE_FACTOR_POWER_OF_2 : integer := 10;
+    constant clock_period      : time    := 5 ns;
+    constant BITWIDTH          : integer := 16;
+    constant DATA_SCALE_FACTOR : integer := 12;
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
@@ -38,9 +37,8 @@ architecture silu_activation_tb_arch of silu_activation_tb is
     -------------------------------------------------------------------------------------
     component silu_activation
         generic (
-            BITWIDTH                         : integer;
-            SCALE_FACTOR_POWER_OF_2          : integer;
-            DIVISION_SCALE_FACTOR_POWER_OF_2 : integer
+            BITWIDTH          : integer;
+            DATA_SCALE_FACTOR : integer
         );
         port (
             clock        : in std_logic;
@@ -57,9 +55,8 @@ begin
     -------------------------------------------------------------------------------------
     UUT : silu_activation
     generic map(
-        BITWIDTH                         => BITWIDTH,
-        SCALE_FACTOR_POWER_OF_2          => SCALE_FACTOR_POWER_OF_2,
-        DIVISION_SCALE_FACTOR_POWER_OF_2 => DIVISION_SCALE_FACTOR_POWER_OF_2
+        BITWIDTH          => BITWIDTH,
+        DATA_SCALE_FACTOR => DATA_SCALE_FACTOR
     )
     port map(
         clock        => clock,
@@ -86,7 +83,7 @@ begin
         i_sys_enable <= '1';
         wait for clock_period/2;
 
-        for i in -7000 to 7000 loop
+        for i in -7 * 2 ** DATA_SCALE_FACTOR to 7 * 2 ** DATA_SCALE_FACTOR loop
             i_data <= std_logic_vector(to_signed(i, BITWIDTH));
             wait for clock_period;
         end loop;
