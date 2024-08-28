@@ -48,7 +48,6 @@ architecture batchnorm2d_arch of batchnorm2d is
     -- SIGNALS
     -------------------------------------------------------------------------------------
     signal r_o_data             : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0); --! Signal Output Data Registers
-    signal r_o_data_valid       : std_logic_vector(CHANNEL_NUMBER - 1 downto 0);             --! Signal Output valid signal
     signal current_row          : integer range 0 to INPUT_SIZE - 1;                         --! Current row index
     signal current_col          : integer range 0 to INPUT_SIZE - 1;                         --! Current column index
     signal intermediate_data    : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0); --! Intermediate signal
