@@ -31,7 +31,6 @@ architecture conv_mnist_2_layers_arch of conv_mnist_2_layers is
     constant KERNEL_NUMBER_1  : integer   := 32;
     constant PADDING_1        : integer   := 1;
     constant STRIDE_1         : integer   := 2;
-    constant EPSILON_1        : integer   := 0;
 
     -------------------------------------------------------------------------------------
     -- SIGNALS for first layer
@@ -55,7 +54,6 @@ architecture conv_mnist_2_layers_arch of conv_mnist_2_layers is
     constant KERNEL_NUMBER_2  : integer := 64;
     constant PADDING_2        : integer := 0;
     constant STRIDE_2         : integer := 1;
-    constant EPSILON_2        : integer := 0;
 
     -------------------------------------------------------------------------------------
     -- SIGNALS for first layer
@@ -72,9 +70,10 @@ architecture conv_mnist_2_layers_arch of conv_mnist_2_layers is
     -------------------------------------------------------------------------------------
     -- Shared Signals
     -------------------------------------------------------------------------------------
-    signal clock        : std_logic := '0';
-    signal reset_n      : std_logic := '0';
-    signal i_sys_enable : std_logic := '0';
+    signal clock               : std_logic := '0';
+    signal reset_n             : std_logic := '0';
+    signal i_sys_enable        : std_logic := '0';
+    constant DATA_SCALE_FACTOR : integer   := 12;
 
     -- File variables
     file output_file_first_layer  : text;
@@ -85,16 +84,16 @@ architecture conv_mnist_2_layers_arch of conv_mnist_2_layers is
     -------------------------------------------------------------------------------------
     component conv
         generic (
-            USE_MAC_ARCH   : std_logic;
-            DO_PIPELINE    : std_logic;
-            BITWIDTH       : integer;
-            INPUT_SIZE     : integer;
-            CHANNEL_NUMBER : integer;
-            KERNEL_SIZE    : integer;
-            KERNEL_NUMBER  : integer;
-            PADDING        : integer;
-            STRIDE         : integer;
-            EPSILON        : integer
+            DATA_SCALE_FACTOR : integer;
+            USE_MAC_ARCH      : std_logic;
+            DO_PIPELINE       : std_logic;
+            BITWIDTH          : integer;
+            INPUT_SIZE        : integer;
+            CHANNEL_NUMBER    : integer;
+            KERNEL_SIZE       : integer;
+            KERNEL_NUMBER     : integer;
+            PADDING           : integer;
+            STRIDE            : integer
         );
         port (
             clock              : in std_logic;
@@ -118,16 +117,16 @@ begin
     -------------------------------------------------------------------------------------
     first_layer : conv
     generic map(
-        USE_MAC_ARCH   => USE_MAC_ARCH,
-        DO_PIPELINE    => DO_PIPELINE,
-        BITWIDTH       => BITWIDTH,
-        INPUT_SIZE     => INPUT_SIZE_1,
-        CHANNEL_NUMBER => CHANNEL_NUMBER_1,
-        KERNEL_SIZE    => KERNEL_SIZE_1,
-        KERNEL_NUMBER  => KERNEL_NUMBER_1,
-        PADDING        => PADDING_1,
-        STRIDE         => STRIDE_1,
-        EPSILON        => EPSILON_1
+        DATA_SCALE_FACTOR => DATA_SCALE_FACTOR,
+        USE_MAC_ARCH      => USE_MAC_ARCH,
+        DO_PIPELINE       => DO_PIPELINE,
+        BITWIDTH          => BITWIDTH,
+        INPUT_SIZE        => INPUT_SIZE_1,
+        CHANNEL_NUMBER    => CHANNEL_NUMBER_1,
+        KERNEL_SIZE       => KERNEL_SIZE_1,
+        KERNEL_NUMBER     => KERNEL_NUMBER_1,
+        PADDING           => PADDING_1,
+        STRIDE            => STRIDE_1
     )
     port map(
         clock              => clock,
@@ -157,16 +156,16 @@ begin
 
     second_layer : conv
     generic map(
-        USE_MAC_ARCH   => USE_MAC_ARCH,
-        DO_PIPELINE    => DO_PIPELINE,
-        BITWIDTH       => BITWIDTH,
-        INPUT_SIZE     => INPUT_SIZE_2,
-        CHANNEL_NUMBER => CHANNEL_NUMBER_2,
-        KERNEL_SIZE    => KERNEL_SIZE_2,
-        KERNEL_NUMBER  => KERNEL_NUMBER_2,
-        PADDING        => PADDING_2,
-        STRIDE         => STRIDE_2,
-        EPSILON        => EPSILON_2
+        DATA_SCALE_FACTOR => DATA_SCALE_FACTOR,
+        USE_MAC_ARCH      => USE_MAC_ARCH,
+        DO_PIPELINE       => DO_PIPELINE,
+        BITWIDTH          => BITWIDTH,
+        INPUT_SIZE        => INPUT_SIZE_2,
+        CHANNEL_NUMBER    => CHANNEL_NUMBER_2,
+        KERNEL_SIZE       => KERNEL_SIZE_2,
+        KERNEL_NUMBER     => KERNEL_NUMBER_2,
+        PADDING           => PADDING_2,
+        STRIDE            => STRIDE_2
     )
     port map(
         clock              => clock,
@@ -219,7 +218,7 @@ begin
 
     i_bias_conv2d_1      <= (std_logic_vector(to_signed(504, 2 * BITWIDTH)), std_logic_vector(to_signed(786, 2 * BITWIDTH)), std_logic_vector(to_signed(831, 2 * BITWIDTH)), std_logic_vector(to_signed(-477, 2 * BITWIDTH)), std_logic_vector(to_signed(-1337, 2 * BITWIDTH)), std_logic_vector(to_signed(895, 2 * BITWIDTH)), std_logic_vector(to_signed(-518, 2 * BITWIDTH)), std_logic_vector(to_signed(-1283, 2 * BITWIDTH)), std_logic_vector(to_signed(-343, 2 * BITWIDTH)), std_logic_vector(to_signed(-220, 2 * BITWIDTH)), std_logic_vector(to_signed(1220, 2 * BITWIDTH)), std_logic_vector(to_signed(260, 2 * BITWIDTH)), std_logic_vector(to_signed(1190, 2 * BITWIDTH)), std_logic_vector(to_signed(-1247, 2 * BITWIDTH)), std_logic_vector(to_signed(-521, 2 * BITWIDTH)), std_logic_vector(to_signed(-180, 2 * BITWIDTH)), std_logic_vector(to_signed(-358, 2 * BITWIDTH)), std_logic_vector(to_signed(335, 2 * BITWIDTH)), std_logic_vector(to_signed(-393, 2 * BITWIDTH)), std_logic_vector(to_signed(-203, 2 * BITWIDTH)), std_logic_vector(to_signed(-761, 2 * BITWIDTH)), std_logic_vector(to_signed(-780, 2 * BITWIDTH)), std_logic_vector(to_signed(18, 2 * BITWIDTH)), std_logic_vector(to_signed(-580, 2 * BITWIDTH)), std_logic_vector(to_signed(-775, 2 * BITWIDTH)), std_logic_vector(to_signed(68, 2 * BITWIDTH)), std_logic_vector(to_signed(765, 2 * BITWIDTH)), std_logic_vector(to_signed(768, 2 * BITWIDTH)), std_logic_vector(to_signed(-870, 2 * BITWIDTH)), std_logic_vector(to_signed(50, 2 * BITWIDTH)), std_logic_vector(to_signed(275, 2 * BITWIDTH)), std_logic_vector(to_signed(-258, 2 * BITWIDTH)));
     i_running_mean_1     <= (std_logic_vector(to_signed(514, 2 * BITWIDTH)), std_logic_vector(to_signed(837, 2 * BITWIDTH)), std_logic_vector(to_signed(895, 2 * BITWIDTH)), std_logic_vector(to_signed(-543, 2 * BITWIDTH)), std_logic_vector(to_signed(-1343, 2 * BITWIDTH)), std_logic_vector(to_signed(850, 2 * BITWIDTH)), std_logic_vector(to_signed(-621, 2 * BITWIDTH)), std_logic_vector(to_signed(-1271, 2 * BITWIDTH)), std_logic_vector(to_signed(-219, 2 * BITWIDTH)), std_logic_vector(to_signed(-103, 2 * BITWIDTH)), std_logic_vector(to_signed(1089, 2 * BITWIDTH)), std_logic_vector(to_signed(146, 2 * BITWIDTH)), std_logic_vector(to_signed(1296, 2 * BITWIDTH)), std_logic_vector(to_signed(-1218, 2 * BITWIDTH)), std_logic_vector(to_signed(-624, 2 * BITWIDTH)), std_logic_vector(to_signed(-147, 2 * BITWIDTH)), std_logic_vector(to_signed(-307, 2 * BITWIDTH)), std_logic_vector(to_signed(256, 2 * BITWIDTH)), std_logic_vector(to_signed(-457, 2 * BITWIDTH)), std_logic_vector(to_signed(-19, 2 * BITWIDTH)), std_logic_vector(to_signed(-799, 2 * BITWIDTH)), std_logic_vector(to_signed(-729, 2 * BITWIDTH)), std_logic_vector(to_signed(-40, 2 * BITWIDTH)), std_logic_vector(to_signed(-580, 2 * BITWIDTH)), std_logic_vector(to_signed(-759, 2 * BITWIDTH)), std_logic_vector(to_signed(72, 2 * BITWIDTH)), std_logic_vector(to_signed(782, 2 * BITWIDTH)), std_logic_vector(to_signed(827, 2 * BITWIDTH)), std_logic_vector(to_signed(-879, 2 * BITWIDTH)), std_logic_vector(to_signed(73, 2 * BITWIDTH)), std_logic_vector(to_signed(322, 2 * BITWIDTH)), std_logic_vector(to_signed(-254, 2 * BITWIDTH)));
-    i_weight_1           <= (std_logic_vector(to_signed(14176, 2 * BITWIDTH)), std_logic_vector(to_signed(9536, 2 * BITWIDTH)), std_logic_vector(to_signed(7781, 2 * BITWIDTH)), std_logic_vector(to_signed(8089, 2 * BITWIDTH)), std_logic_vector(to_signed(12391, 2 * BITWIDTH)), std_logic_vector(to_signed(12144, 2 * BITWIDTH)), std_logic_vector(to_signed(13290, 2 * BITWIDTH)), std_logic_vector(to_signed(10662, 2 * BITWIDTH)), std_logic_vector(to_signed(3029, 2 * BITWIDTH)), std_logic_vector(to_signed(6685, 2 * BITWIDTH)), std_logic_vector(to_signed(8257, 2 * BITWIDTH)), std_logic_vector(to_signed(6593, 2 * BITWIDTH)), std_logic_vector(to_signed(4154, 2 * BITWIDTH)), std_logic_vector(to_signed(8891, 2 * BITWIDTH)), std_logic_vector(to_signed(7630, 2 * BITWIDTH)), std_logic_vector(to_signed(5119, 2 * BITWIDTH)), std_logic_vector(to_signed(13756, 2 * BITWIDTH)), std_logic_vector(to_signed(6635, 2 * BITWIDTH)), std_logic_vector(to_signed(13830, 2 * BITWIDTH)), std_logic_vector(to_signed(2910, 2 * BITWIDTH)), std_logic_vector(to_signed(19535, 2 * BITWIDTH)), std_logic_vector(to_signed(14912, 2 * BITWIDTH)), std_logic_vector(to_signed(10804, 2 * BITWIDTH)), std_logic_vector(to_signed(11043, 2 * BITWIDTH)), std_logic_vector(to_signed(8862, 2 * BITWIDTH)), std_logic_vector(to_signed(8360, 2 * BITWIDTH)), std_logic_vector(to_signed(13398, 2 * BITWIDTH)), std_logic_vector(to_signed(10571, 2 * BITWIDTH)), std_logic_vector(to_signed(10946, 2 * BITWIDTH)), std_logic_vector(to_signed(16557, 2 * BITWIDTH)), std_logic_vector(to_signed(16671, 2 * BITWIDTH)), std_logic_vector(to_signed(15781, 2 * BITWIDTH)));
+    i_weight_1           <= (std_logic_vector(to_signed(14174, 2 * BITWIDTH)), std_logic_vector(to_signed(9536, 2 * BITWIDTH)), std_logic_vector(to_signed(7781, 2 * BITWIDTH)), std_logic_vector(to_signed(8089, 2 * BITWIDTH)), std_logic_vector(to_signed(12390, 2 * BITWIDTH)), std_logic_vector(to_signed(12143, 2 * BITWIDTH)), std_logic_vector(to_signed(13290, 2 * BITWIDTH)), std_logic_vector(to_signed(10661, 2 * BITWIDTH)), std_logic_vector(to_signed(3029, 2 * BITWIDTH)), std_logic_vector(to_signed(6685, 2 * BITWIDTH)), std_logic_vector(to_signed(8257, 2 * BITWIDTH)), std_logic_vector(to_signed(6593, 2 * BITWIDTH)), std_logic_vector(to_signed(4154, 2 * BITWIDTH)), std_logic_vector(to_signed(8890, 2 * BITWIDTH)), std_logic_vector(to_signed(7629, 2 * BITWIDTH)), std_logic_vector(to_signed(5119, 2 * BITWIDTH)), std_logic_vector(to_signed(13756, 2 * BITWIDTH)), std_logic_vector(to_signed(6635, 2 * BITWIDTH)), std_logic_vector(to_signed(13830, 2 * BITWIDTH)), std_logic_vector(to_signed(2910, 2 * BITWIDTH)), std_logic_vector(to_signed(19533, 2 * BITWIDTH)), std_logic_vector(to_signed(14911, 2 * BITWIDTH)), std_logic_vector(to_signed(10803, 2 * BITWIDTH)), std_logic_vector(to_signed(11043, 2 * BITWIDTH)), std_logic_vector(to_signed(8862, 2 * BITWIDTH)), std_logic_vector(to_signed(8360, 2 * BITWIDTH)), std_logic_vector(to_signed(13398, 2 * BITWIDTH)), std_logic_vector(to_signed(10571, 2 * BITWIDTH)), std_logic_vector(to_signed(10946, 2 * BITWIDTH)), std_logic_vector(to_signed(16556, 2 * BITWIDTH)), std_logic_vector(to_signed(16670, 2 * BITWIDTH)), std_logic_vector(to_signed(15780, 2 * BITWIDTH)));
     i_bias_batchnorm2d_1 <= (std_logic_vector(to_signed(-909, 2 * BITWIDTH)), std_logic_vector(to_signed(-118, 2 * BITWIDTH)), std_logic_vector(to_signed(-652, 2 * BITWIDTH)), std_logic_vector(to_signed(-994, 2 * BITWIDTH)), std_logic_vector(to_signed(67, 2 * BITWIDTH)), std_logic_vector(to_signed(-120, 2 * BITWIDTH)), std_logic_vector(to_signed(-684, 2 * BITWIDTH)), std_logic_vector(to_signed(97, 2 * BITWIDTH)), std_logic_vector(to_signed(-799, 2 * BITWIDTH)), std_logic_vector(to_signed(-771, 2 * BITWIDTH)), std_logic_vector(to_signed(-383, 2 * BITWIDTH)), std_logic_vector(to_signed(-304, 2 * BITWIDTH)), std_logic_vector(to_signed(-655, 2 * BITWIDTH)), std_logic_vector(to_signed(-256, 2 * BITWIDTH)), std_logic_vector(to_signed(-31, 2 * BITWIDTH)), std_logic_vector(to_signed(-758, 2 * BITWIDTH)), std_logic_vector(to_signed(-246, 2 * BITWIDTH)), std_logic_vector(to_signed(-884, 2 * BITWIDTH)), std_logic_vector(to_signed(-308, 2 * BITWIDTH)), std_logic_vector(to_signed(-836, 2 * BITWIDTH)), std_logic_vector(to_signed(-1430, 2 * BITWIDTH)), std_logic_vector(to_signed(-253, 2 * BITWIDTH)), std_logic_vector(to_signed(-115, 2 * BITWIDTH)), std_logic_vector(to_signed(-63, 2 * BITWIDTH)), std_logic_vector(to_signed(-258, 2 * BITWIDTH)), std_logic_vector(to_signed(-1415, 2 * BITWIDTH)), std_logic_vector(to_signed(-118, 2 * BITWIDTH)), std_logic_vector(to_signed(-609, 2 * BITWIDTH)), std_logic_vector(to_signed(-117, 2 * BITWIDTH)), std_logic_vector(to_signed(146, 2 * BITWIDTH)), std_logic_vector(to_signed(-766, 2 * BITWIDTH)), std_logic_vector(to_signed(-1031, 2 * BITWIDTH)));
 
     i_kernel_1(0)(0) <= (
