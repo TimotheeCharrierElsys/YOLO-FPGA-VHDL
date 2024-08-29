@@ -1,4 +1,4 @@
-# Makefile for simulating VHDL code with GHDL
+# Makefile for simulating VHDL code with GHDL or nvc
 
 # Directory containing VHDL source files
 SRC_DIR     := ../rtl
@@ -33,7 +33,7 @@ TESTBENCHES := $(BENCH_DIR)/common/pipeline_tb.vhd \
 			   $(BENCH_DIR)/conv2d/conv2d_layer_fc_tb.vhd \
 			   $(BENCH_DIR)/conv2d/conv2d_layer_mac_tb.vhd \
 			   $(BENCH_DIR)/conv2d/conv2d_tb.vhd \
-			   $(BENCH_DIR)/conv2d/conv2d_small_tb.vhd\
+			   $(BENCH_DIR)/conv2d/conv2d_small_tb.vhd \
 			   $(BENCH_DIR)/maxpool2d/maxpool2d_layer_tb.vhd \
 			   $(BENCH_DIR)/maxpool2d/maxpool2d_tb.vhd \
 			   $(BENCH_DIR)/batchnorm2d/batchnorm2d_layer_tb.vhd \
@@ -42,38 +42,68 @@ TESTBENCHES := $(BENCH_DIR)/common/pipeline_tb.vhd \
 			   $(BENCH_DIR)/conv/conv_mnist_2_layers.vhd \
 			   $(BENCH_DIR)/conv/conv_mnist.vhd
 
+NVC_TESTBENCH := $(BENCH_DIR)/conv/conv_mnist_2_layers.vhd
+
 # Work Directory
 WORK_DIR    := work
 
-# GHDL and Yosys Flags
-LIB 		:= LIB_RTL
-FLAGS       := --std=08 --ieee=standard --work=$(LIB) --workdir=$(WORK_DIR) -O2
-WARNINGS	:= -Wdefault-binding -Wparenthesis -Wothers -Wstatic -Werror
-SIM_FLAGS   := --stop-time=$(STOP_TIME) #--wave=$(WORK_DIR)/wave_$(TOP_ENTITY).ghw
+# GHDL Flags
+LIB             := LIB_RTL
+GHDL_COMMON_FLAGS := --std=08 --ieee=standard --work=$(LIB) --workdir=$(WORK_DIR) -O2
+GHDL_WARNINGS   := -Wall -Wdelayed-checks --syn-binding
+GHDL_SIM_FLAGS  := --stop-time=$(STOP_TIME) #--wave=$(WORK_DIR)/wave_$(TOP_ENTITY).ghw
+
+# NVC Flags
+NVC_FLAGS       := --work=$(LIB) -M128m
+NVC_SIM_FLAGS   := --stop-time=$(STOP_TIME) --wave --dump-array
 
 # Default target
-all: simulate
+all: simulate_ghdl
 
 # Create work directory if it doesn't exist
 $(WORK_DIR):
+	@echo "Creating work directory..."
 	mkdir -p $(WORK_DIR)
 
-# Analyze VHDL files
-analyze: $(WORK_DIR)
-	ghdl -i $(FLAGS) $(WARNINGS) $(SOURCES) $(TESTBENCHES)
+# GHDL Targets
+analyze_ghdl: $(WORK_DIR)
+	@echo "Analyzing with GHDL..."
+	@ghdl -i $(GHDL_COMMON_FLAGS) $(GHDL_WARNINGS) $(SOURCES) $(TESTBENCHES) || exit 1
 
-# Elaborate the design
-elaborate: analyze
-	ghdl -m $(FLAGS) $(WARNINGS) -Wdelayed-checks --syn-binding $(TOP_ENTITY)
+elaborate_ghdl: analyze_ghdl
+	@echo "Elaborating with GHDL..."
+	@ghdl -m $(GHDL_COMMON_FLAGS) $(GHDL_WARNINGS) $(TOP_ENTITY) || exit 1
 
-simulate: elaborate
-	ghdl -r $(GHDL_FLAGS) $(TOP_ENTITY) $(SIM_FLAGS) --max-stack-alloc=0
+simulate_ghdl: elaborate_ghdl
+	@echo "Simulating with GHDL..."
+	@ghdl -r $(GHDL_COMMON_FLAGS) $(TOP_ENTITY) $(GHDL_SIM_FLAGS) --max-stack-alloc=0 || exit 1
 
-wave: simulate 
-	gtkwave $(WORK_DIR)/wave_$(TOP_ENTITY).ghw &
+wave_ghdl: simulate_ghdl
+	@echo "Launching GTKWave for GHDL..."
+	@gtkwave $(WORK_DIR)/wave_$(TOP_ENTITY).ghw &
+
+# NVC Targets
+analyze_nvc: $(WORK_DIR)
+	@echo "Analyzing with NVC..."
+	@nvc $(NVC_FLAGS) -a $(SOURCES) $(NVC_TESTBENCH) || exit 1
+
+elaborate_nvc: analyze_nvc
+	@echo "Elaborating with NVC..."
+	@nvc $(NVC_FLAGS) -e $(TOP_ENTITY) || exit 1
+
+simulate_nvc: elaborate_nvc
+	@echo "Simulating with NVC..."
+	@nvc $(NVC_FLAGS) -r $(NVC_SIM_FLAGS) $(TOP_ENTITY) || exit 1
+
+wave_nvc: simulate_nvc
+	@echo "Launching GTKWave for NVC..."
+	@gtkwave $(TOP_ENTITY).fst
 
 # Clean up the generated files
 clean:
-	rm -rf $(WORK_DIR) $(TOP_ENTITY) *.o *.ghw
+	@echo "Cleaning up..."
+	rm -rf $(WORK_DIR) $(LIB) $(TOP_ENTITY) *.o *.ghw *.fst
 
-.PHONY: all analyze elaborate simulate wave clean
+# Phony targets
+.PHONY: all analyze_ghdl elaborate_ghdl simulate_ghdl wave_ghdl \
+        analyze_nvc elaborate_nvc simulate_nvc wave_nvc clean
