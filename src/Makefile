@@ -8,7 +8,6 @@ SOURCES     := $(SRC_DIR)/types_pkg.vhd \
                $(SRC_DIR)/common/pipeline.vhd \
                $(SRC_DIR)/common/adder_tree.vhd \
                $(SRC_DIR)/common/silu_activation.vhd \
-               $(SRC_DIR)/common/square_root.vhd \
                $(SRC_DIR)/mac/mac.vhd \
                $(SRC_DIR)/mac/fc_layer.vhd \
                $(SRC_DIR)/window_slice/volume_slice.vhd \
@@ -34,8 +33,8 @@ SVG_FILE     := $(TOP_ENTITY).svg
 
 # VHDL Standard and Library
 LIB         := LIB_RTL
-FLAGS       := --std=08 --ieee=standard --work=$(LIB) --workdir=$(WORK_DIR)
-WARNINGS    := -Wdefault-binding -Wparenthesis -Wothers -Wstatic -Werror
+FLAGS       := --std=08 --ieee=standard --work=$(LIB) --workdir=$(WORK_DIR) --syn-binding
+WARNINGS    := -Wall
 
 all: synthesize
 
