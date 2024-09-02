@@ -13,9 +13,9 @@ def random_signed_value(bitwidth):
     :param bitwidth: The bitwidth for the signed integer
     :return: A random signed integer
     """
-    min_val = (-(2 ** (bitwidth - 1)))
+    min_val = -(2 ** (bitwidth - 1))
     max_val = 2 ** (bitwidth - 1) - 1
-    return random.randint(min_val // 2, max_val // 2)
+    return random.randint(min_val // 4, max_val // 4)
 
 
 def vector_init(size, bitwidth=None, use_random=False):
@@ -29,8 +29,7 @@ def vector_init(size, bitwidth=None, use_random=False):
     """
     if use_random:
         if bitwidth is None:
-            raise ValueError(
-                "bitwidth must be specified if use_random is True")
+            raise ValueError("bitwidth must be specified if use_random is True")
         return [random_signed_value(bitwidth) for _ in range(size)]
     else:
         return [0] * size
@@ -99,7 +98,9 @@ async def assert_reset_state(dut, expected_output):
 
 
 async def reset_dut(dut, verbose=True):
-    """Reset the DUT."""
+    """
+    Reset the DUT.
+    """
     dut.reset_n.value = 0
     await RisingEdge(dut.clock)
     await RisingEdge(dut.clock)
@@ -118,7 +119,9 @@ async def sys_enable_dut(dut, verbose=True):
 
 
 async def enable_dut(dut, verbose=True):
-    """Enable the DUT."""
+    """
+    Enable the DUT.
+    """
     dut.i_sys_enable.value = 1
     await RisingEdge(dut.clock)
     if verbose:

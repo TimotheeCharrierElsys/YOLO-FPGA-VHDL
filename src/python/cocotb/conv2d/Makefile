@@ -23,13 +23,13 @@ TOPLEVEL 	 		:= conv2d
 COCOTB_TEST_MODULES	:= test_conv2d
 MODULE				:= $(COCOTB_TEST_MODULES) # Retrocompatibility
 RTL_LIBRARY			:= LIB_RTL
-WAVE_FILE   		:= wave_$(COCOTB_TEST_MODULES).fst
-SIM_ARGS            += --wave=$(WAVE_FILE) --dump-arrays
 
-# Generic Parameters (unfortunately, I was not able to set std_logic as generic in the Makefile, so to use different architectures, you need to change the VHDL code)
-SIM_ARGS            += -gDATA_SCALE_FACTOR=0 -gBITWIDTH=8 
-SIM_ARGS            += -gINPUT_SIZE=3 -gINPUT_CHANNELS=3 -gKERNEL_SIZE=3 -gOUTPUT_CHANNELS=3
-SIM_ARGS            += -gPADDING=1 -gSTRIDE=1
+# Generic Parameters (unfortunately, I was not able to set std_logic as generic in the Makefile,
+# so to use different architectures, you need to change the VHDL code)
+SIM_ARGS            += -gDATA_SCALE_FACTOR=0 -gBITWIDTH=16 
+SIM_ARGS            += -gOUTPUT_CHANNELS=3 -gINPUT_CHANNELS=3 -gINPUT_SIZE=64
+SIM_ARGS            += -gKERNEL_SIZE=3 -gPADDING=1 -gSTRIDE=1
+SIM_ARGS			+= --cover
 
 # COCOTB Log Level
 PWD 		   		:= $(shell pwd)
