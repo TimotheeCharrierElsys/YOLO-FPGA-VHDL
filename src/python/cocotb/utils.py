@@ -1,4 +1,5 @@
 import random
+import sys
 
 import cocotb
 from cocotb.clock import Clock
@@ -12,9 +13,9 @@ def random_signed_value(bitwidth):
     :param bitwidth: The bitwidth for the signed integer
     :return: A random signed integer
     """
-    min_val = -(2 ** (bitwidth - 1))
+    min_val = (-(2 ** (bitwidth - 1)))
     max_val = 2 ** (bitwidth - 1) - 1
-    return random.randint(min_val, max_val)
+    return random.randint(min_val // 2, max_val // 2)
 
 
 def vector_init(size, bitwidth=None, use_random=False):
@@ -28,7 +29,8 @@ def vector_init(size, bitwidth=None, use_random=False):
     """
     if use_random:
         if bitwidth is None:
-            raise ValueError("bitwidth must be specified if use_random is True")
+            raise ValueError(
+                "bitwidth must be specified if use_random is True")
         return [random_signed_value(bitwidth) for _ in range(size)]
     else:
         return [0] * size
@@ -80,18 +82,75 @@ def tensor_init(kernel_number, channels, kernel_size, bitwidth=None, use_random=
     ]
 
 
-async def reset_dut(dut):
+async def setup_clock(dut, period_ns=10):
+    """
+    Initialize and start the clock for the DUT.
+    """
+    clock = Clock(dut.clock, period_ns, units="ns")
+    await cocotb.start(clock.start(start_high=False))
+
+
+async def assert_reset_state(dut, expected_output):
+    """
+    Assert that the DUT is in the correct reset state.
+    """
+    assert dut.o_data.value == expected_output, "DUT output was not reset correctly"
+    assert dut.o_data_valid.value == 0, "DUT output data valid was not reset correctly"
+
+
+async def reset_dut(dut, verbose=True):
     """Reset the DUT."""
     dut.reset_n.value = 0
     await RisingEdge(dut.clock)
     await RisingEdge(dut.clock)
     dut.reset_n.value = 1
     await RisingEdge(dut.clock)
-    dut._log.info("DUT reset complete.")
+    if verbose:
+        dut._log.info("DUT reset complete.")
 
 
-async def sys_enable_dut(dut):
+async def sys_enable_dut(dut, verbose=True):
     """Enable the DUT."""
     dut.i_sys_enable.value = 1
     await RisingEdge(dut.clock)
-    dut._log.info("DUT enabled.")
+    if verbose:
+        dut._log.info("DUT enabled.")
+
+
+async def enable_dut(dut, verbose=True):
+    """Enable the DUT."""
+    dut.i_sys_enable.value = 1
+    await RisingEdge(dut.clock)
+    if verbose:
+        dut._log.info("DUT enabled.")
+
+
+def print_progress_bar(iteration, total, length=50, prefix="", suffix=""):
+    """
+    Print a progress bar to the console.
+
+    :param iteration: Current iteration
+    :param total: Total iterations
+    :param length: Length of the progress bar
+    :param prefix: Prefix string
+    :param suffix: Suffix string
+    """
+    percent = 100 * (iteration / float(total))
+    filled_length = int(length * iteration // total)
+    bar = "█" * filled_length + "-" * (length - filled_length)
+
+    # Determine color based on percentage
+    if percent < 33:
+        color_code = "\033[91m"  # Red
+    elif percent < 66:
+        color_code = "\033[93m"  # Yellow
+    else:
+        color_code = "\033[92m"  # Green
+
+    reset_code = "\033[0m"
+
+    sys.stdout.write(
+        f"\r\r\r{prefix} {color_code}|{bar}| {
+            percent:.1f}% {suffix}{reset_code}"
+    )
+    sys.stdout.flush()
