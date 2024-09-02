@@ -24,6 +24,7 @@ from utils import (
 # Constants
 CLOCK_PERIOD_NS = 10
 
+
 def get_generics(dut):
     """
     Retrieve the generic parameters from the DUT.
@@ -284,6 +285,9 @@ async def computation_test(dut):
     dut._log.info("\nRandom Computation test passed.")
 
 
+import plotly.graph_objects as go
+
+
 @cocotb.test()
 async def image_processing(dut):
     """
@@ -316,7 +320,7 @@ async def image_processing(dut):
     image_tensor = torch.tensor(image_transposed, dtype=torch.int64)
     image_array = image_tensor.numpy()
     image_list = image_array.tolist()
-    
+
     random_kernels = get_random_dsp_filters(generics)
 
     random_bias = vector_init(
@@ -347,17 +351,115 @@ async def image_processing(dut):
     gotten_output = np.array(gotten_output)
     expected_output = np.array(expected_output)
 
+    abs_diff = np.abs(gotten_output - expected_output)
+
     for i in range(generics["OUTPUT_CHANNELS"]):
-        fig, ax = plt.subplots(1, 2, figsize=(10, 5))  # Create side-by-side subplots
+        # Common font settings
+        common_font = {"family": "Arial, sans-serif", "color": "black"}
 
-        # Plot expected output
-        ax[0].imshow(expected_output[i], cmap="gray")
-        ax[0].set_title("Expected Output")
-        ax[0].axis("off")  # Hide axis
+        error = abs_diff[i]
 
-        # Plot gotten output
-        ax[1].imshow(gotten_output[i], cmap="gray")
-        ax[1].set_title("Gotten Output")
-        ax[1].axis("off")  # Hide axis
+        # Compute min/max/avg
+        error_min = np.min(error)
+        error_max = np.max(error)
+        error_avg = np.mean(error)  # Renamed for clarity
 
-        plt.show()
+        # Create figure
+        fig = go.Figure()
+
+        # Add surface trace with a custom hovertemplate
+        fig.add_trace(
+            go.Surface(
+                z=error,
+                colorbar=dict(
+                    title="Error Values",
+                    tickvals=[error_min, error_avg, error_max],
+                    ticktext=[
+                        f"Min: {error_min:.2f}",
+                        f"Avg: {error_avg:.2f}",
+                        f"Max: {error_max:.2f}",
+                    ],
+                    title_font=common_font,
+                    tickfont=common_font,
+                ),
+                colorscale="Viridis",
+                cmin=error_min,
+                cmax=error_max,
+                hovertemplate="<b>X</b>: %{x}<br>"
+                + "<b>Y</b>: %{y}<br>"
+                + "<b>Error</b>: %{z:.2f}<br>"
+                + "<extra></extra>",
+            )
+        )
+
+        # Update plot sizing and layout
+        fig.update_layout(
+            width=800,
+            height=800,
+            autosize=False,
+            margin=dict(t=150, b=0, l=0, r=0),
+            template="plotly_white",
+            title=dict(
+                text=(
+                    f"<b>Heatmap Absolute Error for Conv2d</b><br>"
+                    "<span style='font-size: 14px;'>"
+                    f"Bias={random_bias[i]}<br>"
+                    f"Conv2d Parameters: Stride={generics["STRIDE"]}, Padding={
+                        generics["PADDING"]}, "
+                    f"Kernel Size={generics["KERNEL_SIZE"]}"
+                    "</span>"
+                ),
+                font=common_font,
+                x=0.0,
+                xanchor="left",
+                y=0.95,
+                yanchor="top",
+            ),
+        )
+
+        # Update 3D scene options
+        fig.update_scenes(aspectratio=dict(x=1, y=1, z=0.7), aspectmode="manual")
+
+        # Define annotations with common font
+        annotations = [
+            dict(
+                text="Trace type:",
+                showarrow=False,
+                x=0.0,
+                y=1.085,
+                yref="paper",
+                align="left",
+                visible=True,
+                font=common_font,
+            )
+        ]
+
+        # Add dropdown with callback to toggle annotations visibility
+        fig.update_layout(
+            updatemenus=[
+                dict(
+                    buttons=[
+                        dict(
+                            args=[{"type": "surface"}, {"annotations": annotations}],
+                            label="3D Surface",
+                            method="update",
+                        ),
+                        dict(
+                            args=[{"type": "heatmap"}, {"annotations": []}],
+                            label="Heatmap",
+                            method="update",
+                        ),
+                    ],
+                    direction="down",
+                    pad={"r": 10, "t": 10},
+                    showactive=True,
+                    x=0.0,
+                    xanchor="left",
+                    y=1.1,
+                    yanchor="top",
+                ),
+            ]
+        )
+
+        # Show and save the figure
+        fig.show()
