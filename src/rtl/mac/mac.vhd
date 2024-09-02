@@ -45,17 +45,25 @@ begin
     -------------------------------------------------------------------------------------
     --! Generate block for multiplication and accumulation
     gen_multiplication : if DO_MULTIPLICATION = '1' generate
-        process (i_operand1, i_operand2, o_result_reg)
+        process (i_operand1, i_operand2, o_result_reg, i_clear)
         begin
-            sum_result <= std_logic_vector(signed(o_result_reg) + signed(i_operand1) * signed(i_operand2));
+            if i_clear = '0' then
+                sum_result <= std_logic_vector(signed(o_result_reg) + signed(i_operand1) * signed(i_operand2));
+            else
+                sum_result <= (others => '0');
+            end if;
         end process;
     end generate gen_multiplication;
 
     --! Generate block for addition only
     do_not_gen_multiplication : if DO_MULTIPLICATION = '0' generate
-        process (i_operand1, o_result_reg)
+        process (i_operand1, o_result_reg, i_clear)
         begin
-            sum_result <= std_logic_vector(signed(i_operand1) + signed(o_result_reg));
+            if i_clear = '0' then
+                sum_result <= std_logic_vector(signed(i_operand1) + signed(o_result_reg));
+            else
+                sum_result <= (others => '0');
+            end if;
         end process;
     end generate do_not_gen_multiplication;
 
@@ -69,14 +77,10 @@ begin
         if reset_n = '0' then
             -- Reset output register to zeros
             o_result_reg <= (others => '0');
-
         elsif rising_edge(clock) then
             if i_sys_enable = '1' then
-                if i_clear = '1' then
-                    o_result_reg <= (others => '0');
-                else
-                    o_result_reg <= sum_result(OUTPUT_WIDTH - 1 downto 0);
-                end if;
+                -- Assign the sum result to the output register
+                o_result_reg <= sum_result;
             end if;
         end if;
     end process;
