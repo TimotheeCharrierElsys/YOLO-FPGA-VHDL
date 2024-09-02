@@ -31,18 +31,18 @@ entity conv2d is
         STRIDE            : integer   := 1    --! Stride value
     );
     port (
-        clock        : in std_logic; --! Clock signal
-        reset_n      : in std_logic; --! Reset signal, active low
-        i_sys_enable : in std_logic;
-        i_data       : in t_volume(0 to INPUT_CHANNELS - 1)(0 to INPUT_SIZE - 1)(0 to INPUT_SIZE - 1)(BITWIDTH - 1 downto 0);
-        i_data_valid : in std_logic;
-        i_kernel     : in t_tensor(0 to OUTPUT_CHANNELS - 1)(0 to INPUT_CHANNELS - 1)(0 to KERNEL_SIZE - 1)(0 to KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0);
-        i_bias       : in t_vec(0 to OUTPUT_CHANNELS - 1)(2 * BITWIDTH - 1 downto 0);
-        o_data       : out t_volume(0 to OUTPUT_CHANNELS - 1)
+        clock        : in std_logic;                                                                                                                      --! Clock signal
+        reset_n      : in std_logic;                                                                                                                      --! Reset signal, active low
+        i_sys_enable : in std_logic;                                                                                                                      --! Global enable signal, active high
+        i_data       : in t_volume(0 to INPUT_CHANNELS - 1)(0 to INPUT_SIZE - 1)(0 to INPUT_SIZE - 1)(BITWIDTH - 1 downto 0);                             --! Input Data
+        i_data_valid : in std_logic;                                                                                                                      --! Input Data Valid, pulse detected on Rising Edge
+        i_kernel     : in t_tensor(0 to OUTPUT_CHANNELS - 1)(0 to INPUT_CHANNELS - 1)(0 to KERNEL_SIZE - 1)(0 to KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0); --! Input Kernels
+        i_bias       : in t_vec(0 to OUTPUT_CHANNELS - 1)(2 * BITWIDTH - 1 downto 0);                                                                     --! Input Biases
+        o_data_valid : out std_logic;                                                                                                                     --! Output Data Valid (pulse)
+        o_data       : out t_volume(0 to OUTPUT_CHANNELS - 1)                                                                                             --! Output Data
         (0 to (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1)
         (0 to (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1)
-        (2 * BITWIDTH - 1 downto 0);
-        o_data_valid : out std_logic
+        (2 * BITWIDTH - 1 downto 0)
     );
 end entity conv2d;
 

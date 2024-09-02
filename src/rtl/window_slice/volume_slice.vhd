@@ -48,12 +48,12 @@ architecture volume_slice_arch of volume_slice is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal current_row        : integer range 0 to OUTPUT_SIZE - 1; --! Current row counter for slicing
-    signal current_col        : integer range 0 to OUTPUT_SIZE - 1; --! Current column counter for slicing
-    signal start_processing   : std_logic;                          --! Signal to start processing
-    signal i_data_valid_d1    : std_logic;                          --! Previous state of the data_valid signal
-    signal sliced_output_data : t_volume(0 to INPUT_CHANNELS - 1)(0 to KERNEL_SIZE - 1)(0 to KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0);
-    signal o_done_d1          : std_logic; --! Signal to delay the o_done to deal with the (0,0) index when conv is done
+    signal current_row        : integer range 0 to OUTPUT_SIZE - 1;                                                                               --! Current row counter for slicing
+    signal current_col        : integer range 0 to OUTPUT_SIZE - 1;                                                                               --! Current column counter for slicing
+    signal start_processing   : std_logic;                                                                                                        --! Signal to start processing
+    signal i_data_valid_d1    : std_logic;                                                                                                        --! Previous state of the data_valid signal
+    signal sliced_output_data : t_volume(INPUT_CHANNELS - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Sliced windows
+    signal o_done_d1          : std_logic;                                                                                                        --! Signal to delay the o_done to deal with the (0,0) index when conv is done
 
 begin
 
@@ -130,8 +130,8 @@ begin
     end process state_control;
 
     -- Output signals update for control
-    o_current_row <= std_logic_vector(to_unsigned(KERNEL_SIZE - 1 - current_row, integer(ceil(log2(real(OUTPUT_SIZE))))));
-    o_current_col <= std_logic_vector(to_unsigned(KERNEL_SIZE - 1 - current_col, integer(ceil(log2(real(OUTPUT_SIZE))))));
+    o_current_row <= std_logic_vector(to_unsigned(OUTPUT_SIZE - 1 - current_row, integer(ceil(log2(real(OUTPUT_SIZE))))));
+    o_current_col <= std_logic_vector(to_unsigned(OUTPUT_SIZE - 1 - current_col, integer(ceil(log2(real(OUTPUT_SIZE))))));
     o_done        <= o_done_d1;
 
 end volume_slice_arch;
