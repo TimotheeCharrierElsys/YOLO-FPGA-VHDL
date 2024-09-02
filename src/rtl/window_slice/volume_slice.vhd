@@ -22,24 +22,24 @@ entity volume_slice is
     generic (
         BITWIDTH          : integer := 8; --! Bit width of each operand
         INPUT_PADDED_SIZE : integer := 7; --! Width and Height of the input
-        CHANNEL_NUMBER    : integer := 3; --! Number of channels in the input
+        INPUT_CHANNELS    : integer := 3; --! Number of channels in the input
         KERNEL_SIZE       : integer := 3; --! Size of the kernel
         PADDING           : integer := 1; --! Padding value
         STRIDE            : integer := 2; --! Stride value 
         OUTPUT_SIZE       : integer := 3  --! Output size of the global volume
     );
     port (
-        clock                   : in std_logic;                                                                                                                    --! Clock signal
-        reset_n                 : in std_logic;                                                                                                                    --! Reset signal, active at low state
-        i_sys_enable            : in std_logic;                                                                                                                    --! System enable signal, active at high state
-        i_data                  : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input matrix volume
-        i_data_valid            : in std_logic;                                                                                                                    --! Input valid signal
-        i_last_computation_done : in std_logic;                                                                                                                    --! Feedback signal for last computation done
-        o_data                  : out t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);            --! Output sliced matrix volume
-        o_done                  : out std_logic;                                                                                                                   --! Output valid signal
-        o_computation_start     : out std_logic;                                                                                                                   --! Signal to start the next computation
-        o_current_row           : out std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                                       --! Current row index
-        o_current_col           : out std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0)                                                        --! Current column index
+        clock                   : in std_logic;                                                                                                        --! Clock signal
+        reset_n                 : in std_logic;                                                                                                        --! Reset signal, active at low state
+        i_sys_enable            : in std_logic;                                                                                                        --! System enable signal, active at high state
+        i_data                  : in t_volume(0 to INPUT_CHANNELS - 1)(0 to INPUT_PADDED_SIZE - 1)(0 to INPUT_PADDED_SIZE - 1)(BITWIDTH - 1 downto 0); --! Input matrix volume
+        i_data_valid            : in std_logic;                                                                                                        --! Input valid signal
+        i_last_computation_done : in std_logic;                                                                                                        --! Feedback signal for last computation done
+        o_data                  : out t_volume(0 to INPUT_CHANNELS - 1)(0 to KERNEL_SIZE - 1)(0 to KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0);            --! Output matrix volume
+        o_done                  : out std_logic;                                                                                                       --! Output valid signal
+        o_computation_start     : out std_logic;                                                                                                       --! Signal to start the next computation
+        o_current_row           : out std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                           --! Current row index
+        o_current_col           : out std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0)                                            --! Current column index
     );
 end volume_slice;
 
@@ -48,24 +48,24 @@ architecture volume_slice_arch of volume_slice is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal current_row        : integer range 0 to OUTPUT_SIZE - 1;                                                                               --! Current row counter for slicing
-    signal current_col        : integer range 0 to OUTPUT_SIZE - 1;                                                                               --! Current column counter for slicing
-    signal start_processing   : std_logic;                                                                                                        --! Signal to start processing
-    signal i_data_valid_d1    : std_logic;                                                                                                        --! Previous state of the data_valid signal
-    signal sliced_output_data : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Buffer for output data
-    signal o_done_d1          : std_logic;                                                                                                        --! Signal to delay the o_done to deal with the (0,0) index when conv is done
+    signal current_row        : integer range 0 to OUTPUT_SIZE - 1; --! Current row counter for slicing
+    signal current_col        : integer range 0 to OUTPUT_SIZE - 1; --! Current column counter for slicing
+    signal start_processing   : std_logic;                          --! Signal to start processing
+    signal i_data_valid_d1    : std_logic;                          --! Previous state of the data_valid signal
+    signal sliced_output_data : t_volume(0 to INPUT_CHANNELS - 1)(0 to KERNEL_SIZE - 1)(0 to KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0);
+    signal o_done_d1          : std_logic; --! Signal to delay the o_done to deal with the (0,0) index when conv is done
 
 begin
 
     -------------------------------------------------------------------------------------
     -- SUB-MATRIX SELECTION
     -------------------------------------------------------------------------------------
-    gen_window_slice : for i in 0 to CHANNEL_NUMBER - 1 generate
+    gen_window_slice : for i in 0 to INPUT_CHANNELS - 1 generate
         process (i_data, current_row, current_col)
         begin
-            for row in 0 to KERNEL_SIZE - 1 loop
-                for col in 0 to KERNEL_SIZE - 1 loop
-                    sliced_output_data(i)(row)(col) <= i_data(i)(current_row * STRIDE + (KERNEL_SIZE - 1) - row)(current_col * STRIDE + (KERNEL_SIZE - 1) - col);
+            for row in KERNEL_SIZE - 1 downto 0 loop
+                for col in KERNEL_SIZE - 1 downto 0 loop
+                    sliced_output_data(i)(row)(col) <= i_data(i)(current_row * STRIDE + row)(current_col * STRIDE + col);
                 end loop;
             end loop;
         end process;
@@ -130,8 +130,8 @@ begin
     end process state_control;
 
     -- Output signals update for control
-    o_current_row <= std_logic_vector(to_unsigned(current_row, integer(ceil(log2(real(OUTPUT_SIZE))))));
-    o_current_col <= std_logic_vector(to_unsigned(current_col, integer(ceil(log2(real(OUTPUT_SIZE))))));
+    o_current_row <= std_logic_vector(to_unsigned(KERNEL_SIZE - 1 - current_row, integer(ceil(log2(real(OUTPUT_SIZE))))));
+    o_current_col <= std_logic_vector(to_unsigned(KERNEL_SIZE - 1 - current_col, integer(ceil(log2(real(OUTPUT_SIZE))))));
     o_done        <= o_done_d1;
 
 end volume_slice_arch;

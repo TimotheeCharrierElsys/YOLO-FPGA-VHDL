@@ -19,15 +19,15 @@ entity conv2d_layer is
     generic (
         DO_PIPELINE    : std_logic := '1'; --! Define if the design is pipelined ('1') or not ('0')
         BITWIDTH       : integer   := 8;   --! Bit width of each operand
-        CHANNEL_NUMBER : integer   := 3;   --! Number of channels in the image
+        INPUT_CHANNELS : integer   := 3;   --! Number of input channels
         KERNEL_SIZE    : integer   := 3    --! Size of the kernel (e.g., 3 for a 3x3 kernel)
     );
     port (
         clock        : in std_logic;                                                                                                        --! Clock signal
         reset_n      : in std_logic;                                                                                                        --! Reset signal, active at low state
         i_sys_enable : in std_logic;                                                                                                        --! Enable signal, active at high state
-        i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data  (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
-        i_kernels    : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Kernel data (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
+        i_data       : in t_volume(INPUT_CHANNELS - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data  (INPUT_CHANNELS x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
+        i_kernels    : in t_volume(INPUT_CHANNELS - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Kernel data (INPUT_CHANNELS x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
         i_bias       : in std_logic_vector(2 * BITWIDTH - 1 downto 0);                                                                      --! Input bias value
         o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0)                                                                      --! Output value
     );
@@ -43,7 +43,7 @@ architecture conv2d_layer_fc_arch of conv2d_layer is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal r_results : t_vec(CHANNEL_NUMBER downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel. Add the bias to the vector.
+    signal r_results : t_vec(INPUT_CHANNELS downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel. Add the bias to the vector.
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -83,7 +83,7 @@ begin
     -------------------------------------------------------------------------------------
     -- GENERATE BLOCK
     -------------------------------------------------------------------------------------
-    gen_fc : for i in 0 to CHANNEL_NUMBER - 1 generate
+    gen_fc : for i in 0 to INPUT_CHANNELS - 1 generate
 
         --! Instantiate the fc_layer units for each channel.
         gen_fc_layer : fc_layer
@@ -105,7 +105,7 @@ begin
     adder_tree_inst : adder_tree
     generic map(
         DO_PIPELINE  => DO_PIPELINE,
-        NUM_OPERANDS => CHANNEL_NUMBER + 1,
+        NUM_OPERANDS => INPUT_CHANNELS + 1,
         BITWIDTH     => 2 * BITWIDTH
     )
     port map(
@@ -117,7 +117,7 @@ begin
     );
 
     -- Add bias to r_result last position
-    r_results(CHANNEL_NUMBER) <= i_bias;
+    r_results(INPUT_CHANNELS) <= i_bias;
 
 end conv2d_layer_fc_arch;
 

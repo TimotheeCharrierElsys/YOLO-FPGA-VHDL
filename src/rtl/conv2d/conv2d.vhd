@@ -15,32 +15,36 @@ library LIB_RTL;
 use LIB_RTL.types_pkg.all;
 
 --! Entity conv2d
---! This entity implements a convolution operation
+--! This entity implements a convolution operation matching the one of the tensorflow conv2d function
 entity conv2d is
     generic (
-        DATA_SCALE_FACTOR : integer   := 12;  --! Define the general scale factor of the input data (12 -> 2**12)
-        USE_MAC_ARCH      : std_logic := '1'; --! Define if the design is using mac ('1') or adder ('0')
+        --! Number of input channels
+        DATA_SCALE_FACTOR : integer   := 0;   --! Define the general scale factor of the input data (e.g., 12 -> 2**12)
+        USE_MAC_ARCH      : std_logic := '1'; --! Define if the design is using MAC ('1') or adder ('0')
         DO_PIPELINE       : std_logic := '1'; --! Define if the design is pipelined ('1') or not ('0')
         BITWIDTH          : integer   := 8;   --! Bit width of each operand
-        INPUT_SIZE        : integer   := 5;   --! Width and Height of the input
-        CHANNEL_NUMBER    : integer   := 3;   --! Number of channels in the input
-        KERNEL_SIZE       : integer   := 3;   --! Size of the kernel
-        KERNEL_NUMBER     : integer   := 3;   --! Number of kernels
+        INPUT_SIZE        : integer   := 3;   --! Height and width of the input matrix
+        KERNEL_SIZE       : integer   := 3;   --! Size of the kernel (assumes square kernel)
+        INPUT_CHANNELS    : integer   := 2;   --! Number of channels in the input
+        OUTPUT_CHANNELS   : integer   := 1;   --! Number of output channels (kernels)
         PADDING           : integer   := 1;   --! Padding value
-        STRIDE            : integer   := 2    --! Stride value 
+        STRIDE            : integer   := 1    --! Stride value
     );
     port (
-        clock        : in std_logic;                                                                                                                                                                                            --! Clock signal
-        reset_n      : in std_logic;                                                                                                                                                                                            --! Reset signal, active low
-        i_sys_enable : in std_logic;                                                                                                                                                                                            --! System enable signal, active high                                                                                                                                                     
-        i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);                                                                                       --! Input data (CHANNEL_NUMBER x (INPUT_SIZE x INPUT_SIZE x BITWIDTH) bits)
-        i_data_valid : in std_logic;                                                                                                                                                                                            --! Data valid signal, active high
-        i_kernel     : in t_input_feature(KERNEL_NUMBER - 1 downto 0)(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);                                                  --! Kernel data (KERNEL_NUMBER x CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
-        i_bias       : in t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                                                                                                                         --! Input bias value
-        o_data       : out t_volume(KERNEL_NUMBER - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Output data
-        o_data_valid : out std_logic                                                                                                                                                                                            --! Output valid signal
+        clock        : in std_logic; --! Clock signal
+        reset_n      : in std_logic; --! Reset signal, active low
+        i_sys_enable : in std_logic;
+        i_data       : in t_volume(0 to INPUT_CHANNELS - 1)(0 to INPUT_SIZE - 1)(0 to INPUT_SIZE - 1)(BITWIDTH - 1 downto 0);
+        i_data_valid : in std_logic;
+        i_kernel     : in t_tensor(0 to OUTPUT_CHANNELS - 1)(0 to INPUT_CHANNELS - 1)(0 to KERNEL_SIZE - 1)(0 to KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0);
+        i_bias       : in t_vec(0 to OUTPUT_CHANNELS - 1)(2 * BITWIDTH - 1 downto 0);
+        o_data       : out t_volume(0 to OUTPUT_CHANNELS - 1)
+        (0 to (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1)
+        (0 to (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1)
+        (2 * BITWIDTH - 1 downto 0);
+        o_data_valid : out std_logic
     );
-end conv2d;
+end entity conv2d;
 
 architecture conv2d_arch of conv2d is
 
@@ -55,23 +59,23 @@ architecture conv2d_arch of conv2d is
     constant N_OUTPUT_REG            : integer := 1;                                                             --! Number of output registers.
     constant DFF_DELAY_NON_PIPELINED : integer := N_MULT_REG + N_OUTPUT_REG + 1;                                 --! Total delay when not pipelined
     constant DFF_DELAY_PIPELINED     : integer := N_STAGES + N_MULT_REG + N_OUTPUT_REG + 2;                      --! Total delay when pipelined
-    constant DFF_DELAY_MAC_ARCH      : integer := KERNEL_SIZE * KERNEL_SIZE + CHANNEL_NUMBER + 1 + N_OUTPUT_REG; --! Total delay when using MAC architecture
+    constant DFF_DELAY_MAC_ARCH      : integer := KERNEL_SIZE * KERNEL_SIZE + INPUT_CHANNELS + 1 + N_OUTPUT_REG; --! Total delay when using MAC architecture
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal padded_input_data   : t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Matrix volume with input padded on all channels
-    signal sliced_input_volume : t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);             --! Sliced volume for conv2d_layer input
-    signal conv2d_result       : t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                                                 --! Output result of the conv2d_layer
-    signal conv2d_start        : std_logic;                                                                                                                    --! Signal to start convolution
-    signal conv2d_layer_done   : std_logic;                                                                                                                    --! Signal indicating convolution layer completion
-    signal row_index           : std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                                        --! Current row index
-    signal col_index           : std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                                        --! Current column index
+    signal padded_input_data   : t_volume(0 to INPUT_CHANNELS - 1)(0 to INPUT_PADDED_SIZE - 1)(0 to INPUT_PADDED_SIZE - 1)(BITWIDTH - 1 downto 0); --! Padded input data
+    signal sliced_input_volume : t_volume(0 to INPUT_CHANNELS - 1)(0 to KERNEL_SIZE - 1)(0 to KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0);             --! Sliced input volume
+    signal conv2d_result       : t_vec(0 to OUTPUT_CHANNELS - 1)(2 * BITWIDTH - 1 downto 0);                                                       --! Conv2d result
+    signal conv2d_start        : std_logic;                                                                                                        --! Signal to start convolution
+    signal conv2d_layer_done   : std_logic;                                                                                                        --! Signal indicating convolution layer completion
+    signal row_index           : std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                            --! Current row index
+    signal col_index           : std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);                                            --! Current column index
 
     -- Counters for the mac architecture
     signal current_row     : integer range 0 to KERNEL_SIZE - 1; --! Counter to track the current position within the kernel.
     signal current_col     : integer range 0 to KERNEL_SIZE - 1; --! Counter to track the current position within the kernel.
-    signal current_channel : integer range 0 to CHANNEL_NUMBER;  --! Counter to track the current position within the channels.
+    signal current_channel : integer range 0 to INPUT_CHANNELS;  --! Counter to track the current position within the channels.
 
     -- Control signals
     signal i_valid_d1        : std_logic; --! Delayed input valid signal
@@ -85,7 +89,7 @@ architecture conv2d_arch of conv2d is
         generic (
             BITWIDTH          : integer;
             INPUT_PADDED_SIZE : integer;
-            CHANNEL_NUMBER    : integer;
+            INPUT_CHANNELS    : integer;
             KERNEL_SIZE       : integer;
             PADDING           : integer;
             STRIDE            : integer;
@@ -95,30 +99,29 @@ architecture conv2d_arch of conv2d is
             clock                   : in std_logic;
             reset_n                 : in std_logic;
             i_sys_enable            : in std_logic;
-            i_data                  : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(INPUT_PADDED_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_data                  : in t_volume(0 to INPUT_CHANNELS - 1)(0 to INPUT_PADDED_SIZE - 1)(0 to INPUT_PADDED_SIZE - 1)(BITWIDTH - 1 downto 0);
             i_data_valid            : in std_logic;
             i_last_computation_done : in std_logic;
-            o_data                  : out t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            o_data                  : out t_volume(0 to INPUT_CHANNELS - 1)(0 to KERNEL_SIZE - 1)(0 to KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0);
             o_done                  : out std_logic;
             o_computation_start     : out std_logic;
             o_current_row           : out std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0);
             o_current_col           : out std_logic_vector(integer(ceil(log2(real(OUTPUT_SIZE)))) - 1 downto 0)
         );
     end component;
-
     component conv2d_layer
         generic (
             DO_PIPELINE    : std_logic;
             BITWIDTH       : integer;
-            CHANNEL_NUMBER : integer;
+            INPUT_CHANNELS : integer;
             KERNEL_SIZE    : integer
         );
         port (
             clock        : in std_logic;
             reset_n      : in std_logic;
             i_sys_enable : in std_logic;
-            i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_kernels    : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_data       : in t_volume(INPUT_CHANNELS - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_kernels    : in t_volume(INPUT_CHANNELS - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_bias       : in std_logic_vector(2 * BITWIDTH - 1 downto 0);
             o_result     : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
         );
@@ -128,20 +131,20 @@ architecture conv2d_arch of conv2d is
         generic (
             DATA_SCALE_FACTOR : integer;
             BITWIDTH          : integer;
-            CHANNEL_NUMBER    : integer;
+            INPUT_CHANNELS    : integer;
             KERNEL_SIZE       : integer
         );
         port (
             clock             : in std_logic;
             reset_n           : in std_logic;
             i_sys_enable      : in std_logic;
-            i_data            : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_data            : in t_volume(INPUT_CHANNELS - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_valid           : in std_logic;
-            i_kernels         : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_kernels         : in t_volume(INPUT_CHANNELS - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_bias            : in std_logic_vector(2 * BITWIDTH - 1 downto 0);
             is_processing_mac : in std_logic;
             is_processing_add : in std_logic;
-            current_channel   : in integer range 0 to CHANNEL_NUMBER;
+            current_channel   : in integer range 0 to INPUT_CHANNELS;
             current_col       : in integer range 0 to KERNEL_SIZE - 1;
             current_row       : in integer range 0 to KERNEL_SIZE - 1;
             o_result          : out std_logic_vector(2 * BITWIDTH - 1 downto 0)
@@ -167,7 +170,7 @@ begin
     -------------------------------------------------------------------------------------
     comb_proc : process (i_data)
     begin
-        padded_input_data <= pad_input(i_data, INPUT_SIZE, CHANNEL_NUMBER, PADDING, BITWIDTH);
+        padded_input_data <= pad_input(i_data, INPUT_SIZE, INPUT_CHANNELS, PADDING, BITWIDTH);
     end process comb_proc;
 
     -------------------------------------------------------------------------------------
@@ -177,7 +180,7 @@ begin
     generic map(
         BITWIDTH          => BITWIDTH,
         INPUT_PADDED_SIZE => INPUT_PADDED_SIZE,
-        CHANNEL_NUMBER    => CHANNEL_NUMBER,
+        INPUT_CHANNELS    => INPUT_CHANNELS,
         KERNEL_SIZE       => KERNEL_SIZE,
         PADDING           => PADDING,
         STRIDE            => STRIDE,
@@ -234,12 +237,12 @@ begin
         -------------------------------------------------------------------------------------
         -- conv2d_layer INSTANTIATION
         -------------------------------------------------------------------------------------
-        gen_conv2d_layers : for i in 0 to KERNEL_NUMBER - 1 generate
+        gen_conv2d_layers : for i in 0 to OUTPUT_CHANNELS - 1 generate
             conv2d_layer_inst : conv2d_layer
             generic map(
                 DO_PIPELINE    => DO_PIPELINE,
                 BITWIDTH       => BITWIDTH,
-                CHANNEL_NUMBER => CHANNEL_NUMBER,
+                INPUT_CHANNELS => INPUT_CHANNELS,
                 KERNEL_SIZE    => KERNEL_SIZE
             )
             port map(
@@ -258,12 +261,12 @@ begin
         -------------------------------------------------------------------------------------
         -- conv2d_layer INSTANTIATION
         -------------------------------------------------------------------------------------
-        gen_conv2d_layers : for i in 0 to KERNEL_NUMBER - 1 generate
+        gen_conv2d_layers : for i in 0 to OUTPUT_CHANNELS - 1 generate
             conv2d_layer_inst : conv2d_layer_mac
             generic map(
                 DATA_SCALE_FACTOR => DATA_SCALE_FACTOR,
                 BITWIDTH          => BITWIDTH,
-                CHANNEL_NUMBER    => CHANNEL_NUMBER,
+                INPUT_CHANNELS    => INPUT_CHANNELS,
                 KERNEL_SIZE       => KERNEL_SIZE
             )
             port map(
@@ -341,7 +344,7 @@ begin
                     elsif is_processing_add = '1' then
 
                         -- Process the adder
-                        if current_channel = CHANNEL_NUMBER then
+                        if current_channel = INPUT_CHANNELS then
                             current_channel   <= 0;
                             is_processing_add <= '0';
                         else
@@ -366,7 +369,7 @@ begin
             if i_sys_enable = '1' then
                 -- Update output
                 if conv2d_layer_done = '1' then
-                    for i in 0 to KERNEL_NUMBER - 1 loop
+                    for i in 0 to OUTPUT_CHANNELS - 1 loop
                         o_data(i)(to_integer(unsigned(row_index)))(to_integer(unsigned(col_index))) <= conv2d_result(i);
                     end loop;
                 end if;

@@ -18,22 +18,22 @@ entity conv2d_layer_mac is
     generic (
         DATA_SCALE_FACTOR : integer := 12; --! Input data scale factor. For example, a value of 12 means input values are scaled by 2^12.
         BITWIDTH          : integer := 8;  --! Bit width of each operand
-        CHANNEL_NUMBER    : integer := 3;  --! Number of channels in the image
+        INPUT_CHANNELS    : integer := 3;  --! Number of input channels
         KERNEL_SIZE       : integer := 3   --! Size of the kernel (e.g., 3 for a 3x3 kernel)
     );
     port (
         clock             : in std_logic;                                                                                                        --! Clock signal
         reset_n           : in std_logic;                                                                                                        --! Reset signal, active at low state
         i_sys_enable      : in std_logic;                                                                                                        --! Enable signal, active at high state
-        i_data            : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data  (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
+        i_data            : in t_volume(INPUT_CHANNELS - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data  (INPUT_CHANNELS x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
         i_valid           : in std_logic;                                                                                                        --! Input valid signal
-        i_kernels         : in t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Kernel data (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
+        i_kernels         : in t_volume(INPUT_CHANNELS - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Kernel data (INPUT_CHANNELS x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
         i_bias            : in std_logic_vector(2 * BITWIDTH - 1 downto 0);                                                                      --! Input bias value
         is_processing_mac : in std_logic;                                                                                                        --! Processing signal for the MAC units
         is_processing_add : in std_logic;                                                                                                        --! Processing signal for the adder unit
         current_row       : in integer range 0 to KERNEL_SIZE - 1;                                                                               --! Current row index
         current_col       : in integer range 0 to KERNEL_SIZE - 1;                                                                               --! Current column index
-        current_channel   : in integer range 0 to CHANNEL_NUMBER;                                                                                --! Current channel index
+        current_channel   : in integer range 0 to INPUT_CHANNELS;                                                                                --! Current channel index
         o_result          : out std_logic_vector(2 * BITWIDTH - 1 downto 0)                                                                      --! Output value
     );
 end conv2d_layer_mac;
@@ -49,9 +49,9 @@ architecture conv2d_layer_mac_arch of conv2d_layer_mac is
     -- SIGNALS
     -------------------------------------------------------------------------------------
     -- Intermediate signals
-    signal r_results                : t_vec(CHANNEL_NUMBER downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel.
-    signal intermediate_multiplier1 : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0); --! Intermediate signal to avoid static 
-    signal intermediate_multiplier2 : t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0); --! Intermediate signal
+    signal r_results                : t_vec(INPUT_CHANNELS downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel.
+    signal intermediate_multiplier1 : t_vec(INPUT_CHANNELS - 1 downto 0)(BITWIDTH - 1 downto 0); --! Intermediate signal to avoid static 
+    signal intermediate_multiplier2 : t_vec(INPUT_CHANNELS - 1 downto 0)(BITWIDTH - 1 downto 0); --! Intermediate signal
     signal intermediate_result      : std_logic_vector(2 * BITWIDTH - 1 downto 0);               --! Intermediate signal for output result sum
 
     -------------------------------------------------------------------------------------
@@ -79,7 +79,7 @@ begin
     -------------------------------------------------------------------------------------
     -- GENERATE BLOCK FOR MAC UNITS
     -------------------------------------------------------------------------------------
-    gen_mac_channel : for i in 0 to CHANNEL_NUMBER - 1 generate
+    gen_mac_channel : for i in 0 to INPUT_CHANNELS - 1 generate
 
         --! Instantiate one accumulative mac for each channel
         gen_mac_inst : mac
@@ -123,11 +123,11 @@ begin
     --! Handles the assignment of the input data to the intermediate signals.
     process (all)
     begin
-        r_results(CHANNEL_NUMBER) <= std_logic_vector(shift_left(signed(i_bias), DATA_SCALE_FACTOR));                                                       --! Initialize the output with the bias value
+        r_results(INPUT_CHANNELS) <= std_logic_vector(shift_left(signed(i_bias), DATA_SCALE_FACTOR));                                                       --! Initialize the output with the bias value
         intermediate_result       <= std_logic_vector(shift_right(signed(r_results(current_channel)), DATA_SCALE_FACTOR)) when is_processing_add = '1' else --! Intermediate signal to hold the output of each MAC unit for each channel.
             (others => '0');
 
-        for i in 0 to CHANNEL_NUMBER - 1 loop
+        for i in 0 to INPUT_CHANNELS - 1 loop
             intermediate_multiplier1(i) <= i_data(i)(current_col)(current_row) when is_processing_mac = '1' else
             (others => '0');
             intermediate_multiplier2(i) <= i_kernels(i)(current_col)(current_row) when is_processing_mac = '1' else
