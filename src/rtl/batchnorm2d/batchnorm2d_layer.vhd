@@ -91,7 +91,8 @@ begin
                     v_add := std_logic_vector(signed(i_data) - signed(i_mean));
 
                     v_mult := std_logic_vector(signed(v_add) * signed(i_weight));
-                    v_mult := std_logic_vector(shift_right(signed(v_mult), DATA_SCALE_FACTOR));
+                    v_mult := (v_mult'high downto v_mult'high - DATA_SCALE_FACTOR + 1 => v_mult(v_mult'high)) & -- MSB  
+                              (v_mult(v_mult'high downto DATA_SCALE_FACTOR));                                   -- LSB
 
                     v_mult := std_logic_vector(signed(v_mult) + signed(i_bias));
 
