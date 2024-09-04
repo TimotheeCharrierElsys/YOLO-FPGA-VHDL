@@ -23,6 +23,7 @@ entity mac is
         clock        : in std_logic;                                   --! Clock signal
         reset_n      : in std_logic;                                   --! Reset signal, active low
         i_sys_enable : in std_logic;                                   --! Global enable signal, active high
+        i_valid      : in std_logic;                                   --! Input Valid, active high
         i_clear      : in std_logic;                                   --! Clear signal, active high
         i_operand1   : in std_logic_vector(INPUT_WIDTH - 1 downto 0);  --! First multiplication operand
         i_operand2   : in std_logic_vector(INPUT_WIDTH - 1 downto 0);  --! Second multiplication operand
@@ -45,27 +46,18 @@ begin
     -------------------------------------------------------------------------------------
     --! Generate block for multiplication and accumulation
     gen_multiplication : if DO_MULTIPLICATION = '1' generate
-        process (i_operand1, i_operand2, o_result_reg, i_clear)
+        process (i_operand1, i_operand2, o_result_reg)
         begin
-            if i_clear = '0' then
-                sum_result <= std_logic_vector(signed(o_result_reg) + signed(i_operand1) * signed(i_operand2));
-            else
-                sum_result <= (others => '0');
-            end if;
+            sum_result <= std_logic_vector(signed(o_result_reg) + signed(i_operand1) * signed(i_operand2));
         end process;
     end generate gen_multiplication;
 
-    --! Generate block for addition only
-    do_not_gen_multiplication : if DO_MULTIPLICATION = '0' generate
-        process (i_operand1, o_result_reg, i_clear)
+    gen_addition : if DO_MULTIPLICATION = '0' generate
+        process (i_operand1, i_operand2, o_result_reg)
         begin
-            if i_clear = '0' then
-                sum_result <= std_logic_vector(signed(i_operand1) + signed(o_result_reg));
-            else
-                sum_result <= (others => '0');
-            end if;
+            sum_result <= std_logic_vector(signed(o_result_reg) + signed(i_operand1) + signed(i_operand2));
         end process;
-    end generate do_not_gen_multiplication;
+    end generate gen_addition;
 
     -------------------------------------------------------------------------------------
     -- PROCESS ASYNC (reset negative)
@@ -79,11 +71,19 @@ begin
             o_result_reg <= (others => '0');
         elsif rising_edge(clock) then
             if i_sys_enable = '1' then
-                -- Assign the sum result to the output register
-                o_result_reg <= sum_result;
+                -- Assign the sum result to the output register, else clear it
+                if i_clear = '1' then
+                    o_result_reg <= (others => '0');
+                elsif i_valid = '1' then
+                    o_result_reg <= sum_result;
+                end if;
+            else
+                o_result_reg <= (others => '0');
             end if;
         end if;
     end process;
 
+    -- Output the result
     o_result <= o_result_reg;
+
 end mac_arch;
