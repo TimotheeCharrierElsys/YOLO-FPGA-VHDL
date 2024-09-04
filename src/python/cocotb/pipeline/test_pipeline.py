@@ -6,7 +6,7 @@ from tabulate import tabulate
 
 # # Adjust the system path to include the parent directory for imports
 sys.path.insert(1, "../")
-from utils import print_progress_bar, reset_dut, setup_clock
+from utils import reset_dut, setup_clock
 
 # Constants
 CLOCK_PERIOD_NS = 10
