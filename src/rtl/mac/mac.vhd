@@ -1,8 +1,7 @@
 -----------------------------------------------------------------------------------
 --!     @file       mac
---!     @brief      This entity implements a Multiply-Accumulate (MAC) unit.
---!                 It performs multiplication of two operands followed by an addition
---!                 with a third operand.
+--!     @brief      This entity implements a Multiply-Accumulate (MAC) unit or
+--!                 an Add-Accumulate unit.
 --!     @author     Timothée Charrier
 -----------------------------------------------------------------------------------
 
