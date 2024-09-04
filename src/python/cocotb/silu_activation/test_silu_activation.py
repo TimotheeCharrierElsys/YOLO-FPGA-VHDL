@@ -1,217 +1,308 @@
-import numpy as np
+import sys
+from random import randint
 
 import cocotb
-from cocotb.clock import Clock
+import numpy as np
+import plotly.graph_objects as go
 from cocotb.triggers import RisingEdge
-import matplotlib.pyplot as plt
+from plotly.subplots import make_subplots
+from tabulate import tabulate
+
+# # Adjust the system path to include the parent directory for imports
+sys.path.insert(1, "../")
+from utils import reset_dut, setup_clock
+
+# Constants
+CLOCK_PERIOD_NS = 10
 
 
-def relu6(x, scale_factor=4096):
-    return np.minimum(np.maximum(x, 0), 6 * scale_factor)
+def get_generics(dut):
+    """
+    Retrieve the generic parameters from the DUT.
+    """
+    return {
+        "BITWIDTH": dut.BITWIDTH.value,
+        "DATA_SCALE_FACTOR": dut.DATA_SCALE_FACTOR.value,
+    }
 
 
-def hardswish(x_prime, scale_factor=4096):
+def log_generics(dut):
+    """
+    Log the generic parameters from the DUT in a table format.
+    """
+    generics = get_generics(dut)
+    table = tabulate(generics.items(), headers=["Parameter", "Value"], tablefmt="grid")
+    dut._log.info(f"Running with generics:\n{table}")
+
+
+def relu6(x, data_scale_factor):
+    """
+    Computes the ReLU6 activation function.
+
+    The ReLU6 function is a variation of the ReLU (Rectified Linear Unit) function,
+    which clips the input values to the range [0, 6 * 2^data_scale_factor].
+
+    Parameters:
+    - x: Input array or value to apply the ReLU6 function to.
+    - data_scale_factor: An integer scale factor applied to the upper bound.
+
+    Returns:
+    - The result of applying the ReLU6 function to the input `x`, where the output
+      is clipped between 0 and 6 * 2^data_scale_factor.
+    """
+    return np.minimum(np.maximum(x, 0), 6 * 2**data_scale_factor)
+
+
+def hardswish(x, data_scale_factor):
+    """
+    Computes the HardSwish activation function.
+
+    The HardSwish function is a computationally efficient approximation of the
+    Swish activation function, often used in neural networks. It combines the
+    input with the ReLU6 activation and scales it accordingly.
+
+    Parameters:
+    - x: Input array or value to apply the HardSwish function to.
+    - data_scale_factor: An integer scale factor that influences the behavior of both
+      the ReLU6 and the final scaling.
+
+    Returns:
+    - The result of applying the HardSwish function to the input `x`, where the
+      output is computed as x * relu6(x + 3 * 2^data_scale_factor, 2^data_scale_factor) / (6 * 2^data_scale_factor).
+    """
     return (
-        x_prime * relu6(x_prime + 3 * scale_factor, scale_factor) / (6 * scale_factor)
+        x
+        * relu6(x + 3 * 2**data_scale_factor, data_scale_factor)
+        / (6 * 2**data_scale_factor)
     )
 
 
-def silu(x, scale_factor=4096):
-    return x / (1 + np.exp(-x)) * scale_factor
+def silu(x, data_scale_factor):
+    """
+    Computes the Sigmoid Linear Unit (SiLU) activation function.
+
+    The SiLU function, also known as the Swish function, is defined as x / (1 + exp(-x)).
+    It is similar to the Sigmoid function but with a linear component, which makes it
+    more useful in certain machine learning applications.
+
+    Parameters:
+    - x: Input array or value to apply the SiLU function to.
+    - data_scale_factor: An integer scale factor that is applied to the result of the SiLU function.
+
+    Returns:
+    - The result of applying the SiLU function to the input `x`, scaled by 2^data_scale_factor.
+    """
+    return x / (1 + np.exp(-x)) * 2**data_scale_factor
 
 
-async def reset_dut(dut):
-    """Reset the DUT."""
-    dut.reset_n.value = 0
-    await RisingEdge(dut.clock)
-    await RisingEdge(dut.clock)
-    dut.reset_n.value = 1
-    await RisingEdge(dut.clock)
-    dut._log.info("DUT reset complete.")
+async def initialize_dut(dut, generics):
+    """
+    Initialize the DUT with default values.
+    """
+    await setup_clock(dut, CLOCK_PERIOD_NS)
 
-
-async def enable_dut(dut):
-    """Enable the DUT."""
-    dut.i_sys_enable.value = 1
-    await RisingEdge(dut.clock)
-    dut._log.info("DUT enabled.")
-
-
-@cocotb.test()
-async def reset_test(dut):
-    # Start the clock
-    clock = Clock(dut.clock, 10, units="ns")
-    cocotb.start_soon(clock.start(start_high=False))
-
-    # Input data
+    # Set initial values
     dut.i_sys_enable.value = 0
     dut.i_data.value = 0
 
-    # Apply reset and check output
-    await reset_dut(dut)
-    assert dut.o_data.value == 0, "Output was not reset correctly"
+
+@cocotb.test()
+async def async_reset_test(dut):
+    """
+    Test the DUT's behavior during reset.
+    Verifies that the output is correctly reset and remains stable.
+    """
+    generics = get_generics(dut)
+    log_generics(dut)
+
+    await initialize_dut(dut, generics)
+    await reset_dut(dut)  # Assert and deassert reset signal
+
+    # After reset, the output should be zero
+    assert dut.o_data.value == 0, "DUT output was not reset correctly"
     dut._log.info("Reset test passed.")
 
 
 @cocotb.test()
-async def computation_test(dut):
-    # Start the clock
-    clock = Clock(dut.clock, 10, units="ns")
-    cocotb.start_soon(clock.start(start_high=False))
+async def test_interval(dut):
+    """
+    Test the DUT's behavior on the entire interval.
+    Verifies that the output is correct and checks the average error.
+    """
+    generics = get_generics(dut)
 
-    # Apply reset and check output
-    await reset_dut(dut)
-    assert dut.o_data.value == 0, "Output was not reset correctly"
+    await initialize_dut(dut, generics)
+    await reset_dut(dut)  # Assert and deassert reset signal
 
-    # Enable the system
+    # After reset, the output should be zero
+    assert dut.o_data.value == 0, "DUT output was not reset correctly"
+    dut._log.info("Reset test passed.")
+
+    bitwidth = generics["BITWIDTH"]
+    min_val = -(2 ** (bitwidth - 1))
+    max_val = 2 ** (bitwidth - 1) - 1
+    interval = np.arange(
+        min_val, max_val + 1, 1
+    )  # Ensure the entire interval is covered
+
+    # Enable DUT
     dut.i_sys_enable.value = 1
+    await RisingEdge(dut.clock)
 
-    scaling_factor = 4096
-    X = np.arange(-7 * scaling_factor, 7 * scaling_factor, 1)
-    Y = []
-    gotten_output = []
+    output_array = []
+    expected_hardswish_array = []
+    expected_silu_array = []
+    error_hardswish_array = []
+    error_silu_array = []
 
-    abs_error_list = []
-
-    for i in X:
-        dut.i_data.value = int(i)
+    # Loop through the entire interval and compare the values
+    for value in interval:
+        # Set the DUT current value and compute expected
+        dut.i_data.value = int(value)
         await RisingEdge(dut.clock)
 
-        # Convert the output data to signed integer
-        output_value = dut.o_data.value.signed_integer
+        expected_hardswish = hardswish(value, generics["DATA_SCALE_FACTOR"])
+        expected_silu = silu(
+            value / 2 ** generics["DATA_SCALE_FACTOR"], generics["DATA_SCALE_FACTOR"]
+        )
 
-        gotten_output.append(output_value)
+        output_value = int(dut.o_data.value.signed_integer)
 
-        # Calculate expected output
-        expected_value = hardswish(i, scale_factor=scaling_factor)
-        Y.append(expected_value)
+        output_array.append(output_value)
+        expected_hardswish_array.append(expected_hardswish)
+        expected_silu_array.append(expected_silu)
 
-        # Calculate absolute error
-        abs_error = abs(output_value - expected_value)
-        abs_error_list.append(abs_error)
-        
+        error_hardswish_array.append(np.abs(output_value - expected_hardswish))
+        error_silu_array.append(np.abs(output_value - expected_silu))
 
-    # Plotting results
-    plt.figure(figsize=(4, 4))
-    dut._log.info(f"Average Absolute Error {np.mean(abs_error_list)}")
-
-    plt.plot(X, Y, label="Expected", color="blue")
-    plt.plot(X, gotten_output, label="Gotten", color="red")
-    plt.grid(True)
-    plt.legend()
-    plt.xlabel("Input")
-    plt.ylabel("Output")
-    plt.title("Y = f(X)")
-    plt.grid(True)
-    plt.legend()
-
-    plt.tight_layout()
-    plt.show()
-
-
-def read_and_plot_errors(file_path):
-    # Read the absolute error values from the file
-    with open(file_path, "r") as file:
-        abs_error_list = [float(line.strip()) for line in file]
-
-    return abs_error_list
-
-
-def plot_silu():
-    X = np.linspace(-7, 7, 5000)
-    Y = [silu(x) / 1024 for x in X]
-    Z = [hardswish(x) for x in X]
-
-    plt.plot(X, Y, linewidth=2, label="SiLU")
-    plt.plot(X, Z, linewidth=2, label="Hard-swish")
-    plt.grid(True)
-    plt.xlabel("x", fontsize=12)
-    plt.ylabel("y", fontsize=12)
-    plt.title("y = SiLU(x)", fontsize=12)
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig("silu_hardswish_plot.svg", format="svg")
-    plt.show()
-
-
-def plot_compare_error():
-    X = np.arange(-7 * 4096, 7 * 4096, 1)
-    Y = [silu(x / 4096) for x in X]
-    Z = [hardswish(x) for x in X]
-
-    # Create a figure and a set of subplots
-    fig, ax = plt.subplots()
-    ax.plot(X, Y, linewidth=2, label="SiLU")
-    ax.plot(X, Z, linewidth=2, label="Hard-swish")
-    # Set the grid
-    ax.grid(True, linestyle="--", alpha=0.6)
-    ax.set_xlabel("x", fontsize=14)
-    ax.set_ylabel("y", fontsize=14)
-    ax.set_title("y = SiLU(x)", fontsize=16)
-    ax.legend()
-    ax.ticklabel_format(style="sci", axis="both", scilimits=(0, 0))
-    plt.tight_layout()
-    plt.savefig("silu_hardswish_plot.svg", format="svg")
-    plt.show()
-
-
-def plot_error():
-    X = np.arange(-7 * 1024, 7 * 1024)
-
-    error10 = read_and_plot_errors(
-        r"/home/tim/YOLO-FPGA-VHDL/SRC/COCOTB/common/silu_activation/absolute_errors10.txt"
-    )
-    error11 = read_and_plot_errors(
-        r"/home/tim/YOLO-FPGA-VHDL/SRC/COCOTB/common/silu_activation/absolute_errors11.txt"
-    )
-    error12 = read_and_plot_errors(
-        r"/home/tim/YOLO-FPGA-VHDL/SRC/COCOTB/common/silu_activation/absolute_errors12.txt"
-    )
-    error13 = read_and_plot_errors(
-        r"/home/tim/YOLO-FPGA-VHDL/SRC/COCOTB/common/silu_activation/absolute_errors13.txt"
-    )
-    error9 = read_and_plot_errors(
-        r"/home/tim/YOLO-FPGA-VHDL/SRC/COCOTB/common/silu_activation/absolute_errors9.txt"
-    )
-    error8 = read_and_plot_errors(
-        r"/home/tim/YOLO-FPGA-VHDL/SRC/COCOTB/common/silu_activation/absolute_errors8.txt"
+    avg_error_hardswish = np.average(error_hardswish_array)
+    avg_error_silu = np.average(error_silu_array)
+    dut._log.info(
+        f"Hardswish error: {avg_error_hardswish:.6f}, SiLU error: {avg_error_silu:.6f}"
     )
 
-    # Create a figure and a set of subplots
-    fig, ax = plt.subplots()
-
-    # Plot the data
-    ax.plot(X, error8, label="N=8")
-    ax.plot(X, error9, label="N=9")
-    ax.plot(X, error10, label="N=10")
-    ax.plot(X, error11, label="N=11")
-    ax.plot(X, error12, label="N=12")
-    ax.plot(X, error13, label="N=13")
-
-    # Set the grid
-    ax.grid(True, linestyle="--", alpha=0.6)
-
-    # Set the legend
-    ax.legend(loc="best", fontsize="large", title="Scale Factors")
-
-    # Set labels and title with increased font size
-    ax.set_xlabel("Input Value", fontsize=14)
-    ax.set_ylabel("Absolute Error Value", fontsize=14)
-    ax.set_title(
-        "Comparison of Absolute Error with Different Division Scale Factors",
-        fontsize=16,
+    fig = make_subplots(
+        rows=2,
+        cols=1,
+        shared_xaxes=True,
+        vertical_spacing=0.1,
+        subplot_titles=("Function Outputs", "Logarithmic Absolute Errors"),
     )
 
-    # Use scientific notation for large numbers on axes
-    ax.ticklabel_format(style="sci", axis="both", scilimits=(0, 0))
+    # Add traces for expected Hardswish, SiLU, and DUT output
+    traceHW = go.Scatter(
+        x=interval,
+        y=expected_hardswish_array,
+        mode="lines",
+        name="Expected Hardswish",
+        line=dict(width=2, color="#1f77b4"),
+        legendgroup="group1",
+    )
+    traceSILU = go.Scatter(
+        x=interval,
+        y=expected_silu_array,
+        mode="lines",
+        name="Expected SiLU",
+        line=dict(width=2, color="#ff7f0e"),
+        legendgroup="group1",
+    )
+    traceOutput = go.Scatter(
+        x=interval,
+        y=output_array,
+        mode="lines",
+        name="DUT Output",
+        line=dict(width=2, color="#2ca02c", dash="dash"),
+        legendgroup="group1",
+    )
 
-    # Improve layout
-    plt.tight_layout()
-    plt.savefig("absolute_error.svg", format="svg")
-    # Show the plot
-    plt.show()
+    # Add traces to the first subplot
+    fig.add_trace(traceHW, row=1, col=1)
+    fig.add_trace(traceSILU, row=1, col=1)
+    fig.add_trace(traceOutput, row=1, col=1)
 
+    # Add traces for the errors
+    traceErrorHW = go.Scatter(
+        x=interval,
+        y=error_hardswish_array,
+        mode="lines",
+        name="Error Hardswish-DUT",
+        line=dict(width=2, color="#d62728"),
+        legendgroup="group2",
+    )
+    traceErrorSILU = go.Scatter(
+        x=interval,
+        y=error_silu_array,
+        mode="lines",
+        name="Error SiLU-DUT",
+        line=dict(width=2, color="#9467bd"),
+        legendgroup="group2",
+    )
 
-if __name__ == "__main__":
-    # plot_error()
-    plot_compare_error()
+    # Add traces to the second subplot
+    fig.add_trace(traceErrorHW, row=2, col=1)
+    fig.add_trace(traceErrorSILU, row=2, col=1)
+
+    # Update layout
+    fig.update_layout(
+        title={
+            "text": "Comparison of Hardswish and SiLU Functions with DUT Output and Errors",
+            "font": {
+                "size": 20,
+                "family": "Cambria, sans-serif",
+                "color": "black",
+            },
+        },
+        xaxis_title={
+            "text": "Input Value",
+            "font": {"family": "Cambria, sans-serif", "size": 16, "color": "black"},
+        },
+        yaxis_title={
+            "text": "Function Output",
+            "font": {"family": "Cambria, sans-serif", "size": 16, "color": "black"},
+        },
+        legend=dict(
+            x=0.01,
+            y=0.98,
+            traceorder="normal",
+            font=dict(family="Cambria, sans-serif", size=12, color="black"),
+            bgcolor="rgba(255, 255, 255, 0.8)",
+            bordercolor="black",
+            borderwidth=1,
+        ),
+        plot_bgcolor="white",
+        hovermode="x unified",
+        margin=dict(l=60, r=40, t=80, b=60),
+        autosize=False,
+        width=900,
+        height=650,
+        xaxis_showspikes=True,
+    )
+
+    # Update x-axis and y-axis grid and format
+    fig.update_xaxes(
+        showgrid=True,
+        gridwidth=1,
+        gridcolor="LightGray",
+        tickfont=dict(family="Arial, sans-serif", size=12, color="black"),
+        exponentformat="power",
+        zeroline=True,
+        zerolinewidth=1,
+        zerolinecolor="LightGray",
+    )
+    fig.update_yaxes(
+        showgrid=True,
+        gridwidth=1,
+        gridcolor="LightGray",
+        tickfont=dict(family="Arial, sans-serif", size=12, color="black"),
+        exponentformat="power",
+    )
+
+    # Update the layout for the second subplot (Errors) with log scale
+    fig.update_yaxes(title_text="Absolute Error (Log Scale)", type="log", row=2, col=1)
+
+    # Make x-axis visible on the first subplot
+    fig.update_xaxes(visible=True, row=1, col=1)
+
+    # Show the figure
+    fig.write_html("plot.html")
+    fig.show()
