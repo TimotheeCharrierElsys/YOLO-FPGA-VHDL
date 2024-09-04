@@ -1,37 +1,26 @@
-TOPLEVEL            := silu_activation
-MODULE              := test_silu_activation
-WAVE_FILE           := $(MODULE)_wave.vcd
+# Makefile for simulating VHDL code with nvc and cocotb
 
-COCOTB_LOG_LEVEL    := DEBUG
-TOPLEVEL_LANG       ?= vhdl
-SIM                 := ghdl
-SIM_BUILD           := build
+# Directory containing VHDL source files
+SRC_DIR				:= ../../../rtl
 
-COMPILE_ARGS        := --std=08
-COMPILE_ARGS        += -Wno-error
-COMPILE_ARGS        += -g
-SIM_ARGS            += --vcd=$(WAVE_FILE)
-SIM_ARGS            += -gBITWIDTH=16
-SIM_ARGS            += -gDATA_SCALE_FACTOR=12
+# VHDL Source Files
+VHDL_SOURCES		:= $(SRC_DIR)/common/silu_activation.vhd
 
-PWD=$(shell pwd)
+# COCOTB Flags
+SIM					:= nvc
+TOPLEVEL_LANG		:= vhdl
+TOPLEVEL			:= silu_activation
+COCOTB_TEST_MODULES	:= test_silu_activation
+MODULE				:= $(COCOTB_TEST_MODULES) # Retrocompatibility
+RTL_LIBRARY			:= LIB_RTL
 
-export PYTHONPATH   := $(PWD)/../model:$(PYTHONPATH)
+# Generic Parameters
+SIM_ARGS			+= -gBITWIDTH=16 -gDATA_SCALE_FACTOR=12
 
-ifeq ($(TOPLEVEL_LANG),vhdl)
-    VHDL_SOURCES    = ../../../rtl/common/silu_activation.vhd
-else
-    $(error A valid value (verilog or vhdl) was not provided for TOPLEVEL_LANG=$(TOPLEVEL_LANG))
-endif
-
-# Remove default GHDL options set by cocotb-config Makefile
-GHDL_ARGS := $(COMPILE_ARGS)
-
+# COCOTB Log Level
+PWD					:= $(shell pwd)
+export PYTHONPATH	:= $(PWD)/../model:$(PYTHONPATH)
 include $(shell cocotb-config --makefiles)/Makefile.sim
 
-# Add custom GHDL compile options
-GHDL_ARGS += $(COMPILE_ARGS)
-
-.PHONY: clean
 clean::
-	rm -rf *.o __pycache__ $(SIM_BUILD) results.xml $(WAVE_FILE) $(TOPLEVEL)
+	rm -rf $(LIB) $(WAVE_FILE) results.xml __pycache__ sim_build *.html

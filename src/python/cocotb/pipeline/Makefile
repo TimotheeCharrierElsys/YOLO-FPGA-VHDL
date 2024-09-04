@@ -1,26 +1,25 @@
 # Makefile for simulating VHDL code with nvc and cocotb
 
 # Directory containing VHDL source files
-SRC_DIR     := ../../../rtl
-BENCH_DIR   := ../../../bench
+SRC_DIR				:= ../../../rtl
 
 # VHDL Source Files
-VHDL_SOURCES  := $(SRC_DIR)/common/pipeline.vhd
-			   
+VHDL_SOURCES		:= $(SRC_DIR)/common/pipeline.vhd
+
 # COCOTB Flags
-SIM          		:= nvc
-TOPLEVEL_LANG   	:= vhdl
-TOPLEVEL 	 		:= pipeline
+SIM					:= nvc
+TOPLEVEL_LANG		:= vhdl
+TOPLEVEL			:= pipeline
 COCOTB_TEST_MODULES	:= test_pipeline
 MODULE				:= $(COCOTB_TEST_MODULES) # Retrocompatibility
 RTL_LIBRARY			:= LIB_RTL
 
 # Generic Parameters 
-SIM_ARGS            += -gN_STAGES=8
+SIM_ARGS			+= -gN_STAGES=8
 
 # COCOTB Log Level
-PWD 		   		:= $(shell pwd)
-export PYTHONPATH   := $(PWD)/../model:$(PYTHONPATH)
+PWD 				:= $(shell pwd)
+export PYTHONPATH	:= $(PWD)/../model:$(PYTHONPATH)
 include $(shell cocotb-config --makefiles)/Makefile.sim
 
 clean::
