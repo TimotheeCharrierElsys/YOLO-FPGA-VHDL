@@ -15,9 +15,8 @@ COCOTB_TEST_MODULES	:= test_pipeline
 MODULE				:= $(COCOTB_TEST_MODULES) # Retrocompatibility
 RTL_LIBRARY			:= LIB_RTL
 
-# Generic Parameters (unfortunately, I was not able to set std_logic as generic in the Makefile,
-# so to set DO_MULTIPLCIATION to '0' or '1', you need to change the VHDL code)
-SIM_ARGS            += -gN_STAGES=8 --wave=wave.fst
+# Generic Parameters 
+SIM_ARGS            += -gN_STAGES=8
 
 # COCOTB Log Level
 PWD 		   		:= $(shell pwd)
