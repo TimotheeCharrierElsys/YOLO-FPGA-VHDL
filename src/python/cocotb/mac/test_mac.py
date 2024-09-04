@@ -1,225 +1,294 @@
-import random
+import sys
+from random import randint
 
 import cocotb
-from cocotb.clock import Clock
+import numpy as np
 from cocotb.triggers import RisingEdge
+from tabulate import tabulate
+
+# # Adjust the system path to include the parent directory for imports
+sys.path.insert(1, "../")
+from utils import (
+    print_progress_bar,
+    reset_dut,
+    setup_clock,
+    sys_enable_dut,
+)
+
+# Constants
+CLOCK_PERIOD_NS = 10
 
 
-def to_signed(val, bitwidth):
-    """Convert an unsigned integer to signed."""
-    if val >= 2**(bitwidth - 1):
-        return val - 2**bitwidth
+def get_generics(dut):
+    """
+    Retrieve the generic parameters from the DUT.
+    """
+    return {
+        "DO_MULTIPLICATION": dut.DO_MULTIPLICATION.value,
+        "INPUT_WIDTH": dut.INPUT_WIDTH.value,
+        "OUTPUT_WIDTH": dut.OUTPUT_WIDTH.value,
+    }
+
+
+def log_generics(dut):
+    """
+    Log the generic parameters from the DUT in a table format.
+    """
+    generics = get_generics(dut)
+    table = tabulate(generics.items(), headers=["Parameter", "Value"], tablefmt="grid")
+    dut._log.info(f"Running with generics:\n{table}")
+
+
+def check_generics(generics):
+    """
+    Validates the `generics` dictionary based on the `DO_MULTIPLICATION` flag.
+
+    If `DO_MULTIPLICATION` is set to 1:
+        - The `OUTPUT_WIDTH` should be twice the `INPUT_WIDTH`.
+
+    If `DO_MULTIPLICATION` is set to 0:
+        - The `OUTPUT_WIDTH` should be equal to the `INPUT_WIDTH`.
+
+    Parameters:
+    ----------
+    generics : dict
+        A dictionary containing the generics configuration with keys:
+        - "DO_MULTIPLICATION": int (0 or 1)
+        - "INPUT_WIDTH": int
+        - "OUTPUT_WIDTH": int
+
+    Raises:
+    ------
+    ValueError:
+        If the `OUTPUT_WIDTH` does not match the expected value based on
+        the `DO_MULTIPLICATION` setting.
+        If `DO_MULTIPLICATION` is not 0 or 1.
+    """
+
+    do_multiplication = generics.get("DO_MULTIPLICATION")
+    input_width = generics.get("INPUT_WIDTH")
+    output_width = generics.get("OUTPUT_WIDTH")
+
+    # Check if multiplication is enabled
+    if do_multiplication == 1:
+        # Output width should be twice the input width
+        expected_output_width = 2 * input_width
+        if output_width != expected_output_width:
+            raise ValueError(
+                f"DO_MULTIPLICATION is set, so OUTPUT_WIDTH should be "
+                f"{expected_output_width}, but got {output_width}."
+            )
+    elif do_multiplication == 0:
+        # Output width should be equal to input width
+        if output_width != input_width:
+            if output_width > input_width:
+                raise ValueError(
+                    f"DO_MULTIPLICATION is not set, so OUTPUT_WIDTH should be "
+                    f"equal to INPUT_WIDTH ({input_width}), but got {output_width}."
+                    f"\nIt will work because output > input"
+                )
+            else:
+                assert (
+                    output_width > input_width
+                ), f"DO_MULTIPLICATION is not set, so OUTPUT_WIDTH should be\nequal to INPUT_WIDTH ({input_width}), but got {output_width}."
     else:
-        return val
+        raise ValueError("Invalid value for DO_MULTIPLICATION. It should be 0 or 1.")
 
 
-async def reset_dut(dut):
-    """Reset the DUT."""
-    dut.reset_n.value = 0
+def get_random_operands(min_val, max_val):
+    return randint(min_val, max_val), randint(min_val, max_val)
+
+
+async def initialize_dut(dut, generics):
+    """
+    Initialize the DUT with default values.
+    """
+    await setup_clock(dut)
+
+    dut.i_sys_enable.value = 0
+    dut.i_valid.value = 0
+    dut.i_clear.value = 0
+    dut.i_operand1.value = 0
+    dut.i_operand2.value = 0
+
+
+@cocotb.test()
+async def test_generics(dut):
+    generics = get_generics(dut)
+    check_generics(generics)
+    log_generics(dut)
+
+    dut._log.info("Generic Check test passed.")
+
+
+@cocotb.test()
+async def async_reset_test(dut):
+    """
+    Test the DUT's behavior during reset.
+    """
+    generics = get_generics(dut)
+
+    output_zeros = 0
+
+    await initialize_dut(dut, generics)
+    await reset_dut(dut)
+    assert dut.o_result.value == 0, "DUT output was not reset correctly"
+    dut._log.info("Reset test passed.")
+
+
+@cocotb.test()
+async def computation_test(dut):
+    """
+    Test the DUT's behavior during normal computation.
+    """
+    generics = get_generics(dut)
+
+    await initialize_dut(dut, generics)
+    await reset_dut(dut)
+    assert dut.o_result.value == 0, "DUT output was not reset correctly"
+
+    await sys_enable_dut(dut)
+    dut.i_valid.value = 1
     await RisingEdge(dut.clock)
+    dut.i_valid.value = 0
+
     await RisingEdge(dut.clock)
-    dut.reset_n.value = 1
-    await RisingEdge(dut.clock)
-    dut._log.info("DUT reset complete.")
+    assert dut.o_result.value == 0, "DUT output was not reset correctly"
+    await reset_dut(dut)
+    assert dut.o_result.value == 0, "DUT output was not reset correctly"
 
+    total_iterations = 100000
+    min_val = -(2 ** (generics["INPUT_WIDTH"] - 1))
+    max_val = 2 ** (generics["INPUT_WIDTH"] - 1) - 1
 
-async def enable_dut(dut):
-    """Enable the DUT."""
-    dut.i_sys_enable.value = 1
-    await RisingEdge(dut.clock)
-    dut._log.info("DUT enabled.")
-
-
-async def clear_dut(dut):
-    """Clear the DUT"""
-    dut.i_sys_enable.value = 1
-    dut.i_clear.value = 1
-    await RisingEdge(dut.clock)
-    # dut._log.info("DUT enabled and cleared.")
-
-
-def generate_random_test_vector(dut, max_val=25):
-    """Generate random test vectors."""
-    i_operand1 = random.randint(0, max_val)
-    i_operand2 = random.randint(0, max_val)
-    return i_operand1, i_operand2
-
-
-async def apply_test_vector(dut, i_operand1, i_operand2):
-    """Apply test vector to the DUT."""
-    dut.i_operand1.value = i_operand1
-    dut.i_operand2.value = i_operand2
-    await RisingEdge(dut.clock)
-    # dut._log.info(
-    #     f"Applied test vector: multiplier1={to_signed(i_operand1, dut.i_operand1.value.n_bits)}, multiplier2={to_signed(i_operand2, dut.i_operand2.value.n_bits)}")
-
-
-async def check_result(dut, expected_val):
-    """Check the DUT result."""
-    await RisingEdge(dut.clock)
-    output_val = int(dut.o_result.value)
-    signed_output_val = to_signed(output_val, dut.o_result.value.n_bits)
-    # dut._log.info(f"Expected: {expected_val}, Got: {signed_output_val}")
-    assert signed_output_val == expected_val, (
-        f"Output result was incorrect: expected {
-            expected_val}, got {signed_output_val}"
+    dut._log.info(
+        f"\n--- Running {total_iterations} Iterations testing one multiplication and then clear ---"
     )
 
+    for i in range(total_iterations):
+        # Update Progress Bar
+        print_progress_bar(
+            i + 1, total_iterations, prefix="Progress:", suffix="Complete", length=50
+        )
 
-@cocotb.test()
-async def multiplciation_test(dut):
-    # Start the clock
-    clock = Clock(dut.clock, 10, units="ns")
-    cocotb.start_soon(clock.start(start_high=False))
-    dut.reset_n.value = 0
-    dut.i_sys_enable.value = 0
-    dut.i_clear.value = 0
-    dut.i_operand1.value = to_signed(0, dut.i_operand1.value.n_bits)
-    dut.i_operand2.value = to_signed(0, dut.i_operand2.value.n_bits)
+        # Generate Random Inputs and set them to DUT
+        random_operand1, random_operand2 = get_random_operands(min_val, max_val)
+        dut.i_operand1.value = random_operand1
+        dut.i_operand2.value = random_operand2
 
-    await reset_dut(dut)
-    await enable_dut(dut)
+        # Compute Expected Accumulated Output
+        if generics["DO_MULTIPLICATION"] == 1:
+            expected_output = random_operand1 * random_operand2
+        else:
+            expected_output = random_operand1 + random_operand2
 
-    # Test loop
-    for i in range(1000):
-        i_operand1, i_operand2 = generate_random_test_vector(dut)
+        # Enable the DUT
+        dut.i_valid.value = 1
+        await RisingEdge(dut.clock)
+        dut.i_valid.value = 0
 
-        await clear_dut(dut)
+        # Wait one clock cycle
+        await RisingEdge(dut.clock)
+
+        # Output Check
+        gotten_output = dut.o_result.value.signed_integer
+        assert (
+            expected_output == gotten_output
+        ), f"DUT output incorrect, Expected: {expected_output}, Gotten {gotten_output} at iteration {i}"
+
+        # Clear the DUT
+        dut.i_clear.value = 1
+        await RisingEdge(dut.clock)
         dut.i_clear.value = 0
+        await RisingEdge(dut.clock)
+        assert dut.o_result.value == 0, "DUT output was not reset correctly"
 
-        # Convert to signed values for correct computation
-        signed_multiplier1 = to_signed(
-            i_operand1, dut.i_operand1.value.n_bits)
-        signed_multiplier2 = to_signed(
-            i_operand2, dut.i_operand2.value.n_bits)
-
-        expected_val = signed_multiplier1 * signed_multiplier2
-
-        await apply_test_vector(dut, i_operand1, i_operand2)
-        await check_result(dut, expected_val)
-
-    # Check for edge cases, such as maximum values
-    max_val = 2**(dut.i_operand1.value.n_bits - 1) - 1
-    signed_max_val = to_signed(max_val, dut.i_operand1.value.n_bits)
-    expected_val = signed_max_val * signed_max_val
-
-    await clear_dut(dut)
-    dut.i_clear.value = 0
-
-    await apply_test_vector(dut, max_val, max_val)
-    await check_result(dut, expected_val)
+    dut._log.info("\nRandom Multiplication without accumualtion test passed.")
 
 
 @cocotb.test()
-async def mac_test(dut):
-    # Start the clock
-    clock = Clock(dut.clock, 10, units="ns")
-    cocotb.start_soon(clock.start(start_high=False))
-    dut.reset_n.value = 0
-    dut.i_sys_enable.value = 0
-    dut.i_clear.value = 0
-    dut.i_operand1.value = to_signed(0, dut.i_operand1.value.n_bits)
-    dut.i_operand2.value = to_signed(0, dut.i_operand2.value.n_bits)
+async def accumulation_test(dut):
+    """
+    Test the DUT's behavior during accumulation.
+    """
+    generics = get_generics(dut)
 
+    await initialize_dut(dut, generics)
     await reset_dut(dut)
-    await enable_dut(dut)
-    dut.i_clear.value = 0
+    assert dut.o_result.value == 0, "DUT output was not reset correctly"
 
-    # Test loop
-    for i in range(1000):
-        expected_val = 0
+    await sys_enable_dut(dut)
+    dut.i_valid.value = 1
+    await RisingEdge(dut.clock)
+    dut.i_valid.value = 0
 
-        # Inner loop to apply and check multiple test vectors
-        for j in range(10):
-            operand1, operand2 = generate_random_test_vector(dut, max_val=25)
+    await RisingEdge(dut.clock)
+    assert dut.o_result.value == 0, "DUT output was not reset correctly"
+    await reset_dut(dut)
+    assert dut.o_result.value == 0, "DUT output was not reset correctly"
 
-            # Convert to signed values for correct computation
-            signed_operand1 = to_signed(operand1, dut.i_operand1.value.n_bits)
-            signed_operand2 = to_signed(operand2, dut.i_operand2.value.n_bits)
+    total_iterations = 25000
+    min_val = -(2 ** (generics["INPUT_WIDTH"] - 2))
+    max_val = 2 ** (generics["INPUT_WIDTH"] - 2) - 1
 
-            # Update expected value
-            expected_val += signed_operand1 * signed_operand2
+    dut._log.info(
+        f"\n--- Running {total_iterations} Iterations testing accumulation with random lengths ---"
+    )
 
-            # Apply test vector and check result
-            await apply_test_vector(dut, operand1, operand2)
+    for i in range(total_iterations):
+        # Update Progress Bar
+        print_progress_bar(
+            i + 1, total_iterations, prefix="Progress:", suffix="Complete", length=50
+        )
 
-        # Check the final accumulated result
-        await check_result(dut, expected_val)
-        await clear_dut(dut)  # Ensure the accumulator is cleared
+        # Determine the number of accumulations (random between 1 and 20)
+        num_accumulations = randint(1, 20)
+
+        # Initialize the accumulated expected output for this cycle
+        accumulated_output = 0
+
+        for _ in range(num_accumulations):
+            # Generate Random Inputs and set them to DUT
+            random_operand1, random_operand2 = get_random_operands(min_val, max_val)
+            dut.i_operand1.value = random_operand1
+            dut.i_operand2.value = random_operand2
+
+            # Compute Expected Accumulated Output
+            if generics["DO_MULTIPLICATION"] == 1:
+                accumulated_output += random_operand1 * random_operand2
+            else:
+                accumulated_output += random_operand1 + random_operand2
+
+            # Ensure accumulated output fits within the output width
+            max_accumulated_value = 2 ** (generics["OUTPUT_WIDTH"] - 1) - 1
+            min_accumulated_value = -(2 ** (generics["OUTPUT_WIDTH"] - 1))
+            if accumulated_output > max_accumulated_value:
+                accumulated_output -= 2 ** generics["OUTPUT_WIDTH"]
+            elif accumulated_output < min_accumulated_value:
+                accumulated_output += 2 ** generics["OUTPUT_WIDTH"]
+
+            # Enable the DUT
+            dut.i_valid.value = 1
+            await RisingEdge(dut.clock)
+            dut.i_valid.value = 0
+
+            # Wait one clock cycle
+            await RisingEdge(dut.clock)
+
+            # Output Check after accumulation
+            gotten_output = dut.o_result.value.signed_integer
+            assert (
+                accumulated_output == gotten_output
+            ), f"DUT output incorrect, Expected: {accumulated_output}, Gotten {gotten_output} at iteration {i}"
+
+        # Clear the DUT
+        dut.i_clear.value = 1
+        await RisingEdge(dut.clock)
         dut.i_clear.value = 0
+        await RisingEdge(dut.clock)
+        assert dut.o_result.value == 0, "DUT output was not reset correctly"
 
-# @cocotb.test()
-async def addition_test(dut):
-    # Start the clock
-    clock = Clock(dut.clock, 10, units="ns")
-    cocotb.start_soon(clock.start(start_high=False))
-    dut.reset_n.value = 0
-    dut.i_sys_enable.value = 0
-    dut.i_clear.value = 0
-    dut.i_operand1.value = to_signed(0, dut.i_operand1.value.n_bits)
-    dut.i_operand2.value = to_signed(0, dut.i_operand2.value.n_bits)
+        # Reset the accumulated output and start again
+        accumulated_output = 0
 
-    await reset_dut(dut)
-    await enable_dut(dut)
-    dut.i_clear.value = 0
-
-    # Test loop
-    for i in range(1000):
-        expected_val = 0
-
-        # Inner loop to apply and check multiple test vectors
-        for j in range(10):
-            operand1, operand2 = generate_random_test_vector(dut, max_val=25)
-
-            # Convert to signed values for correct computation
-            signed_operand1 = to_signed(operand1, dut.i_operand1.value.n_bits)
-            signed_operand2 = 0
-
-            # Update expected value
-            expected_val += signed_operand1
-
-            # Apply test vector and check result
-            await apply_test_vector(dut, operand1, operand2)
-
-        # Check the final accumulated result
-        await check_result(dut, expected_val)
-        await clear_dut(dut)  # Ensure the accumulator is cleared
-        dut.i_clear.value = 0
-
-
-@cocotb.test()
-async def reset_test(dut):
-    # Start the clock
-    clock = Clock(dut.clock, 10, units="ns")
-    cocotb.start_soon(clock.start(start_high=False))
-
-    # Apply some values
-    dut.i_operand1.value = 1
-    dut.i_operand2.value = 1
-
-    # Apply reset and check output
-    await reset_dut(dut)
-    assert dut.o_result.value == 0, "Output was not reset correctly"
-    dut._log.info("Reset test passed.")
-
-
-@cocotb.test()
-async def clear_test(dut):
-    # Start the clock
-    clock = Clock(dut.clock, 10, units="ns")
-    cocotb.start_soon(clock.start(start_high=False))
-
-    # Apply some values
-    dut.i_operand1.value = 1
-    dut.i_operand2.value = 1
-    dut.i_clear.value = 1
-
-    # Apply reset and check output
-    await reset_dut(dut)
-    assert dut.o_result.value == 0, "Output was not reset correctly"
-
-    # Run clear test
-    await clear_dut(dut)
-    assert dut.o_result.value == 0, "Output was not reset correctly"
-
-    dut._log.info("Reset test passed.")
+    dut._log.info("\nRandom Accumulation test with varying lengths passed.")

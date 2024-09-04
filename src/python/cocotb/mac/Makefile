@@ -1,33 +1,28 @@
-TOPLEVEL            := mac
-MODULE              := test_mac
-WAVE_FILE           := $(MODULE)_wave.vcd
+# Makefile for simulating VHDL code with nvc and cocotb
 
-COCOTB_LOG_LEVEL    := DEBUG
-TOPLEVEL_LANG       ?= vhdl
-SIM                 := ghdl
-SIM_BUILD           := build
+# Directory containing VHDL source files
+SRC_DIR     := ../../../rtl
+BENCH_DIR   := ../../../bench
 
-COMPILE_ARGS        := --std=08
-SIM_ARGS            += --vcd=$(WAVE_FILE)
+# VHDL Source Files
+VHDL_SOURCES  := $(SRC_DIR)/mac/mac.vhd
+			   
+# COCOTB Flags
+SIM          		:= nvc
+TOPLEVEL_LANG   	:= vhdl
+TOPLEVEL 	 		:= mac
+COCOTB_TEST_MODULES	:= test_mac
+MODULE				:= $(COCOTB_TEST_MODULES) # Retrocompatibility
+RTL_LIBRARY			:= LIB_RTL
+
+# Generic Parameters (unfortunately, I was not able to set std_logic as generic in the Makefile,
+# so to set DO_MULTIPLCIATION to '0' or '1', you need to change the VHDL code)
 SIM_ARGS            += -gINPUT_WIDTH=8 -gOUTPUT_WIDTH=16
-PWD=$(shell pwd)
 
+# COCOTB Log Level
+PWD 		   		:= $(shell pwd)
 export PYTHONPATH   := $(PWD)/../model:$(PYTHONPATH)
-
-ifeq ($(TOPLEVEL_LANG),vhdl)
-    VHDL_SOURCES    = ../../../rtl/mac/mac.vhd
-else
-    $(error A valid value (verilog or vhdl) was not provided for TOPLEVEL_LANG=$(TOPLEVEL_LANG))
-endif
-
-# Remove default GHDL options set by cocotb-config Makefile
-GHDL_ARGS :=
-
 include $(shell cocotb-config --makefiles)/Makefile.sim
 
-# Add custom GHDL compile options
-GHDL_ARGS += $(COMPILE_ARGS)
-
-.PHONY: clean
 clean::
-	rm -rf *.o __pycache__ $(SIM_BUILD) results.xml $(WAVE_FILE) $(TOPLEVEL)
+	rm -rf $(LIB) $(WAVE_FILE) results.xml __pycache__ sim_build
