@@ -211,7 +211,7 @@ async def test_interval(dut):
         y=output_array,
         mode="lines",
         name="DUT Output",
-        line=dict(width=2, color="#2ca02c", dash="dash"),
+        line=dict(width=2, color="#2ca02c", dash="dot"),
         legendgroup="group1",
     )
 
@@ -283,7 +283,7 @@ async def test_interval(dut):
         showgrid=True,
         gridwidth=1,
         gridcolor="LightGray",
-        tickfont=dict(family="Arial, sans-serif", size=12, color="black"),
+        tickfont=dict(family="Cambria, sans-serif", size=12, color="black"),
         exponentformat="power",
         zeroline=True,
         zerolinewidth=1,
@@ -293,7 +293,7 @@ async def test_interval(dut):
         showgrid=True,
         gridwidth=1,
         gridcolor="LightGray",
-        tickfont=dict(family="Arial, sans-serif", size=12, color="black"),
+        tickfont=dict(family="Cambria, sans-serif", size=12, color="black"),
         exponentformat="power",
     )
 
@@ -304,5 +304,5 @@ async def test_interval(dut):
     fig.update_xaxes(visible=True, row=1, col=1)
 
     # Show the figure
-    fig.write_html("plot.html")
+    fig.write_html("interval_plot.html")
     fig.show()
