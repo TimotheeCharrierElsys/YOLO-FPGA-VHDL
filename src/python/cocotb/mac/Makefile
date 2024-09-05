@@ -6,7 +6,7 @@ SRC_DIR				:= ../../../rtl
 # VHDL Source Files
 VHDL_SOURCES  		:= $(SRC_DIR)/mac/mac.vhd
 
-# COCOTB Flags
+# Cocotb and nvc flags
 SIM					:= nvc
 TOPLEVEL_LANG		:= vhdl
 TOPLEVEL			:= mac
@@ -18,7 +18,7 @@ RTL_LIBRARY			:= LIB_RTL
 # so to set DO_MULTIPLCIATION to '0' or '1', you need to change the VHDL code)
 SIM_ARGS			+= -gINPUT_WIDTH=8 -gOUTPUT_WIDTH=16
 
-# COCOTB Log Level
+# Calling cocotb
 PWD 				:= $(shell pwd)
 export PYTHONPATH	:= $(PWD)/../model:$(PYTHONPATH)
 include $(shell cocotb-config --makefiles)/Makefile.sim

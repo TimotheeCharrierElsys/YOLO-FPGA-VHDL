@@ -6,7 +6,7 @@ SRC_DIR				:= ../../../rtl
 # VHDL Source Files
 VHDL_SOURCES		:= $(SRC_DIR)/common/silu_activation.vhd
 
-# COCOTB Flags
+# Cocotb and nvc flags
 SIM					:= nvc
 TOPLEVEL_LANG		:= vhdl
 TOPLEVEL			:= silu_activation
@@ -17,7 +17,7 @@ RTL_LIBRARY			:= LIB_RTL
 # Generic Parameters
 SIM_ARGS			+= -gBITWIDTH=16 -gDATA_SCALE_FACTOR=12
 
-# COCOTB Log Level
+# Calling cocotb
 PWD					:= $(shell pwd)
 export PYTHONPATH	:= $(PWD)/../model:$(PYTHONPATH)
 include $(shell cocotb-config --makefiles)/Makefile.sim

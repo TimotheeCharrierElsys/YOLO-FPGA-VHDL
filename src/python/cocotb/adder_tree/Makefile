@@ -7,7 +7,7 @@ SRC_DIR			:= ../../../rtl
 VHDL_SOURCES	:= $(SRC_DIR)/types_pkg.vhd \
 				$(SRC_DIR)/common/adder_tree.vhd
 
-# COCOTB Flags
+# Cocotb and nvc flags
 SIM					:= nvc
 TOPLEVEL_LANG		:= vhdl
 TOPLEVEL			:= adder_tree
@@ -17,7 +17,7 @@ RTL_LIBRARY			:= LIB_RTL
 WAVE_FILE			:= $(COCOTB_TEST_MODULES)_wave.fst
 SIM_ARGS			+= -gNUM_OPERANDS=8 -gBITWIDTH=8 --wave=$(WAVE_FILE) --dump-arrays
 
-# COCOTB Log Level
+# Calling cocotb
 PWD 				:= $(shell pwd)
 export PYTHONPATH	:= $(PWD)/../model:$(PYTHONPATH)
 include $(shell cocotb-config --makefiles)/Makefile.sim

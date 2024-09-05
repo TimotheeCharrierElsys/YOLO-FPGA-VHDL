@@ -9,7 +9,7 @@ VHDL_SOURCES	:= $(SRC_DIR)/types_pkg.vhd \
 				$(SRC_DIR)/common/silu_activation.vhd \
 				$(SRC_DIR)/batchnorm2d/batchnorm2d_layer.vhd
 
-# COCOTB Flags
+# Cocotb and nvc flags
 SIM					:= nvc
 TOPLEVEL_LANG		:= vhdl
 TOPLEVEL			:= batchnorm2d_layer
@@ -20,7 +20,7 @@ RTL_LIBRARY			:= LIB_RTL
 # Generic Parameters
 SIM_ARGS			+= -gDATA_SCALE_FACTOR=10 -gBITWIDTH=16
 
-# COCOTB Log Level
+# Calling cocotb
 PWD 				:= $(shell pwd)
 export PYTHONPATH	:= $(PWD)/../model:$(PYTHONPATH)
 include $(shell cocotb-config --makefiles)/Makefile.sim

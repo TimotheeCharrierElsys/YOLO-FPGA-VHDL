@@ -9,7 +9,7 @@ VHDL_SOURCES	:= $(SRC_DIR)/types_pkg.vhd \
 				$(SRC_DIR)/common/adder_tree.vhd \
 				$(SRC_DIR)/mac/fc_layer.vhd \
 
-# COCOTB Flags
+# Cocotb and nvc flags
 SIM					:= nvc
 TOPLEVEL_LANG		:= vhdl
 TOPLEVEL			:= fc_layer
@@ -19,7 +19,7 @@ RTL_LIBRARY			:= LIB_RTL
 WAVE_FILE			:= wave_$(COCOTB_TEST_MODULES).fst
 SIM_ARGS			+= -gMATRIX_SIZE=3 -gBITWIDTH=8 --wave=$(WAVE_FILE) --dump-arrays
 
-# COCOTB Log Level
+# Calling cocotb
 PWD 				:= $(shell pwd)
 export PYTHONPATH	:= $(PWD)/../model:$(PYTHONPATH)
 include $(shell cocotb-config --makefiles)/Makefile.sim
