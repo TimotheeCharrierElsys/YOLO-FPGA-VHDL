@@ -21,9 +21,9 @@ entity conv is
         DO_PIPELINE       : std_logic := '1'; --! Define if the design is pipelined ('1') or not ('0')
         BITWIDTH          : integer   := 16;  --! Bit width of each operand
         INPUT_SIZE        : integer   := 5;   --! Width and Height of the input
-        CHANNEL_NUMBER    : integer   := 3;   --! Number of channels in the input
         KERNEL_SIZE       : integer   := 3;   --! Size of the kernel
-        KERNEL_NUMBER     : integer   := 3;   --! Number of kernels
+        INPUT_CHANNELS    : integer   := 3;   --! Number of channels in the input
+        OUTPUT_CHANNELS   : integer   := 3;   --! Number of kernels
         PADDING           : integer   := 1;   --! Padding value
         STRIDE            : integer   := 2    --! Stride value 
     );
@@ -37,24 +37,24 @@ entity conv is
         -- conv2d inputs
         --        
 
-        i_data        : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);                                      --! Input data (CHANNEL_NUMBER x (INPUT_SIZE x INPUT_SIZE x BITWIDTH) bits)
-        i_kernel      : in t_input_feature(KERNEL_NUMBER - 1 downto 0)(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Kernel data (KERNEL_NUMBER x CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
-        i_bias_conv2d : in t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                                                                        --! Input bias vector for conv2d
+        i_data        : in t_volume(INPUT_CHANNELS - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);                                 --! Input data (INPUT_CHANNELS x (INPUT_SIZE x INPUT_SIZE x BITWIDTH) bits)
+        i_kernel      : in t_tensor(OUTPUT_CHANNELS - 1 downto 0)(INPUT_CHANNELS - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Kernel data (OUTPUT_CHANNELS x INPUT_CHANNELS x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
+        i_bias_conv2d : in t_vec(OUTPUT_CHANNELS - 1 downto 0)(2 * BITWIDTH - 1 downto 0);                                                                                 --! Input bias vector for conv2d
 
         -- 
         -- batchnorm2d inputs
         --  
 
-        i_running_mean     : in t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Input mean vector
-        i_weight           : in t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Input weight vector
-        i_bias_batchnorm2d : in t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Input bias vector for batchnorm2d   
+        i_running_mean     : in t_vec(OUTPUT_CHANNELS - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Input mean vector
+        i_weight           : in t_vec(OUTPUT_CHANNELS - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Input weight vector
+        i_bias_batchnorm2d : in t_vec(OUTPUT_CHANNELS - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Input bias vector for batchnorm2d   
 
         -- 
         -- outputs
         --  
 
-        o_data       : out t_volume(KERNEL_NUMBER - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Output data
-        o_data_valid : out std_logic                                                                                                                                                                                            --! Output valid signal
+        o_data       : out t_volume(OUTPUT_CHANNELS - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Output data
+        o_data_valid : out std_logic                                                                                                                                                                                              --! Output valid signal
     );
 end conv;
 
@@ -68,7 +68,7 @@ architecture conv_arch of conv is
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal r_conv2d_output       : t_volume(KERNEL_NUMBER - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
+    signal r_conv2d_output       : t_volume(OUTPUT_CHANNELS - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(OUTPUT_SIZE - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
     signal r_conv2d_output_valid : std_logic;
 
     -------------------------------------------------------------------------------------
@@ -81,9 +81,9 @@ architecture conv_arch of conv is
             DO_PIPELINE       : std_logic;
             BITWIDTH          : integer;
             INPUT_SIZE        : integer;
-            CHANNEL_NUMBER    : integer;
             KERNEL_SIZE       : integer;
-            KERNEL_NUMBER     : integer;
+            INPUT_CHANNELS    : integer;
+            OUTPUT_CHANNELS   : integer;
             PADDING           : integer;
             STRIDE            : integer
         );
@@ -91,12 +91,15 @@ architecture conv_arch of conv is
             clock        : in std_logic;
             reset_n      : in std_logic;
             i_sys_enable : in std_logic;
-            i_data       : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_data       : in t_volume(0 to INPUT_CHANNELS - 1)(0 to INPUT_SIZE - 1)(0 to INPUT_SIZE - 1)(BITWIDTH - 1 downto 0);
             i_data_valid : in std_logic;
-            i_kernel     : in t_input_feature(KERNEL_NUMBER - 1 downto 0)(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_bias       : in t_vec(KERNEL_NUMBER - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
-            o_data       : out t_volume(KERNEL_NUMBER - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)(2 * BITWIDTH - 1 downto 0);
-            o_data_valid : out std_logic
+            i_kernel     : in t_tensor(0 to OUTPUT_CHANNELS - 1)(0 to INPUT_CHANNELS - 1)(0 to KERNEL_SIZE - 1)(0 to KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0);
+            i_bias       : in t_vec(0 to OUTPUT_CHANNELS - 1)(2 * BITWIDTH - 1 downto 0);
+            o_data_valid : out std_logic;
+            o_data       : out t_volume(0 to OUTPUT_CHANNELS - 1) --! Output Data
+            (0 to (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1)
+            (0 to (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1)
+            (2 * BITWIDTH - 1 downto 0)
         );
     end component;
 
@@ -104,19 +107,19 @@ architecture conv_arch of conv is
         generic (
             BITWIDTH          : integer;
             INPUT_SIZE        : integer;
-            CHANNEL_NUMBER    : integer;
+            INPUT_CHANNELS    : integer;
             DATA_SCALE_FACTOR : integer
         );
         port (
             clock          : in std_logic;
             reset_n        : in std_logic;
             i_sys_enable   : in std_logic;
-            i_data         : in t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_running_mean : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_weight       : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
-            i_bias         : in t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_data         : in t_volume(INPUT_CHANNELS - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_running_mean : in t_vec(INPUT_CHANNELS - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_weight       : in t_vec(INPUT_CHANNELS - 1 downto 0)(BITWIDTH - 1 downto 0);
+            i_bias         : in t_vec(INPUT_CHANNELS - 1 downto 0)(BITWIDTH - 1 downto 0);
             i_data_valid   : in std_logic;
-            o_data         : out t_volume(CHANNEL_NUMBER - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
+            o_data         : out t_volume(INPUT_CHANNELS - 1 downto 0)(INPUT_SIZE - 1 downto 0)(INPUT_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0);
             o_data_valid   : out std_logic
         );
     end component;
@@ -130,9 +133,9 @@ begin
         DO_PIPELINE       => DO_PIPELINE,
         BITWIDTH          => BITWIDTH,
         INPUT_SIZE        => INPUT_SIZE,
-        CHANNEL_NUMBER    => CHANNEL_NUMBER,
+        INPUT_CHANNELS    => INPUT_CHANNELS,
         KERNEL_SIZE       => KERNEL_SIZE,
-        KERNEL_NUMBER     => KERNEL_NUMBER,
+        OUTPUT_CHANNELS   => OUTPUT_CHANNELS,
         PADDING           => PADDING,
         STRIDE            => STRIDE
     )
@@ -152,7 +155,7 @@ begin
     generic map(
         BITWIDTH          => 2 * BITWIDTH,
         INPUT_SIZE        => OUTPUT_SIZE,
-        CHANNEL_NUMBER    => KERNEL_NUMBER,
+        INPUT_CHANNELS    => OUTPUT_CHANNELS,
         DATA_SCALE_FACTOR => DATA_SCALE_FACTOR
     )
     port map(
