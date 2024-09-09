@@ -6,7 +6,6 @@ import numpy as np
 from cocotb.triggers import RisingEdge
 from tabulate import tabulate
 
-# # Adjust the system path to include the parent directory for imports
 sys.path.insert(1, "../../")
 from utils import (
     print_progress_bar,

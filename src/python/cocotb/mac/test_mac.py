@@ -2,11 +2,9 @@ import sys
 from random import randint
 
 import cocotb
-import numpy as np
 from cocotb.triggers import RisingEdge
 from tabulate import tabulate
 
-# # Adjust the system path to include the parent directory for imports
 sys.path.insert(1, "../")
 from utils import (
     print_progress_bar,
@@ -127,8 +125,6 @@ async def async_reset_test(dut):
     Test the DUT's behavior during reset.
     """
     generics = get_generics(dut)
-
-    output_zeros = 0
 
     await initialize_dut(dut, generics)
     await reset_dut(dut)

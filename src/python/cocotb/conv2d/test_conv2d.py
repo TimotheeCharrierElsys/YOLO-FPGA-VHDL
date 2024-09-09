@@ -1,5 +1,6 @@
-import sys
 import random
+import sys
+
 import cocotb
 import matplotlib.pyplot as plt
 import numpy as np
@@ -8,7 +9,6 @@ from cocotb.triggers import RisingEdge
 from tabulate import tabulate
 from torch.nn.functional import conv2d
 
-# # Adjust the system path to include the parent directory for imports
 sys.path.insert(1, "../")
 from utils import (
     assert_reset_state,

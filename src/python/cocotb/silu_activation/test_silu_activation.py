@@ -1,5 +1,4 @@
 import sys
-from random import randint
 
 import cocotb
 import numpy as np
@@ -8,7 +7,6 @@ from cocotb.triggers import RisingEdge
 from plotly.subplots import make_subplots
 from tabulate import tabulate
 
-# # Adjust the system path to include the parent directory for imports
 sys.path.insert(1, "../")
 from utils import reset_dut, setup_clock
 

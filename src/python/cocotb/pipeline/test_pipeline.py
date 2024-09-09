@@ -1,10 +1,10 @@
 import sys
 from random import randint
+
 import cocotb
 from cocotb.triggers import RisingEdge
 from tabulate import tabulate
 
-# # Adjust the system path to include the parent directory for imports
 sys.path.insert(1, "../")
 from utils import reset_dut, setup_clock
 

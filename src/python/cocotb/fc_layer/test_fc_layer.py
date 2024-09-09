@@ -1,13 +1,12 @@
-import random
-import numpy as np
 import sys
+
 import cocotb
+import numpy as np
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge
 
-# Adjust the system path to include the parent directory for imports
 sys.path.insert(1, "../")
-from utils import matrix_init, print_progress_bar, reset_dut, enable_dut
+from utils import enable_dut, matrix_init, print_progress_bar, reset_dut
 
 
 def get_generics(dut):
