@@ -17,10 +17,6 @@ def hardswish(x_prime, scale_factor):
     )
 
 
-def custom(x, model):
-    return x * process_batchnorm2d(model.bn1).view(1, 32, 1, 1) * 4096
-
-
 class ExtractedNetConv:
     def __init__(self, model, scaling_factor=4096):
         self.model = model
@@ -39,6 +35,7 @@ class ExtractedNetConv:
 
     def forward_first_layer(self, x):
         x = self.conv1(x)
+        print(x * 4096)
         x = self.bn1(x)
         output = F.silu(x) * self.scaling_factor
 
@@ -223,6 +220,6 @@ def compare_conv(model, data, target, scaling_factor):
 if __name__ == "__main__":
     scaling_factor = 4096
 
-    model, data, target = load_dataset("/home/tim/Project/script/mnist_cnn.pt")
+    model, data, target = load_dataset("./src/python/lib/mnist_cnn.pt")
     # main_export_model_to_vhdl(model, data, scaling_factor)
     compare_conv(model, data, target, scaling_factor)
