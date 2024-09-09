@@ -4,7 +4,7 @@
 SRC_DIR			:= ../../../rtl
 
 # VHDL Source Files
-VHDL_SOURCES  := $(SRC_DIR)/types_pkg.vhd \
+VHDL_SOURCES	:= $(SRC_DIR)/types_pkg.vhd \
 				$(SRC_DIR)/common/pipeline.vhd \
 				$(SRC_DIR)/common/adder_tree.vhd \
 				$(SRC_DIR)/common/silu_activation.vhd \
@@ -25,12 +25,12 @@ RTL_LIBRARY			:= LIB_RTL
 
 # Generic Parameters (unfortunately, I was not able to set std_logic as generic in the Makefile,
 # so to use different architectures, you need to change the VHDL code)
-SIM_ARGS			+= -gDATA_SCALE_FACTOR=0 -gBITWIDTH=16 
+SIM_ARGS			+= -gDATA_SCALE_FACTOR=0 -gBITWIDTH=8 
 SIM_ARGS			+= -gOUTPUT_CHANNELS=3 -gINPUT_CHANNELS=3 -gINPUT_SIZE=64
 SIM_ARGS			+= -gKERNEL_SIZE=3 -gPADDING=1 -gSTRIDE=1
 
 # Calling cocotb
-PWD 					:= $(shell pwd)
+PWD 				:= $(shell pwd)
 export PYTHONPATH	:= $(PWD)/../model:$(PYTHONPATH)
 include $(shell cocotb-config --makefiles)/Makefile.sim
 
