@@ -1,10 +1,10 @@
 import sys
+from random import random
 
 import cocotb
 import numpy as np
 from cocotb.triggers import RisingEdge
 from tabulate import tabulate
-from random import random
 
 # # Adjust the system path to include the parent directory for imports
 sys.path.insert(1, "../../")
@@ -125,32 +125,36 @@ async def computation_test(dut):
     min_val = -(2 ** (generics["BITWIDTH"] - 1))
     max_val = 2 ** (generics["BITWIDTH"] - 1) - 1
 
-    abs_error_array = []
+    batchnorm2d_abs_error_array = []
+    output_abs_error_array = []
+
+    dut._log.info(f"\n---Running {total_iterations} Iterations---")
 
     for i in range(total_iterations):
         print_progress_bar(
             i + 1, total_iterations, prefix="Progress:", suffix="Complete", length=50
         )
 
-        # Generate Random Input Datas
+        # Generate Random Input Data
         random_input = int(random() * 2 ** generics["DATA_SCALE_FACTOR"])
         random_mean = int(random() * 2 ** generics["DATA_SCALE_FACTOR"])
         random_var = int(random() * 2 ** generics["DATA_SCALE_FACTOR"])
         random_weight = int(random() * 2 ** generics["DATA_SCALE_FACTOR"])
         random_bias = int(random() * 2 ** generics["DATA_SCALE_FACTOR"])
 
+        # Handle edge case where variance is zero
         if random_var != 0:
-            dut_weight = int(random_weight / np.sqrt(random_var))
+            normalized_weight = int(random_weight / np.sqrt(random_var))
         else:
-            dut_weight = random_weight
+            normalized_weight = random_weight
 
         # Send the input data to the DUT
         dut.i_data.value = random_input
         dut.i_mean.value = random_mean
-        dut.i_weight.value = dut_weight
+        dut.i_weight.value = normalized_weight
         dut.i_bias.value = random_bias
 
-        # Compute Output Value
+        # Compute Batchnorm2d Expected Output Value
         if random_var != 0:
             output = int(
                 random_weight
@@ -167,32 +171,50 @@ async def computation_test(dut):
                 + random_bias
             )
 
-        output = hardswish(output, generics["DATA_SCALE_FACTOR"])
-
         # Enable the DUT
         dut.i_valid.value = 1
         await RisingEdge(dut.clock)
         dut.i_valid.value = 0
 
+        # Wait 2 CLock Cycles to compute the Output
         await RisingEdge(dut.clock)
         await RisingEdge(dut.clock)
 
+        # Compare (x- mean) / sqrt(var + epsilon) * weight + bias
+        batchnorm2d_gotten_output = dut.r_data_to_silu.value.signed_integer
+        batchnorm2d_abs_error_array.append(np.abs(batchnorm2d_gotten_output - output))
+
+        # Aplly Activation Function
+        output = hardswish(output, generics["DATA_SCALE_FACTOR"])
+
+        # Compare the Expected vs Gotten
         gotten_output = dut.o_data.value.signed_integer
-        abs_error_array.append(np.abs(gotten_output - output))
+        output_abs_error_array.append(np.abs(gotten_output - output))
 
-    # Calculate statistics
-    abs_errors = np.array(abs_error_array)
+    # Calculate statistics for BatchNorm2d
+    batchnorm2d_abs_errors = np.array(batchnorm2d_abs_error_array)
+    batchnorm2d_mean_error = np.mean(batchnorm2d_abs_errors)
+    batchnorm2d_median_error = np.median(batchnorm2d_abs_errors)
+    batchnorm2d_std_deviation = np.std(batchnorm2d_abs_errors)
+
+    # Calculate statistics for main output
+    abs_errors = np.array(output_abs_error_array)
     mean_error = np.mean(abs_errors)
     median_error = np.median(abs_errors)
     std_deviation = np.std(abs_errors)
+
+    # Prepare metrics for logging
     metrics = [
-        ["Mean Absolute Error (MAE)", f"{mean_error:.4f}"],
-        ["Median Absolute Error", f"{median_error:.4f}"],
-        ["Standard Deviation of Error", f"{std_deviation:.4f}"],
+        ["Output Mean Absolute Error (MAE)", f"{mean_error:.4f}"],
+        ["Output Median Absolute Error", f"{median_error:.4f}"],
+        ["Output Standard Deviation of Error", f"{std_deviation:.4f}"],
+        ["BatchNorm2d Mean Error", f"{batchnorm2d_mean_error:.4f}"],
+        ["BatchNorm2d Median Error", f"{batchnorm2d_median_error:.4f}"],
+        ["BatchNorm2d Standard Deviation", f"{batchnorm2d_std_deviation:.4f}"],
     ]
 
     # Log the results
-    dut._log.info("\n--- Error Metrics Summary ---")
+    dut._log.info(f"\n--- Error Metrics Summary on {total_iterations} Iterations ---")
     table = tabulate(metrics, headers=["Metric", "Value"], tablefmt="pretty")
     dut._log.info(table)
     dut._log.info("\nRandom Computation test passed.")
