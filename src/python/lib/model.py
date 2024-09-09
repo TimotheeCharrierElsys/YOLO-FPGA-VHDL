@@ -119,6 +119,14 @@ def load_dataset(model_path):
 
     return model, data, target
 
+def load_model(model_path):
+    model = Net()
+    model.load_state_dict(
+        torch.load(model_path, weights_only=True, map_location=torch.device("cpu"))
+    )
+    model.eval()
+    
+    return model
 
 if __name__ == "__main__":
     # Training settings
