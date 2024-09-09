@@ -103,7 +103,6 @@ async def reset_dut(dut, verbose=True):
     """
     dut.reset_n.value = 0
     await RisingEdge(dut.clock)
-    await RisingEdge(dut.clock)
     dut.reset_n.value = 1
     await RisingEdge(dut.clock)
     if verbose:
