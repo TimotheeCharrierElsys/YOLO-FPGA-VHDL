@@ -22,19 +22,32 @@ entity conv2d_layer_mac is
         KERNEL_SIZE       : integer := 3   --! Size of the kernel (e.g., 3 for a 3x3 kernel)
     );
     port (
-        clock             : in std_logic;                                                                                                        --! Clock signal
-        reset_n           : in std_logic;                                                                                                        --! Reset signal, active at low state
-        i_sys_enable      : in std_logic;                                                                                                        --! Enable signal, active at high state
-        i_data            : in t_volume(INPUT_CHANNELS - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data  (INPUT_CHANNELS x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
-        i_valid           : in std_logic;                                                                                                        --! Input valid signal
-        i_kernels         : in t_volume(INPUT_CHANNELS - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Kernel data (INPUT_CHANNELS x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
-        i_bias            : in std_logic_vector(2 * BITWIDTH - 1 downto 0);                                                                      --! Input bias value
-        is_processing_mac : in std_logic;                                                                                                        --! Processing signal for the MAC units
-        is_processing_add : in std_logic;                                                                                                        --! Processing signal for the adder unit
-        current_row       : in integer range 0 to KERNEL_SIZE - 1;                                                                               --! Current row index
-        current_col       : in integer range 0 to KERNEL_SIZE - 1;                                                                               --! Current column index
-        current_channel   : in integer range 0 to INPUT_CHANNELS;                                                                                --! Current channel index
-        o_result          : out std_logic_vector(2 * BITWIDTH - 1 downto 0)                                                                      --! Output value
+        clock        : in std_logic; --! Clock signal
+        reset_n      : in std_logic; --! Reset signal, active at low state
+        i_sys_enable : in std_logic; --! Enable signal, active at high state
+
+        -- Conv2d
+        i_data_conv2d   : in t_volume(INPUT_CHANNELS - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Input data  (INPUT_CHANNELS x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
+        i_kernel_conv2d : in t_volume(INPUT_CHANNELS - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Kernel data (INPUT_CHANNELS x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)
+        i_bias_conv2d   : in std_logic_vector(2 * BITWIDTH - 1 downto 0);                                                                      --! Input bias value for the conv2d
+
+        -- Batchnormn2d and SiLU
+        i_bias_bn   : in std_logic_vector(2 * BITWIDTH - 1 downto 0); --! Input bias value for the bn
+        i_mean_bn   : in std_logic_vector(2 * BITWIDTH - 1 downto 0); --! Input mean value for the bn
+        i_weight_bn : in std_logic_vector(2 * BITWIDTH - 1 downto 0); --! Input weight value for the bn
+
+        -- Control Signals
+        i_valid_mac     : in std_logic;                          --! Input valid signal for the MAC
+        i_valid_adder   : in std_logic;                          --! Input valid signal for the adder
+        i_valid_bn      : in std_logic;                          --! Input valid signal for the bn
+        i_clear_mac     : in std_logic;                          --! Input clear signal for the MAC
+        i_clear_adder   : in std_logic;                          --! Input clear signal for the adder
+        current_row     : in integer range 0 to KERNEL_SIZE - 1; --! Current row index
+        current_col     : in integer range 0 to KERNEL_SIZE - 1; --! Current column index
+        current_channel : in integer range 0 to INPUT_CHANNELS;  --! Current channel index
+
+        -- Output Result
+        o_result : out std_logic_vector(2 * BITWIDTH - 1 downto 0) --! Output value
     );
 end conv2d_layer_mac;
 
@@ -49,6 +62,7 @@ architecture conv2d_layer_mac_arch of conv2d_layer_mac is
     -- SIGNALS
     -------------------------------------------------------------------------------------
     -- Intermediate signals
+    signal conv2d_result            : std_logic_vector(2 * BITWIDTH - 1 downto 0);
     signal r_results                : t_vec(INPUT_CHANNELS downto 0)(2 * BITWIDTH - 1 downto 0); --! Intermediate signal to hold the output of each MAC unit for each channel.
     signal intermediate_multiplier1 : t_vec(INPUT_CHANNELS - 1 downto 0)(BITWIDTH - 1 downto 0); --! Intermediate signal to avoid static 
     signal intermediate_multiplier2 : t_vec(INPUT_CHANNELS - 1 downto 0)(BITWIDTH - 1 downto 0); --! Intermediate signal
@@ -67,6 +81,7 @@ architecture conv2d_layer_mac_arch of conv2d_layer_mac is
             clock        : in std_logic;
             reset_n      : in std_logic;
             i_sys_enable : in std_logic;
+            i_valid      : in std_logic;
             i_clear      : in std_logic;
             i_operand1   : in std_logic_vector(INPUT_WIDTH - 1 downto 0);
             i_operand2   : in std_logic_vector(INPUT_WIDTH - 1 downto 0);
@@ -74,13 +89,29 @@ architecture conv2d_layer_mac_arch of conv2d_layer_mac is
         );
     end component;
 
+    component batchnorm2d_layer
+        generic (
+            BITWIDTH          : integer;
+            DATA_SCALE_FACTOR : integer
+        );
+        port (
+            clock        : in std_logic;
+            reset_n      : in std_logic;
+            i_sys_enable : in std_logic;
+            i_data       : in std_logic_vector(BITWIDTH - 1 downto 0);
+            i_mean       : in std_logic_vector(BITWIDTH - 1 downto 0);
+            i_weight     : in std_logic_vector(BITWIDTH - 1 downto 0);
+            i_bias       : in std_logic_vector(BITWIDTH - 1 downto 0);
+            i_valid      : in std_logic;
+            o_data       : out std_logic_vector(BITWIDTH - 1 downto 0)
+        );
+    end component;
 begin
 
     -------------------------------------------------------------------------------------
     -- GENERATE BLOCK FOR MAC UNITS
     -------------------------------------------------------------------------------------
     gen_mac_channel : for i in 0 to INPUT_CHANNELS - 1 generate
-
         --! Instantiate one accumulative mac for each channel
         gen_mac_inst : mac
         generic map(
@@ -92,7 +123,8 @@ begin
             clock        => clock,
             reset_n      => reset_n,
             i_sys_enable => i_sys_enable,
-            i_clear      => i_valid,
+            i_valid      => i_valid_mac,
+            i_clear      => i_clear_mac,
             i_operand1   => intermediate_multiplier1(i),
             i_operand2   => intermediate_multiplier2(i),
             o_result     => r_results(i)
@@ -110,10 +142,28 @@ begin
         clock        => clock,
         reset_n      => reset_n,
         i_sys_enable => i_sys_enable,
-        i_clear      => is_processing_mac,
+        i_valid      => i_valid_adder,
+        i_clear      => i_clear_adder,
         i_operand1   => intermediate_result,
         i_operand2 => (others => '0'),
-        o_result     => o_result
+        o_result     => conv2d_result
+    );
+
+    batchnorm2d_layer_inst : batchnorm2d_layer
+    generic map(
+        BITWIDTH          => 2 * BITWIDTH,
+        DATA_SCALE_FACTOR => DATA_SCALE_FACTOR
+    )
+    port map(
+        clock        => clock,
+        reset_n      => reset_n,
+        i_sys_enable => i_sys_enable,
+        i_data       => conv2d_result,
+        i_mean       => i_mean_bn,
+        i_weight     => i_weight_bn,
+        i_bias       => i_bias_bn,
+        i_valid      => i_valid_bn,
+        o_data       => o_result
     );
 
     -------------------------------------------------------------------------------------
@@ -123,15 +173,11 @@ begin
     --! Handles the assignment of the input data to the intermediate signals.
     process (all)
     begin
-        r_results(INPUT_CHANNELS) <= std_logic_vector(shift_left(signed(i_bias), DATA_SCALE_FACTOR));                                                       --! Initialize the output with the bias value
-        intermediate_result       <= std_logic_vector(shift_right(signed(r_results(current_channel)), DATA_SCALE_FACTOR)) when is_processing_add = '1' else --! Intermediate signal to hold the output of each MAC unit for each channel.
-            (others => '0');
-
+        r_results(INPUT_CHANNELS) <= std_logic_vector(shift_left(signed(i_bias_conv2d), DATA_SCALE_FACTOR));               --! Initialize the output with the bias value
+        intermediate_result       <= std_logic_vector(shift_right(signed(r_results(current_channel)), DATA_SCALE_FACTOR)); --! Intermediate signal to hold the output of each MAC unit for each channel.
         for i in 0 to INPUT_CHANNELS - 1 loop
-            intermediate_multiplier1(i) <= i_data(i)(current_col)(current_row) when is_processing_mac = '1' else
-            (others => '0');
-            intermediate_multiplier2(i) <= i_kernels(i)(current_col)(current_row) when is_processing_mac = '1' else
-            (others => '0');
+            intermediate_multiplier1(i) <= i_data_conv2d(i)(current_col)(current_row);
+            intermediate_multiplier2(i) <= i_kernel_conv2d(i)(current_col)(current_row);
         end loop;
     end process;
 end conv2d_layer_mac_arch;
@@ -147,6 +193,10 @@ configuration conv2d_layer_mac_conf of conv2d_layer_mac is
 
         for all : mac
             use entity LIB_RTL.mac(mac_arch);
+        end for;
+
+        for all : batchnorm2d_layer
+            use entity LIB_RTL.batchnorm2d_layer(batchnorm2d_layer_arch);
         end for;
     end for;
 

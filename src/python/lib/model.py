@@ -98,24 +98,52 @@ def process_batchnorm2d(layer):
 
     return weights / np.sqrt(running_var)
 
-
+import matplotlib.pyplot as plt
 def load_dataset(model_path):
     # Load the saved model weights
-    model = Net()
-    model.load_state_dict(
-        torch.load(model_path, weights_only=True, map_location=torch.device("cpu"))
-    )
+    model = Net()  # Replace with the actual model definition
+    model.load_state_dict(torch.load(model_path, map_location=torch.device("cpu")))
     model.eval()
 
-    # Define transformations and load dataset
-    transform = transforms.Compose(
-        [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
-    )
-
+    # Define transformations and load the dataset
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.1307,), (0.3081,))
+    ])
+    
+    # Load the MNIST test dataset
     dataset = datasets.MNIST("../data", train=False, transform=transform)
     test_loader = DataLoader(dataset, batch_size=500, shuffle=False)
+    
+    # Get a single batch and extract the 321st image and label
     data, target = next(iter(test_loader))
-    data, target = data[321], target[321]
+    image, label = data[321], target[321]
+    
+    # Add batch dimension and run the model
+    with torch.no_grad():
+        image_input = image.unsqueeze(0)  # Add batch dimension
+        output = model(image_input)
+        predicted = torch.argmax(output, dim=1).item()
+    
+    # Create a professional plot
+    plt.figure(figsize=(6, 6))
+    plt.imshow(image.squeeze(), cmap="gray")  # Plot image without batch dimension
+    
+    # Define title based on whether the prediction is correct or not
+    if predicted == label.item():
+        title_color = "black"  # Correct prediction
+    else:
+        title_color = "red"  # Incorrect prediction
+
+    # Title includes both predicted and actual labels, with color coding
+    plt.title(f"Expected: {label.item()}, Predicted: {predicted}", fontsize=14, color=title_color)
+    
+    # Remove axis for a cleaner look
+    plt.axis("off")
+    
+    # Display the plot
+    plt.show()
+    
 
     return model, data, target
 

@@ -222,4 +222,4 @@ if __name__ == "__main__":
 
     model, data, target = load_dataset("./src/python/lib/mnist_cnn.pt")
     # main_export_model_to_vhdl(model, data, scaling_factor)
-    compare_conv(model, data, target, scaling_factor)
+    # compare_conv(model, data, target, scaling_factor)

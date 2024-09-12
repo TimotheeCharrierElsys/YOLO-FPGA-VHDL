@@ -88,8 +88,6 @@ async def async_reset_test(dut):
     generics = get_generics(dut)
     log_generics(dut)
 
-    output_zeros = 0
-
     await initialize_dut(dut, generics)
     await reset_dut(dut)
     assert dut.o_data == 0, "DUT output was not reset correctly"
@@ -121,8 +119,6 @@ async def computation_test(dut):
     assert dut.o_data == 0, "DUT output was not reset correctly"
 
     total_iterations = 100000
-    min_val = -(2 ** (generics["BITWIDTH"] - 1))
-    max_val = 2 ** (generics["BITWIDTH"] - 1) - 1
 
     batchnorm2d_abs_error_array = []
     output_abs_error_array = []
