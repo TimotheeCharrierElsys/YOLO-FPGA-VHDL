@@ -1,6 +1,7 @@
 import random
 import sys
 
+import numpy as np
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge
@@ -15,7 +16,7 @@ def random_signed_value(bitwidth):
     """
     min_val = -(2 ** (bitwidth - 1))
     max_val = 2 ** (bitwidth - 1) - 1
-    return random.randint(min_val // 4, max_val // 4)
+    return random.randint(min_val // 8, max_val // 8)
 
 
 def vector_init(size, bitwidth=None, use_random=False):
@@ -103,6 +104,7 @@ async def reset_dut(dut, verbose=True):
     """
     dut.reset_n.value = 0
     await RisingEdge(dut.clock)
+    await RisingEdge(dut.clock)
     dut.reset_n.value = 1
     await RisingEdge(dut.clock)
     if verbose:
@@ -156,3 +158,63 @@ def print_progress_bar(iteration, total, length=50, prefix="", suffix=""):
             percent:.1f}% {suffix}{reset_code}"
     )
     sys.stdout.flush()
+
+
+def relu6(x, data_scale_factor):
+    """
+    Computes the ReLU6 activation function.
+
+    The ReLU6 function is a variation of the ReLU (Rectified Linear Unit) function,
+    which clips the input values to the range [0, 6 * 2^data_scale_factor].
+
+    Parameters:
+    - x: Input array or value to apply the ReLU6 function to.
+    - data_scale_factor: An integer scale factor applied to the upper bound.
+
+    Returns:
+    - The result of applying the ReLU6 function to the input `x`, where the output
+      is clipped between 0 and 6 * 2^data_scale_factor.
+    """
+    return np.minimum(np.maximum(x, 0), 6 * 2**data_scale_factor)
+
+
+def hardswish(x, data_scale_factor):
+    """
+    Computes the HardSwish activation function.
+
+    The HardSwish function is a computationally efficient approximation of the
+    Swish activation function, often used in neural networks. It combines the
+    input with the ReLU6 activation and scales it accordingly.
+
+    Parameters:
+    - x: Input array or value to apply the HardSwish function to.
+    - data_scale_factor: An integer scale factor that influences the behavior of both
+      the ReLU6 and the final scaling.
+
+    Returns:
+    - The result of applying the HardSwish function to the input `x`, where the
+      output is computed as x * relu6(x + 3 * 2^data_scale_factor, 2^data_scale_factor) / (6 * 2^data_scale_factor).
+    """
+    return (
+        x
+        * relu6(x + 3 * 2**data_scale_factor, data_scale_factor)
+        / (6 * 2**data_scale_factor)
+    )
+
+
+def silu(x, data_scale_factor):
+    """
+    Computes the Sigmoid Linear Unit (SiLU) activation function.
+
+    The SiLU function, also known as the Swish function, is defined as x / (1 + exp(-x)).
+    It is similar to the Sigmoid function but with a linear component, which makes it
+    more useful in certain machine learning applications.
+
+    Parameters:
+    - x: Input array or value to apply the SiLU function to.
+    - data_scale_factor: An integer scale factor that is applied to the result of the SiLU function.
+
+    Returns:
+    - The result of applying the SiLU function to the input `x`, scaled by 2^data_scale_factor.
+    """
+    return x / (1 + np.exp(-x)) * 2**data_scale_factor
