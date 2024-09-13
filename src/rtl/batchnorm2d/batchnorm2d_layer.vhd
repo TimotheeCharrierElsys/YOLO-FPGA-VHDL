@@ -76,8 +76,8 @@ begin
     --! Process
     --! Handles the synchronous and asynchronous operations.
     process (clock, reset_n)
-        variable v_add  : std_logic_vector(BITWIDTH - 1 downto 0)     := (others => '0'); --! Variable computing \gamma\times x + \beta 
-        variable v_mult : std_logic_vector(2 * BITWIDTH - 1 downto 0) := (others => '0');
+        variable v_add  : signed(BITWIDTH - 1 downto 0)     := (others => '0'); --! Variable computing \gamma\times x + \beta 
+        variable v_mult : signed(2 * BITWIDTH - 1 downto 0) := (others => '0');
     begin
         if reset_n = '0' then
             r_data_to_silu <= (others => '0');
@@ -88,13 +88,13 @@ begin
                 -- If input is valid, compute the numerator and start square root next clock cycle
                 if i_valid = '1' then
                     -- Compute i_data - i_mean (x_{cij} - µ_{i})
-                    v_add := std_logic_vector(signed(i_data) - signed(i_mean));
+                    v_add := signed(i_data) - signed(i_mean);
 
-                    v_mult := std_logic_vector(signed(v_add) * signed(i_weight));
+                    v_mult := v_add * signed(i_weight);
                     v_mult := (v_mult'high downto v_mult'high - DATA_SCALE_FACTOR + 1 => v_mult(v_mult'high)) & -- MSB  
                         (v_mult(v_mult'high downto DATA_SCALE_FACTOR));                                             -- LSB
 
-                    v_mult := std_logic_vector(signed(v_mult) + signed(i_bias));
+                    v_mult := v_mult + signed(i_bias);
 
                     r_data_to_silu <= std_logic_vector(resize(signed(v_mult), BITWIDTH));
                 end if;

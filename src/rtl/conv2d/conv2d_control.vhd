@@ -21,7 +21,6 @@ entity conv2d_control is
 
         -- Control Inputs
         i_start                  : in std_logic;
-        i_done_conv2d            : in std_logic;
         i_current_row_conv2d     : in integer range 0 to KERNEL_SIZE - 1;
         i_current_col_conv2d     : in integer range 0 to KERNEL_SIZE - 1;
         i_current_channel_conv2d : in integer range 0 to INPUT_CHANNELS;
@@ -30,13 +29,13 @@ entity conv2d_control is
         i_current_col_win : in integer range 0 to INPUT_PADDED_SIZE - 1;
 
         -- Control Outputs
-        o_valid_mac     : out std_logic;
-        o_valid_adder   : out std_logic;
-        o_valid_bn      : out std_logic;
-        o_clear_mac     : out std_logic;
-        o_clear_adder   : out std_logic;
-        o_change_window : out std_logic;
-        o_done          : out std_logic
+        o_valid_mac   : out std_logic;
+        o_valid_adder : out std_logic;
+        o_valid_bn    : out std_logic;
+        o_clear_mac   : out std_logic;
+        o_clear_adder : out std_logic;
+        o_conv2d_done : out std_logic;
+        o_done        : out std_logic
     );
 end entity conv2d_control;
 
@@ -45,13 +44,13 @@ architecture conv2d_control_arch of conv2d_control is
     -------------------------------------------------------------------------------------
     -- TYPES
     -------------------------------------------------------------------------------------
-    type type_state is (idle, start, mac, adder, batchnorm_silu, done);
+    type type_state is (idle, start, mac, adder, batchnorm, silu, output_update, done);
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
     -------------------------------------------------------------------------------------
-    signal current_state : type_state;
-    signal next_state    : type_state;
+    signal current_state : type_state; --! Current state of the FSM
+    signal next_state    : type_state; --! Next state of the FSM
 
 begin
 
@@ -89,11 +88,7 @@ begin
                 end if;
 
             when start =>
-                if i_current_row_win = OUTPUT_SIZE - 1 and i_current_col_win = OUTPUT_SIZE - 1 then
-                    next_state <= done;
-                else
-                    next_state <= mac;
-                end if;
+                next_state <= mac;
 
             when mac =>
 
@@ -106,16 +101,22 @@ begin
             when adder =>
 
                 if i_current_channel_conv2d = INPUT_CHANNELS then
-                    next_state <= batchnorm_silu;
+                    next_state <= batchnorm;
                 else
                     next_state <= adder;
                 end if;
 
-            when batchnorm_silu =>
-                if i_done_conv2d = '1' then
-                    next_state <= start;
+            when batchnorm =>
+                next_state <= silu;
+
+            when silu =>
+                next_state <= output_update;
+
+            when output_update =>
+                if i_current_row_win = OUTPUT_SIZE - 1 and i_current_col_win = OUTPUT_SIZE - 1 then
+                    next_state <= done;
                 else
-                    next_state <= batchnorm_silu;
+                    next_state <= start;
                 end if;
 
             when done =>
@@ -129,13 +130,13 @@ begin
     process (all)
     begin
         -- Default Values
-        o_valid_mac     <= '0';
-        o_valid_adder   <= '0';
-        o_valid_bn      <= '0';
-        o_clear_mac     <= '0';
-        o_clear_adder   <= '0';
-        o_change_window <= '0';
-        o_done          <= '0';
+        o_valid_mac   <= '0';
+        o_valid_adder <= '0';
+        o_valid_bn    <= '0';
+        o_clear_mac   <= '0';
+        o_clear_adder <= '0';
+        o_conv2d_done <= '0';
+        o_done        <= '0';
 
         case current_state is
             when idle =>
@@ -144,8 +145,9 @@ begin
                 o_clear_adder <= '1';
 
             when start =>
-                -- Change to the next sliding window
-                o_change_window <= '1';
+                -- CLear the MAC and adder
+                o_clear_mac   <= '1';
+                o_clear_adder <= '1';
 
             when mac =>
                 -- Enable the MAC and  clear the adder
@@ -156,9 +158,15 @@ begin
                 -- Enable the adder
                 o_valid_adder <= '1';
 
-            when batchnorm_silu =>
-                -- Enable the batchnorm2d
+            when batchnorm =>
+                -- Enable the batchnorm
                 o_valid_bn <= '1';
+
+            when silu =>
+
+            when output_update =>
+                -- Raise Conv2D Done Flag
+                o_conv2d_done <= '1';
 
             when done =>
                 -- Raise Output Done Flag

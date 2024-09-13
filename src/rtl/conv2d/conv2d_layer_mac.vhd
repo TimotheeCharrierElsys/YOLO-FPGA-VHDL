@@ -185,6 +185,7 @@ end conv2d_layer_mac_arch;
 configuration conv2d_layer_mac_conf of conv2d_layer_mac is
 
     for conv2d_layer_mac_arch
+
         for gen_mac_channel
             for all : mac
                 use entity LIB_RTL.mac(mac_arch);
@@ -198,6 +199,6 @@ configuration conv2d_layer_mac_conf of conv2d_layer_mac is
         for all : batchnorm2d_layer
             use entity LIB_RTL.batchnorm2d_layer(batchnorm2d_layer_arch);
         end for;
-    end for;
 
+    end for;
 end configuration conv2d_layer_mac_conf;

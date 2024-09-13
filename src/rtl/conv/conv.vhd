@@ -51,8 +51,8 @@ entity conv is
         -- outputs
         --  
 
-        o_data       : out t_volume(OUTPUT_CHANNELS - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)((INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1 downto 0)(2 * BITWIDTH - 1 downto 0); --! Output data
-        o_data_valid : out std_logic                                                                                                                                                                                              --! Output valid signal
+        o_data       : out t_volume(OUTPUT_CHANNELS - 1 downto 0)(0 to (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1)(0 to (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE + 1 - 1)(2 * BITWIDTH - 1 downto 0); --! Output data
+        o_data_valid : out std_logic                                                                                                                                                                                      --! Output valid signal
     );
 end conv;
 
@@ -77,20 +77,19 @@ architecture conv_arch of conv is
     signal s_current_channel_conv2d : integer range 0 to INPUT_CHANNELS;  --! Counter to track the current channel within the channels for Conv2d.
 
     -- Signals for the window slicer
-    signal s_current_row_win  : integer range 0 to OUTPUT_SIZE - 1;                                                                               --! Counter to track the current row within the slicing window
-    signal s_current_col_win  : integer range 0 to OUTPUT_SIZE - 1;                                                                               --! Counter to track the current col within the slicing window
-    signal sliced_output_data : t_volume(INPUT_CHANNELS - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0); --! Sliced windows
+    signal s_current_row_win : integer range 0 to OUTPUT_SIZE - 1; --! Counter to track the current row within the slicing window
+    signal s_current_col_win : integer range 0 to OUTPUT_SIZE - 1; --! Counter to track the current col within the slicing window
 
     -- Control signals
-    signal s_start             : std_logic;
-    signal s_valid_d1          : std_logic; --! Delayed input valid signal
-    signal s_valid_mac         : std_logic; --! Valid signal for the MAC
-    signal s_valid_adder       : std_logic; --! Valid signal for the adder
-    signal s_valid_bn          : std_logic; --! Valid signal for the bn
-    signal s_clear_mac         : std_logic; --! Clear signal for the MAC
-    signal s_clear_adder       : std_logic; --! Clear signal for the adder
-    signal s_change_window     : std_logic; --! Valid Signal to Change the Sliding Window
-    signal s_conv2d_layer_done : std_logic; --! Signal Indicating the end of the conv2d layer
+    signal s_start         : std_logic;
+    signal s_valid_d1      : std_logic; --! Delayed input valid signal
+    signal s_valid_mac     : std_logic; --! Valid signal for the MAC
+    signal s_valid_adder   : std_logic; --! Valid signal for the adder
+    signal s_valid_bn      : std_logic; --! Valid signal for the bn
+    signal s_clear_mac     : std_logic; --! Clear signal for the MAC
+    signal s_clear_adder   : std_logic; --! Clear signal for the adder
+    signal s_change_window : std_logic; --! Valid Signal to Change the Sliding Window
+    signal s_conv2d_done   : std_logic; --! Signal Indicating the end of the conv2d layer
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
@@ -107,7 +106,6 @@ architecture conv_arch of conv is
             reset_n                  : in std_logic;
             i_sys_enable             : in std_logic;
             i_start                  : in std_logic;
-            i_done_conv2d            : in std_logic;
             i_current_row_conv2d     : in integer range 0 to KERNEL_SIZE - 1;
             i_current_col_conv2d     : in integer range 0 to KERNEL_SIZE - 1;
             i_current_channel_conv2d : in integer range 0 to INPUT_CHANNELS;
@@ -118,7 +116,7 @@ architecture conv_arch of conv is
             o_valid_bn               : out std_logic;
             o_clear_mac              : out std_logic;
             o_clear_adder            : out std_logic;
-            o_change_window          : out std_logic;
+            o_conv2d_done            : out std_logic;
             o_done                   : out std_logic
         );
     end component;
@@ -152,19 +150,6 @@ architecture conv_arch of conv is
         );
     end component;
 
-    component pipeline
-        generic (
-            N_STAGES : integer
-        );
-        port (
-            clock        : in std_logic;
-            reset_n      : in std_logic;
-            i_sys_enable : in std_logic;
-            i_data       : in std_logic;
-            o_data       : out std_logic
-        );
-    end component;
-
 begin
 
     -------------------------------------------------------------------------------------
@@ -183,21 +168,11 @@ begin
         begin
             for row in KERNEL_SIZE - 1 downto 0 loop
                 for col in KERNEL_SIZE - 1 downto 0 loop
-                    sliced_output_data(i)(row)(col) <= padded_input_data(i)(s_current_row_win * STRIDE + row)(s_current_col_win * STRIDE + col);
+                    sliced_input_volume(i)(row)(col) <= padded_input_data(i)(s_current_row_win * STRIDE + row)(s_current_col_win * STRIDE + col);
                 end loop;
             end loop;
         end process;
     end generate gen_window_slice;
-
-    -------------------------------------------------------------------------------------
-    -- COMBINATIONAL PROCESS UPDATING THE OUTPUT
-    -------------------------------------------------------------------------------------
-    process (all)
-    begin
-        for i in 0 to OUTPUT_CHANNELS - 1 loop
-            o_data(i)(s_current_row_win)(s_current_col_win) <= s_result(i);
-        end loop;
-    end process;
 
     -------------------------------------------------------------------------------------
     -- INSTANTIATIONS
@@ -230,7 +205,6 @@ begin
             current_channel => s_current_channel_conv2d,
             o_result        => s_result(i)
         );
-
     end generate gen_conv2d_layers;
 
     conv2d_control_inst : conv2d_control
@@ -245,7 +219,6 @@ begin
         reset_n                  => reset_n,
         i_sys_enable             => i_sys_enable,
         i_start                  => i_data_valid,
-        i_done_conv2d            => s_conv2d_layer_done,
         i_current_row_conv2d     => s_current_row_conv2d,
         i_current_col_conv2d     => s_current_col_conv2d,
         i_current_channel_conv2d => s_current_channel_conv2d,
@@ -256,20 +229,9 @@ begin
         o_valid_bn               => s_valid_bn,
         o_clear_mac              => s_clear_mac,
         o_clear_adder            => s_clear_adder,
+        o_conv2d_done            => s_conv2d_done,
         o_done                   => o_data_valid
     );
-
-    pipeline_inst : entity work.pipeline
-        generic map(
-            N_STAGES => 2
-        )
-        port map(
-            clock        => clock,
-            reset_n      => reset_n,
-            i_sys_enable => i_sys_enable,
-            i_data       => s_valid_bn,
-            o_data       => s_conv2d_layer_done
-        );
 
     -------------------------------------------------------------------------------------
     -- PROCESS
@@ -284,6 +246,7 @@ begin
             s_current_channel_conv2d <= 0;
             s_current_row_win        <= 0;
             s_current_col_win        <= 0;
+            o_data                   <= (others => (others => (others => (others => '0'))));
 
         elsif rising_edge(clock) then
             if i_sys_enable = '1' then
@@ -302,7 +265,6 @@ begin
                     end if;
 
                 elsif s_valid_adder = '1' then
-
                     -- Process the adder
                     if s_current_channel_conv2d = INPUT_CHANNELS then
                         s_current_channel_conv2d <= 0;
@@ -310,7 +272,12 @@ begin
                         s_current_channel_conv2d <= s_current_channel_conv2d + 1;
                     end if;
 
-                elsif s_conv2d_layer_done = '1' then
+                elsif s_conv2d_done = '1' then
+
+                    -- Output Update
+                    for i in 0 to OUTPUT_CHANNELS - 1 loop
+                        o_data(i)(s_current_row_win)(s_current_col_win) <= s_result(i);
+                    end loop;
 
                     -- Update the indexes for sliding window
                     if s_current_col_win = OUTPUT_SIZE - 1 then
