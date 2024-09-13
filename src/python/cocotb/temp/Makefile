@@ -7,8 +7,7 @@ SRC_DIR			:= ../../../rtl
 VHDL_SOURCES	:= $(SRC_DIR)/types_pkg.vhd \
 				$(SRC_DIR)/common/pipeline.vhd \
 				$(SRC_DIR)/common/silu_activation.vhd \
-				$(SRC_DIR)/mac/mac.vhd \
-				$(SRC_DIR)/window_slice/volume_slice.vhd \
+				$(SRC_DIR)/conv2d/mac.vhd \
 				$(SRC_DIR)/batchnorm2d/batchnorm2d_layer.vhd \
 				$(SRC_DIR)/conv2d/conv2d_control.vhd \
 				$(SRC_DIR)/conv2d/conv2d_layer_mac.vhd \
@@ -24,9 +23,9 @@ RTL_LIBRARY			:= LIB_RTL
 
 # Generic Parameters (unfortunately, I was not able to set std_logic as generic in the Makefile,
 # so to use different architectures, you need to change the VHDL code)
-SIM_ARGS			+= -gDATA_SCALE_FACTOR=0 -gBITWIDTH=8 
-SIM_ARGS			+= -gOUTPUT_CHANNELS=1 -gINPUT_CHANNELS=1 -gINPUT_SIZE=5
-SIM_ARGS			+= -gKERNEL_SIZE=3 -gPADDING=1 -gSTRIDE=1 --wave=wave.fst --dump-arrays
+SIM_ARGS			+= -gDATA_SCALE_FACTOR=0 -gBITWIDTH=8
+SIM_ARGS			+= -gOUTPUT_CHANNELS=3 -gINPUT_CHANNELS=3 -gINPUT_SIZE=5
+SIM_ARGS			+= -gKERNEL_SIZE=3 -gPADDING=1 -gSTRIDE=1
 
 # Calling cocotb
 PWD 				:= $(shell pwd)
