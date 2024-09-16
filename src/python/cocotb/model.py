@@ -81,7 +81,7 @@ class ExtractedNetConv:
     def forward_first_layer_approximate(self, x):
         x = self.conv1(x)
         x = self.bn1(x) * self.scaling_factor
-        output = hardswish(x, np.log2(self.scaling_factor))
+        output = torch.tensor(hardswish(x.detach().numpy(), np.log2(self.scaling_factor)))
 
         return output
 
