@@ -1,13 +1,9 @@
-import random
 import sys
 
 import cocotb
-import matplotlib.pyplot as plt
 import numpy as np
-import torch
 from cocotb.triggers import RisingEdge
 from tabulate import tabulate
-from torch.nn.functional import conv2d
 
 sys.path.insert(1, "../")
 from utils import (
@@ -193,7 +189,7 @@ async def test(dut):
     print(f"Conv2d: {expected_conv2d}, bn: {expected_bn}")
 
     await RisingEdge(dut.clock)
-    dut.i_sys_enable.value = 1
+    sys_enable_dut(dut)
     await RisingEdge(dut.clock)
 
     print(i_data_conv2d)
