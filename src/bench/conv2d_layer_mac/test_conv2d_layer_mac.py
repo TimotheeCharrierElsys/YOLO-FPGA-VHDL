@@ -36,7 +36,9 @@ def compute_conv2d(i_data, i_kernel, i_bias):
     for channel in range(len(i_data)):
         for row in range(len(i_data[0])):
             for col in range(len(i_data[0][0])):
-                output += i_data[channel][row][col] * i_kernel[channel][row][col]
+                output += (
+                    i_data[channel][row][col] * i_kernel[channel][row][col]
+                )
 
     return output + i_bias
 
@@ -46,7 +48,9 @@ def log_generics(dut):
     Log the generic parameters from the DUT in a table format.
     """
     generics = get_generics(dut)
-    table = tabulate(generics.items(), headers=["Parameter", "Value"], tablefmt="grid")
+    table = tabulate(
+        generics.items(), headers=["Parameter", "Value"], tablefmt="grid"
+    )
     dut._log.info(f"Running with generics:\n{table}")
 
 
@@ -75,7 +79,9 @@ def hardswish(x, scale_factor):
     Returns:
         float: The result of applying the Hardswish function.
     """
-    return x * relu6(x + 3 * 2**scale_factor, scale_factor) / (6 * 2**scale_factor)
+    return (
+        x * relu6(x + 3 * 2**scale_factor, scale_factor) / (6 * 2**scale_factor)
+    )
 
 
 async def initialize_dut(dut, generics):
@@ -184,7 +190,9 @@ async def test(dut):
     dut.current_channel.value = 0
 
     # Compute expected value
-    expected_conv2d = compute_conv2d(i_data_conv2d, i_kernel_conv2d, i_bias_conv2d)
+    expected_conv2d = compute_conv2d(
+        i_data_conv2d, i_kernel_conv2d, i_bias_conv2d
+    )
     expected_bn = hardswish(expected_conv2d, generics["DATA_SCALE_FACTOR"])
     print(f"Conv2d: {expected_conv2d}, bn: {expected_bn}")
 
