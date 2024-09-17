@@ -480,6 +480,24 @@ def preprocess_layer(
     )
 
 
+def generics_to_string(generics: dict):
+    """
+    Converts the generics dictionary to a string formatted for easy display.
+
+    Parameters:
+    ----------
+        generics (dict): Configuration dictionary.
+
+    Returns:
+    -------
+        str: Generics string.
+    """
+    generics_str = f"DATA_SCALE_FACTOR: {generics['DATA_SCALE_FACTOR']}, BITWIDTH: {generics['BITWIDTH']}, INPUT_SIZE: {generics['INPUT_SIZE']} INPUT_CHANNELS: {generics['INPUT_CHANNELS']}<br>"
+    generics_str += f"OUTPUT_CHANNELS: {generics['OUTPUT_CHANNELS']}, KERNEL_SIZE: {generics['KERNEL_SIZE']}, STRIDE: {generics['STRIDE']}, PADDING: {generics['PADDING']}"
+
+    return generics_str
+
+
 def preprocess_input(generics: dict, i_data: torch.Tensor):
     """
     Preprocesses the input data by scaling it and converting to integer format.
@@ -500,18 +518,23 @@ def preprocess_input(generics: dict, i_data: torch.Tensor):
 def generate_report(generics, input, output_silu, output_hs, gotten_output):
     import plotly.graph_objects as go
     import torch
-    
-    # Create input inage plot
-    fig = plt.figure()
-    plt.imshow(input[0], cmap="gray")
-    plt.title("Input Image")
-    plt.axis("off")
-    plt.show()
+    from torchvision import transforms
 
     # Flip y axis for a tensor (idk why, plotly is doing weird stuff)
     output_hs = torch.flip(output_hs, [1])
     output_silu = torch.flip(output_silu, [1])
     gotten_output = torch.flip(gotten_output, [1])
+    input = torch.flip(input, [1])
+
+    # Apply inverse transformation to the input
+    inverse_transform = transforms.Compose(
+        [
+            transforms.Normalize(mean=[-0.1307 / 0.3081], std=[1 / 0.3081]),
+            transforms.ToPILImage(),
+        ]
+    )
+
+    original_image = inverse_transform(input)
 
     # Calculate the absolute difference between the Python HS and VHDL output
     abs_diff_hs = torch.abs(output_hs - gotten_output)
@@ -572,7 +595,7 @@ def generate_report(generics, input, output_silu, output_hs, gotten_output):
     data_gotten = go.Heatmap(
         z=gotten_output[channel],
         colorscale="Viridis",
-        visible=True,
+        visible=False,
         coloraxis="coloraxis",
         hovertemplate="(%{x}, %{y})<br>Value: %{z:.2f}",
         name="",
@@ -587,8 +610,17 @@ def generate_report(generics, input, output_silu, output_hs, gotten_output):
         name="",
     )
 
+    data_input = go.Heatmap(
+        z=original_image,
+        colorscale="gray",
+        visible=True,
+        coloraxis="coloraxis3",
+        hovertemplate="(%{x}, %{y})<br>RGB Value: %{z}",
+        name="",
+    )
+
     # Combine the data
-    data = [data_hs, data_silu, data_gotten, data_abs_diff_hs]
+    data = [data_input, data_hs, data_silu, data_gotten, data_abs_diff_hs]
 
     # Create figure
     fig = go.Figure(data=data)
@@ -596,10 +628,18 @@ def generate_report(generics, input, output_silu, output_hs, gotten_output):
     # Create buttons
     buttons = [
         dict(
+            label="Input Image",
+            method="update",
+            args=[
+                {"visible": [True, False, False, False, False]},
+                {"xaxis": {"title": "Input Image"}},
+            ],
+        ),
+        dict(
             label="Python HS",
             method="update",
             args=[
-                {"visible": [True, False, False, False]},
+                {"visible": [False, True, False, False, False]},
                 {"xaxis": {"title": "Python Result with Hardswish Function"}},
             ],
         ),
@@ -607,7 +647,7 @@ def generate_report(generics, input, output_silu, output_hs, gotten_output):
             label="Python SiLU",
             method="update",
             args=[
-                {"visible": [False, True, False, False]},
+                {"visible": [False, False, True, False, False]},
                 {"xaxis": {"title": "Python Result with SiLU Function"}},
             ],
         ),
@@ -615,7 +655,7 @@ def generate_report(generics, input, output_silu, output_hs, gotten_output):
             label="VHDL Output",
             method="update",
             args=[
-                {"visible": [False, False, True, False]},
+                {"visible": [False, False, False, True, False]},
                 {"xaxis": {"title": "VHDL Result"}},
             ],
         ),
@@ -623,7 +663,7 @@ def generate_report(generics, input, output_silu, output_hs, gotten_output):
             label="Abs Diff",
             method="update",
             args=[
-                {"visible": [False, False, False, True]},
+                {"visible": [False, False, False, False, True]},
                 {
                     "xaxis": {
                         "title": "Absolute Difference between Python HS and VHDL"
@@ -665,16 +705,25 @@ def generate_report(generics, input, output_silu, output_hs, gotten_output):
                     avg_diff_per_channel[channel],
                     max_diff_per_channel[channel],
                 ],
+                ticktext=[
+                    f"min: {min_diff_per_channel[channel]:.2f}",
+                    f"avg: {avg_diff_per_channel[channel]:.2f}",
+                    f"max: {max_diff_per_channel[channel]:.2f}",
+                ],
                 tickformat=".2f",
             ),
         ),
+        coloraxis3=dict(
+            colorscale="gray",
+            colorbar=dict(title="Input Image"),
+        ),
         # Update the layout
         title=main_title,
-        xaxis_title="Python Result with Hardswish Function",
+        xaxis_title="Input Image",
         width=800,
         height=800,
         font=font,
-        margin=dict(l=20, r=20, t=40, b=20),
+        margin=dict(l=20, r=20, t=100, b=20),
     )
 
     # Show the figure
@@ -682,9 +731,9 @@ def generate_report(generics, input, output_silu, output_hs, gotten_output):
 
 
 @cocotb.test()
-async def mnist_test(dut):
+async def mnist_test_first_layer(dut):
     """
-    Test the DUT's behavior with random inputs from the MNIST dataset.
+    Test the DUT's first Conv layer behavior with random inputs from the MNIST dataset.
     """
     generics = get_generics(dut)
     check_generics(generics)
@@ -762,6 +811,7 @@ async def mnist_test(dut):
         np.array(convert_output_to_int(gotten_output)), dtype=torch.int32
     )
 
+    # Generate report for the first layer
     generate_report(
         generics,
         image,
