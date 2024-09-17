@@ -81,7 +81,9 @@ class ExtractedNetConv:
     def forward_first_layer_approximate(self, x):
         x = self.conv1(x)
         x = self.bn1(x) * self.scaling_factor
-        output = torch.tensor(hardswish(x.detach().numpy(), np.log2(self.scaling_factor)))
+        output = torch.tensor(
+            hardswish(x.detach().numpy(), np.log2(self.scaling_factor))
+        )
 
         return output
 
@@ -98,10 +100,14 @@ class ExtractedNetConv:
     def forward_second_layer_approximate(self, x):
         x = self.conv1(x)
         x = self.bn1(x) * self.scaling_factor
-        x = hardswish(x, np.log2(self.scaling_factor)) / self.scaling_factor
+        x = torch.tensor(
+            hardswish(x.detach().numpy(), np.log2(self.scaling_factor))
+        ) / self.scaling_factor
         x = self.conv2(x)
         x = self.bn2(x) * self.scaling_factor
-        output = hardswish(x, np.log2(self.scaling_factor))
+        output = torch.tensor(
+            hardswish(x.detach().numpy(), np.log2(self.scaling_factor))
+        )
 
         return output
 
@@ -148,7 +154,9 @@ class ExtractedNetConv:
     def calculate_confidence(self, log_probs):
         # Convert log probabilities to probabilities
         probs = torch.exp(log_probs)
-        confidence = probs.max().item()  # Get the maximum probability (confidence)
+        confidence = (
+            probs.max().item()
+        )  # Get the maximum probability (confidence)
         return confidence
 
 
@@ -211,7 +219,9 @@ def process_batchnorm2d(layer):
 def load_dataset(model_path):
     # Load the saved model weights
     model = Net()
-    model.load_state_dict(torch.load(model_path, map_location=torch.device("cpu")))
+    model.load_state_dict(
+        torch.load(model_path, map_location=torch.device("cpu"))
+    )
     model.eval()
 
     # Define transformations and load the dataset
@@ -220,7 +230,9 @@ def load_dataset(model_path):
     )
 
     # Load the MNIST test dataset
-    dataset = datasets.MNIST("../data", train=False, transform=transform, download=True)
+    dataset = datasets.MNIST(
+        "../data", train=False, transform=transform, download=True
+    )
     test_loader = DataLoader(dataset, batch_size=500, shuffle=False)
 
     return model, test_loader
@@ -229,7 +241,9 @@ def load_dataset(model_path):
 def load_model(model_path):
     model = Net()
     model.load_state_dict(
-        torch.load(model_path, weights_only=True, map_location=torch.device("cpu"))
+        torch.load(
+            model_path, weights_only=True, map_location=torch.device("cpu")
+        )
     )
     model.eval()
 
@@ -275,7 +289,10 @@ if __name__ == "__main__":
         help="Learning rate step gamma (default: 0.7)",
     )
     parser.add_argument(
-        "--no-cuda", action="store_true", default=False, help="disables CUDA training"
+        "--no-cuda",
+        action="store_true",
+        default=False,
+        help="disables CUDA training",
     )
     parser.add_argument(
         "--no-mps",
@@ -290,7 +307,11 @@ if __name__ == "__main__":
         help="quickly check a single pass",
     )
     parser.add_argument(
-        "--seed", type=int, default=1, metavar="S", help="random seed (default: 1)"
+        "--seed",
+        type=int,
+        default=1,
+        metavar="S",
+        help="random seed (default: 1)",
     )
     parser.add_argument(
         "--log-interval",
@@ -336,7 +357,9 @@ if __name__ == "__main__":
     transform = transforms.Compose(
         [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
     )
-    dataset1 = datasets.MNIST("../data", train=True, download=True, transform=transform)
+    dataset1 = datasets.MNIST(
+        "../data", train=True, download=True, transform=transform
+    )
     print(dataset1)
     dataset2 = datasets.MNIST("../data", train=False, transform=transform)
     train_loader = torch.utils.data.DataLoader(dataset1, **train_kwargs)
