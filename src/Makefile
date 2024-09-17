@@ -4,21 +4,13 @@ SRC_DIR     := rtl
 TOP_ENTITY  := conv
 
 # VHDL Source Files
-SOURCES     := $(SRC_DIR)/types_pkg.vhd \
-               $(SRC_DIR)/common/pipeline.vhd \
-               $(SRC_DIR)/common/adder_tree.vhd \
-               $(SRC_DIR)/common/silu_activation.vhd \
-               $(SRC_DIR)/mac/mac.vhd \
-               $(SRC_DIR)/mac/fc_layer.vhd \
-               $(SRC_DIR)/window_slice/volume_slice.vhd \
-               $(SRC_DIR)/conv2d/conv2d_layer.vhd \
-               $(SRC_DIR)/conv2d/conv2d_layer_mac.vhd \
-               $(SRC_DIR)/conv2d/conv2d.vhd \
-               $(SRC_DIR)/maxpool2d/maxpool2d_layer.vhd \
-               $(SRC_DIR)/maxpool2d/maxpool2d.vhd \
-               $(SRC_DIR)/batchnorm2d/batchnorm2d_layer.vhd \
-               $(SRC_DIR)/batchnorm2d/batchnorm2d.vhd \
-               $(SRC_DIR)/conv/conv.vhd
+SOURCES	:= $(SRC_DIR)/types_pkg.vhd \
+            $(SRC_DIR)/conv2d/mac.vhd \
+			$(SRC_DIR)/batchnorm2d/silu_activation.vhd \
+			$(SRC_DIR)/batchnorm2d/batchnorm2d_layer.vhd \
+            $(SRC_DIR)/conv2d/conv2d_layer_mac.vhd \
+			$(SRC_DIR)/conv/conv_fsm.vhd \
+            $(SRC_DIR)/conv/conv.vhd
 
 # Work Directory
 WORK_DIR    := work
