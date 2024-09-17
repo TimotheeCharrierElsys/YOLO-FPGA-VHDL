@@ -94,7 +94,7 @@ architecture conv_arch of conv is
     -------------------------------------------------------------------------------------
     -- COMPONENTS
     -------------------------------------------------------------------------------------
-    component conv2d_control
+    component conv_fsm
         generic (
             KERNEL_SIZE       : integer;
             INPUT_PADDED_SIZE : integer;
@@ -207,7 +207,7 @@ begin
         );
     end generate gen_conv2d_layers;
 
-    conv2d_control_inst : conv2d_control
+    conv2d_control_inst : conv_fsm
     generic map(
         INPUT_PADDED_SIZE => INPUT_PADDED_SIZE,
         KERNEL_SIZE       => KERNEL_SIZE,
@@ -295,3 +295,19 @@ begin
         end if;
     end process;
 end architecture;
+
+configuration conv_conf of conv is
+    for conv_arch
+
+        for gen_conv2d_layers
+            for all : conv2d_layer_mac
+                use entity LIB_RTL.conv2d_layer_mac(conv2d_layer_mac_arch);
+            end for;
+        end for;
+
+        for all : conv_fsm
+            use entity LIB_RTL.conv_fsm(conv_fsm_arch);
+        end for;
+
+    end for;
+end configuration conv_conf;

@@ -1,50 +1,50 @@
 -----------------------------------------------------------------------------------
---!	@file		header
---!	@brief		This entity implements a header file.
+--!	@file		conv_fsm.vhd
+--!	@brief		This entity implements the FSM for the Conv Operation.
 --!	@author		Timothée Charrier
 -----------------------------------------------------------------------------------
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 
-entity conv2d_control is
+entity conv_fsm is
     generic (
-        KERNEL_SIZE       : integer := 3;
-        INPUT_PADDED_SIZE : integer := 3;
-        INPUT_CHANNELS    : integer := 3;
-        OUTPUT_SIZE       : integer := 3
+        KERNEL_SIZE       : integer := 3; --! Size of the kernel
+        INPUT_PADDED_SIZE : integer := 3; --! Size of the input padded
+        INPUT_CHANNELS    : integer := 3; --! Number of channels in the input
+        OUTPUT_SIZE       : integer := 3  --! Size of the output
     );
     port (
-        clock        : in std_logic;
-        reset_n      : in std_logic;
-        i_sys_enable : in std_logic;
+        clock        : in std_logic; --! Clock signal
+        reset_n      : in std_logic; --! Reset signal, active low
+        i_sys_enable : in std_logic; --! System enable signal, active high     
 
         -- Control Inputs
-        i_start                  : in std_logic;
-        i_current_row_conv2d     : in integer range 0 to KERNEL_SIZE - 1;
-        i_current_col_conv2d     : in integer range 0 to KERNEL_SIZE - 1;
-        i_current_channel_conv2d : in integer range 0 to INPUT_CHANNELS;
+        i_start                  : in std_logic;                          --! Start signal
+        i_current_row_conv2d     : in integer range 0 to KERNEL_SIZE - 1; --! Current row of the Conv2d Kernel Operation
+        i_current_col_conv2d     : in integer range 0 to KERNEL_SIZE - 1; --! Current column of the Conv2d Kernel Operation
+        i_current_channel_conv2d : in integer range 0 to INPUT_CHANNELS;  --! Current channel of the Conv2d Kernel Operation
 
-        i_current_row_win : in integer range 0 to INPUT_PADDED_SIZE - 1;
-        i_current_col_win : in integer range 0 to INPUT_PADDED_SIZE - 1;
+        i_current_row_win : in integer range 0 to INPUT_PADDED_SIZE - 1; --! Current Position of the Window
+        i_current_col_win : in integer range 0 to INPUT_PADDED_SIZE - 1; --! Current Position of the Window
 
         -- Control Outputs
-        o_valid_mac   : out std_logic;
-        o_valid_adder : out std_logic;
-        o_valid_bn    : out std_logic;
-        o_clear_mac   : out std_logic;
-        o_clear_adder : out std_logic;
-        o_conv2d_done : out std_logic;
-        o_done        : out std_logic
+        o_valid_mac   : out std_logic; --! Valid signal for the MAC
+        o_valid_adder : out std_logic; --! Valid signal for the Adder
+        o_valid_bn    : out std_logic; --! Valid signal for the BatchNorm2d
+        o_clear_mac   : out std_logic; --! Clear signal for the MAC
+        o_clear_adder : out std_logic; --! Clear signal for the Adder
+        o_conv2d_done : out std_logic; --! Conv2D Done Flag
+        o_done        : out std_logic  --! Output Done Flag
     );
-end entity conv2d_control;
+end entity conv_fsm;
 
-architecture conv2d_control_arch of conv2d_control is
+architecture conv_fsm_arch of conv_fsm is
 
     -------------------------------------------------------------------------------------
     -- TYPES
     -------------------------------------------------------------------------------------
-    type type_state is (idle, start, mac, adder, batchnorm, silu, output_update, done);
+    type type_state is (idle, start, mac, adder, batchnorm, silu, output_update, done); --! States of the FSM
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
@@ -79,8 +79,8 @@ begin
     process (all)
     begin
         case current_state is
-            when idle =>
 
+            when idle =>
                 if i_start = '1' then
                     next_state <= start;
                 else
@@ -91,7 +91,6 @@ begin
                 next_state <= mac;
 
             when mac =>
-
                 if i_current_row_conv2d = KERNEL_SIZE - 1 and i_current_col_conv2d = KERNEL_SIZE - 1 then
                     next_state <= adder;
                 else
@@ -99,7 +98,6 @@ begin
                 end if;
 
             when adder =>
-
                 if i_current_channel_conv2d = INPUT_CHANNELS then
                     next_state <= batchnorm;
                 else
@@ -121,6 +119,7 @@ begin
 
             when done =>
                 next_state <= idle;
+
         end case;
     end process;
 
@@ -150,7 +149,7 @@ begin
                 o_clear_adder <= '1';
 
             when mac =>
-                -- Enable the MAC and  clear the adder
+                -- Enable the MAC and clear the adder
                 o_valid_mac   <= '1';
                 o_clear_adder <= '1';
 
