@@ -117,7 +117,7 @@ architecture conv_arch of conv is
         );
     end component;
 
-    component conv2d_layer_mac
+    component conv2d_layer
         generic (
             DATA_SCALE_FACTOR : integer;
             BITWIDTH          : integer;
@@ -174,7 +174,7 @@ begin
     -- INSTANTIATIONS
     -------------------------------------------------------------------------------------
     gen_conv2d_layers : for i in 0 to OUTPUT_CHANNELS - 1 generate
-        conv2d_layer_mac_inst : conv2d_layer_mac
+        conv2d_layer_inst : conv2d_layer
         generic map(
             DATA_SCALE_FACTOR => DATA_SCALE_FACTOR,
             BITWIDTH          => BITWIDTH,
@@ -295,8 +295,8 @@ configuration conv_conf of conv is
     for conv_arch
 
         for gen_conv2d_layers
-            for all : conv2d_layer_mac
-                use entity LIB_RTL.conv2d_layer_mac(conv2d_layer_mac_arch);
+            for all : conv2d_layer
+                use entity LIB_RTL.conv2d_layer(conv2d_layer_arch);
             end for;
         end for;
 

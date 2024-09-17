@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------------
---!     @file       conv2d_layer_mac
+--!     @file       conv2d_layer
 --!     @brief      This entity implements a convolution layer using the mac architecture.
---!                 It performs conv2d_layer_mac operations.
+--!                 It performs conv2d_layer operations.
 --!     @author     Timothée Charrier
 -----------------------------------------------------------------------------------
 
@@ -12,9 +12,9 @@ use IEEE.NUMERIC_STD.all;
 library LIB_RTL;
 use LIB_RTL.TYPES_PKG.all;
 
---! Entity conv2d_layer_mac
+--! Entity conv2d_layer
 --! This entity implements a convolution layer using a pipelined MAC unit with a 3x3 kernel.
-entity conv2d_layer_mac is
+entity conv2d_layer is
     generic (
         DATA_SCALE_FACTOR : integer := 12; --! Input data scale factor. For example, a value of 12 means input values are scaled by 2^12.
         BITWIDTH          : integer := 8;  --! Bit width of each operand
@@ -49,14 +49,14 @@ entity conv2d_layer_mac is
         -- Output Result
         o_result : out std_logic_vector(2 * BITWIDTH - 1 downto 0) --! Output value
     );
-end conv2d_layer_mac;
+end conv2d_layer;
 
 -----------------------------------------------------------------------------------
 --!     @brief          This architecture implements a convolution layer using one
 --!                     mac per channel.
 --!     @Dependencies:  mac.vhd, mac.vhd, pipeline.vhd, adder_tree.vhd
 -----------------------------------------------------------------------------------
-architecture conv2d_layer_mac_arch of conv2d_layer_mac is
+architecture conv2d_layer_arch of conv2d_layer is
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
@@ -180,11 +180,11 @@ begin
             intermediate_multiplier2(i) <= i_kernel_conv2d(i)(current_col)(current_row);
         end loop;
     end process;
-end conv2d_layer_mac_arch;
+end conv2d_layer_arch;
 
-configuration conv2d_layer_mac_conf of conv2d_layer_mac is
+configuration conv2d_layer_conf of conv2d_layer is
 
-    for conv2d_layer_mac_arch
+    for conv2d_layer_arch
 
         for gen_mac_channel
             for all : mac
@@ -201,4 +201,4 @@ configuration conv2d_layer_mac_conf of conv2d_layer_mac is
         end for;
 
     end for;
-end configuration conv2d_layer_mac_conf;
+end configuration conv2d_layer_conf;
