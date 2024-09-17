@@ -8,13 +8,13 @@ VHDL_SOURCES	:= $(SRC_DIR)/types_pkg.vhd \
 				$(SRC_DIR)/batchnorm2d/silu_activation.vhd \
 				$(SRC_DIR)/batchnorm2d/batchnorm2d_layer.vhd \
 				$(SRC_DIR)/conv2d/mac.vhd \
-				$(SRC_DIR)/conv2d/conv2d_layer_mac.vhd
+				$(SRC_DIR)/conv2d/conv2d_layer.vhd
 
 # Cocotb and nvc flags
 SIM					:= nvc
 TOPLEVEL_LANG		:= vhdl
-TOPLEVEL			:= conv2d_layer_mac
-COCOTB_TEST_MODULES	:= test_conv2d_layer_mac
+TOPLEVEL			:= conv2d_layer.vhd
+COCOTB_TEST_MODULES	:= test_conv2d_layer.vhd
 MODULE				:= $(COCOTB_TEST_MODULES) # Retrocompatibility
 RTL_LIBRARY			:= LIB_RTL
 
