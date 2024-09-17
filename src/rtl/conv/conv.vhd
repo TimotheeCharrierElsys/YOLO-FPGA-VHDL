@@ -81,14 +81,11 @@ architecture conv_arch of conv is
     signal s_current_col_win : integer range 0 to OUTPUT_SIZE - 1; --! Counter to track the current col within the slicing window
 
     -- Control signals
-    signal s_start         : std_logic;
-    signal s_valid_d1      : std_logic; --! Delayed input valid signal
     signal s_valid_mac     : std_logic; --! Valid signal for the MAC
     signal s_valid_adder   : std_logic; --! Valid signal for the adder
     signal s_valid_bn      : std_logic; --! Valid signal for the bn
     signal s_clear_mac     : std_logic; --! Clear signal for the MAC
     signal s_clear_adder   : std_logic; --! Clear signal for the adder
-    signal s_change_window : std_logic; --! Valid Signal to Change the Sliding Window
     signal s_conv2d_done   : std_logic; --! Signal Indicating the end of the conv2d layer
 
     -------------------------------------------------------------------------------------
@@ -97,7 +94,6 @@ architecture conv_arch of conv is
     component conv_fsm
         generic (
             KERNEL_SIZE       : integer;
-            INPUT_PADDED_SIZE : integer;
             INPUT_CHANNELS    : integer;
             OUTPUT_SIZE       : integer
         );
@@ -109,8 +105,8 @@ architecture conv_arch of conv is
             i_current_row_conv2d     : in integer range 0 to KERNEL_SIZE - 1;
             i_current_col_conv2d     : in integer range 0 to KERNEL_SIZE - 1;
             i_current_channel_conv2d : in integer range 0 to INPUT_CHANNELS;
-            i_current_row_win        : in integer range 0 to INPUT_PADDED_SIZE - 1;
-            i_current_col_win        : in integer range 0 to INPUT_PADDED_SIZE - 1;
+            i_current_row_win        : in integer range 0 to OUTPUT_SIZE - 1;
+            i_current_col_win        : in integer range 0 to OUTPUT_SIZE - 1;
             o_valid_mac              : out std_logic;
             o_valid_adder            : out std_logic;
             o_valid_bn               : out std_logic;
@@ -209,7 +205,6 @@ begin
 
     conv2d_control_inst : conv_fsm
     generic map(
-        INPUT_PADDED_SIZE => INPUT_PADDED_SIZE,
         KERNEL_SIZE       => KERNEL_SIZE,
         INPUT_CHANNELS    => INPUT_CHANNELS,
         OUTPUT_SIZE       => OUTPUT_SIZE
