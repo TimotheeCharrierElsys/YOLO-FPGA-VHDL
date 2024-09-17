@@ -10,7 +10,6 @@ use IEEE.STD_LOGIC_1164.all;
 entity conv_fsm is
     generic (
         KERNEL_SIZE       : integer := 3; --! Size of the kernel
-        INPUT_PADDED_SIZE : integer := 3; --! Size of the input padded
         INPUT_CHANNELS    : integer := 3; --! Number of channels in the input
         OUTPUT_SIZE       : integer := 3  --! Size of the output
     );
@@ -25,8 +24,8 @@ entity conv_fsm is
         i_current_col_conv2d     : in integer range 0 to KERNEL_SIZE - 1; --! Current column of the Conv2d Kernel Operation
         i_current_channel_conv2d : in integer range 0 to INPUT_CHANNELS;  --! Current channel of the Conv2d Kernel Operation
 
-        i_current_row_win : in integer range 0 to INPUT_PADDED_SIZE - 1; --! Current Position of the Window
-        i_current_col_win : in integer range 0 to INPUT_PADDED_SIZE - 1; --! Current Position of the Window
+        i_current_row_win : in integer range 0 to OUTPUT_SIZE - 1; --! Current Position of the Window
+        i_current_col_win : in integer range 0 to OUTPUT_SIZE - 1; --! Current Position of the Window
 
         -- Control Outputs
         o_valid_mac   : out std_logic; --! Valid signal for the MAC
