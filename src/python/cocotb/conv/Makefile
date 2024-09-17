@@ -9,8 +9,8 @@ VHDL_SOURCES	:= $(SRC_DIR)/types_pkg.vhd \
 				$(SRC_DIR)/common/silu_activation.vhd \
 				$(SRC_DIR)/conv2d/mac.vhd \
 				$(SRC_DIR)/batchnorm2d/batchnorm2d_layer.vhd \
-				$(SRC_DIR)/conv2d/conv2d_control.vhd \
 				$(SRC_DIR)/conv2d/conv2d_layer_mac.vhd \
+				$(SRC_DIR)/conv/conv_fsm.vhd \
 				$(SRC_DIR)/conv/conv.vhd
 
 # Cocotb and nvc flags
