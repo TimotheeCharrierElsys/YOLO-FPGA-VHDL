@@ -21,7 +21,7 @@ RTL_LIBRARY			:= LIB_RTL
 # Generic Parameters (unfortunately, I was not able to set std_logic as generic in the Makefile,
 # so to use different architectures, you need to change the VHDL code)
 SIM_ARGS			+= -gDATA_SCALE_FACTOR=0 -gBITWIDTH=8 
-SIM_ARGS			+= -gINPUT_CHANNELS=3 -gKERNEL_SIZE=3 --wave=wave.fst --dump-arrays
+SIM_ARGS			+= -gINPUT_CHANNELS=3 -gKERNEL_SIZE=3
 
 # Calling cocotb
 PWD 				:= $(shell pwd)
