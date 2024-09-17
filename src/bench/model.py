@@ -54,110 +54,50 @@ class Net(nn.Module):
         output = F.log_softmax(x, dim=1)
         return output
 
-
-class ExtractedNetConv:
-    def __init__(self, model, scaling_factor=4096):
-        self.model = model
-        self.scaling_factor = scaling_factor
-
-        self.conv1 = model.conv1
-        self.bn1 = model.bn1
-        self.conv2 = model.conv2
-        self.bn2 = model.bn2
-
-        self.dropout1 = model.dropout1
-        self.dropout2 = model.dropout2
-
-        self.fc1 = model.fc1
-        self.fc2 = model.fc2
-
-    def forward_first_layer(self, x):
+    def forward_first_layer_hs(self, x, scaling_factor):
         x = self.conv1(x)
         x = self.bn1(x)
-        output = F.silu(x) * self.scaling_factor
+        output = F.hardswish(x) * scaling_factor
 
         return output
 
-    def forward_first_layer_approximate(self, x):
+    def forward_first_layer_silu(self, x, scaling_factor):
         x = self.conv1(x)
-        x = self.bn1(x) * self.scaling_factor
-        output = torch.tensor(
-            hardswish(x.detach().numpy(), np.log2(self.scaling_factor))
-        )
+        x = self.bn1(x)
+        output = F.silu(x) * scaling_factor
 
         return output
 
-    def forward_second_layer(self, x):
+    def forward_second_layer_hs(self, x, scaling_factor):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = F.hardswish(x)
+        x = self.conv2(x)
+        x = self.bn2(x)
+        output = F.hardswish(x) * scaling_factor
+
+        return output
+
+    def forward_second_layer_silu(self, x, scaling_factor):
         x = self.conv1(x)
         x = self.bn1(x)
         x = F.silu(x)
         x = self.conv2(x)
         x = self.bn2(x)
-        output = F.silu(x) * self.scaling_factor
+        output = F.silu(x) * scaling_factor
 
         return output
 
-    def forward_second_layer_approximate(self, x):
-        x = self.conv1(x)
-        x = self.bn1(x) * self.scaling_factor
-        x = torch.tensor(
-            hardswish(x.detach().numpy(), np.log2(self.scaling_factor))
-        ) / self.scaling_factor
-        x = self.conv2(x)
-        x = self.bn2(x) * self.scaling_factor
-        output = torch.tensor(
-            hardswish(x.detach().numpy(), np.log2(self.scaling_factor))
-        )
-
+    def forward_end(self, x):
+        x = F.max_pool2d(x, 2)
+        x = self.dropout1(x)
+        x = torch.flatten(x, 1)
+        x = self.fc1(x)
+        x = F.silu(x)
+        x = self.dropout2(x)
+        x = self.fc2(x)
+        output = F.log_softmax(x, dim=1)
         return output
-
-    def estimate(self, x):
-        x = self.forward_second_layer(x)
-
-        x = F.max_pool2d(x, 2)
-        x = self.dropout1(x)
-        x = torch.flatten(x, 1)
-        x = self.fc1(x)
-        x = F.silu(x)
-        x = self.dropout2(x)
-        x = self.fc2(x)
-        output = F.log_softmax(x, dim=1)
-
-        return output, self.calculate_confidence(output)
-
-    def estimate_approximate(self, x):
-        x = self.forward_second_layer_approximate(x)
-
-        x = F.max_pool2d(x, 2)
-        x = self.dropout1(x)
-        x = torch.flatten(x, 1)
-        x = self.fc1(x)
-        x = F.silu(x)
-        x = self.dropout2(x)
-        x = self.fc2(x)
-        output = F.log_softmax(x, dim=1)
-
-        return output, self.calculate_confidence(output)
-
-    def estimate_last_layers(self, x):
-        x = F.max_pool2d(x, 2)
-        x = self.dropout1(x)
-        x = torch.flatten(x, 1)
-        x = self.fc1(x)
-        x = F.silu(x)
-        x = self.dropout2(x)
-        x = self.fc2(x)
-        output = F.log_softmax(x, dim=1)
-
-        return output, self.calculate_confidence(output)
-
-    def calculate_confidence(self, log_probs):
-        # Convert log probabilities to probabilities
-        probs = torch.exp(log_probs)
-        confidence = (
-            probs.max().item()
-        )  # Get the maximum probability (confidence)
-        return confidence
 
 
 def train(args, model, device, train_loader, optimizer, epoch):
@@ -217,10 +157,11 @@ def process_batchnorm2d(layer):
 
 
 def load_dataset(model_path):
-    # Load the saved model weights
     model = Net()
     model.load_state_dict(
-        torch.load(model_path, map_location=torch.device("cpu"))
+        torch.load(
+            model_path, weights_only=True, map_location=torch.device("cpu")
+        )
     )
     model.eval()
 
