@@ -1,18 +1,17 @@
 import random
 import sys
-from lib import (
-    calculate_output_dimensions,
-    convert_output_to_int,
-    preprocess_layer,
-    preprocess_input,
-    postprocess_output,
-    generate_report_first_layer,
-)
 
 import cocotb
 import numpy as np
-import torch
 from cocotb.triggers import RisingEdge
+from cocotb.utils import get_sim_time
+from lib import (
+    calculate_output_dimensions,
+    generate_probabilty_plot,
+    generate_report_first_layer,
+    preprocess_input,
+    preprocess_layer,
+)
 from tabulate import tabulate
 
 sys.path.insert(1, "../")
@@ -33,7 +32,7 @@ np.set_printoptions(
 
 # Constants
 CLOCK_PERIOD_NS = 10
-PYTORCH_PATH = r"../mnist_cnn.pt"
+PYTORCH_PATH = r"/home/tim/Project/YOLO-FPGA-VHDL/mnist_cnnTEMP.pt"
 
 
 def get_generics(dut):
@@ -156,6 +155,7 @@ async def mnist_test_first_layer(dut):
     Test the DUT's first Conv layer behavior with random inputs from the MNIST dataset.
     """
     generics = get_generics(dut)
+    scale_factor = 2 ** generics["DATA_SCALE_FACTOR"]
 
     # Load Dataset and Model
     model, test_loader = load_dataset(PYTORCH_PATH)
@@ -178,14 +178,7 @@ async def mnist_test_first_layer(dut):
     # Get random image and target from dataset
     data, target = next(iter(test_loader))
     random_index = random.randint(0, len(test_loader) - 1)
-    image, _ = data[random_index], target[random_index]
-
-    output_first_layer_silu = model.forward_first_layer_silu(
-        image.unsqueeze(0), 2 ** (generics["DATA_SCALE_FACTOR"])
-    ).int()[0]
-    output_first_layer_hs = model.forward_first_layer_hs(
-        image.unsqueeze(0), 2 ** (generics["DATA_SCALE_FACTOR"])
-    ).int()[0]
+    image, ground_truth = data[random_index], target[random_index]
 
     # Preprocess Conv2D and BatchNorm layers
     (
@@ -226,6 +219,8 @@ async def mnist_test_first_layer(dut):
     await RisingEdge(dut.clock)
     await RisingEdge(dut.clock)
 
+    startime = get_sim_time("us")
+
     # Set i_data_valid
     dut.i_data_valid.value = 1
     await RisingEdge(dut.clock)
@@ -235,53 +230,62 @@ async def mnist_test_first_layer(dut):
     # Wait until the data is valid in DUT's output
     while dut.r_data_conv2d_1_valid.value != 1:
         await RisingEdge(dut.clock)
-    # use get_sim_time() to get the simulation time
-    from cocotb.utils import get_sim_time
 
-    dut._log.info(f"First Layer Done in {get_sim_time('us'):.4f} us")
+    run_time = get_sim_time("us") - startime
+    dut._log.info(f"First Layer Done in {run_time:.2f} us")
     await RisingEdge(dut.clock)
 
-    # Retrieve and process DUT output
-    gotten_output = dut.r_data_conv2d_1_resized.value
-    gotten_output = torch.tensor(
-        np.array(convert_output_to_int(gotten_output)), dtype=torch.int32
-    )
+    # Retrieve DUT output
+    gotten_output_first_layer = dut.r_data_conv2d_1_resized.value
 
-    # Postprocess output
-    input, output_first_layer_hs, output_first_layer_silu, gotten_output = (
-        postprocess_output(
-            image, output_first_layer_silu, output_first_layer_hs, gotten_output
-        )
-    )
+    # Compute expected output for SiLU and HS
+    output_first_layer_silu = model.forward_first_layer_silu(image.unsqueeze(0))
+    output_first_layer_hs = model.forward_first_layer_hs(image.unsqueeze(0))
 
     # Generate report for the first layer
     generate_report_first_layer(
-        input,
-        output_first_layer_silu,
+        image,
         output_first_layer_hs,
-        gotten_output,
+        output_first_layer_silu,
+        gotten_output_first_layer,
+        scale_factor,
         name="First Layer",
     )
 
-    # # Continue the test
-    output_second_layer_silu = model.forward_second_layer_silu(
-        image.unsqueeze(0), 2 ** (generics["DATA_SCALE_FACTOR"])
-    ).int()[0]
-    output_second_layer_hs = model.forward_second_layer_hs(
-        image.unsqueeze(0), 2 ** (generics["DATA_SCALE_FACTOR"])
-    ).int()[0]
+    # Continue with the second layer. Wait for the second layer to be done
+    startime = get_sim_time("us")
 
-    # Wait until the data is valid in DUT's output
     while dut.o_data_valid.value != 1:
         await RisingEdge(dut.clock)
 
-    # dut._log.info(f"Second Layer Done in {get_sim_time('us'):.4f} us")
-    # await RisingEdge(dut.clock)
+    run_time_second_layer = get_sim_time("us") - startime
+    dut._log.info(f"Second Layer Done in {run_time_second_layer:.2f} us")
+    await RisingEdge(dut.clock)
 
-    # # Retrieve and process DUT output
-    # gotten_output = dut.o_data.value
-    # gotten_output = torch.tensor(
-    #     np.array(convert_output_to_int(gotten_output)), dtype=torch.int32
-    # )
+    # Retrieve DUT output
+    gotten_output_second_layer = dut.o_data.value
 
-    # output_first_layer_silu = output_first_layer_silu.float()
+    # Compute expected output for SiLU and HS
+    output_second_layer_silu = model.forward_second_layer_silu(
+        image.unsqueeze(0)
+    )
+    output_second_layer_hs = model.forward_second_layer_hs(image.unsqueeze(0))
+
+    # Generate report for the second layer
+    generate_report_first_layer(
+        image,
+        output_second_layer_hs,
+        output_second_layer_silu,
+        gotten_output_second_layer,
+        scale_factor,
+        name="Second Layer",
+    )
+
+    # Generate probabilty plot
+    generate_probabilty_plot(
+        image,
+        ground_truth,
+        model,
+        dut.o_data.value,
+        scale_factor,
+    )

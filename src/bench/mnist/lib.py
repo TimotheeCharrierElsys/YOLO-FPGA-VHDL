@@ -1,6 +1,8 @@
 import plotly.graph_objects as go
 import torch
 from torchvision import transforms
+from random import randint
+import numpy as np
 
 
 def calculate_output_dimensions(generics):
@@ -72,7 +74,9 @@ def preprocess_layer(
 
 def calculate_error(output, gotten_output):
     """
-    Calculate the error between the output and the gotten output.
+    Calculate the error between the output and the gotten output channel-wise.
+    It means for each channel, the average, maximum, and minimum error is calculated.
+    Inputs shape is (batch_size, num_channels, height, width).
 
     Parameters:
     ----------
@@ -83,16 +87,13 @@ def calculate_error(output, gotten_output):
     -------
         Tuple[torch.Tensor]: Average, maximum, and minimum error per channel
     """
-    abs_diff = torch.abs(output - gotten_output).float()
 
-    # Compute statistics channel-wise
-    avg_diff_per_channel = torch.mean(abs_diff, dim=(1, 2))
-    max_diff_per_channel = torch.max(
-        abs_diff.view(abs_diff.size(0), -1), dim=1
-    ).values
-    min_diff_per_channel = torch.min(
-        abs_diff.view(abs_diff.size(0), -1), dim=1
-    ).values
+    abs_diff = torch.abs(output - gotten_output)
+
+    # Compute across (height, width)
+    avg_diff_per_channel = abs_diff.mean(dim=(2, 3))
+    max_diff_per_channel = abs_diff.max(dim=3).values.max(dim=2).values
+    min_diff_per_channel = abs_diff.min(dim=3).values.min(dim=2).values
 
     return (
         abs_diff,
@@ -105,19 +106,21 @@ def calculate_error(output, gotten_output):
 def postprocess_output(input, output_hs, output_silu, gotten_output):
     """
     Postprocess the output tensors for visualization.
+    All types handles are converted to float except for the input tensor.
+    Because the VHDL does not return the same type, we need to add a batch dimension to the gotten output.
 
     Parameters:
     ----------
-        input (torch.Tensor): The input tensor.
-        output_hs (torch.Tensor): The output tensor with Hardswish activation.
-        output_silu (torch.Tensor): The output tensor with SiLU activation.
-        gotten_output (torch.Tensor): The output tensor from the DUT
+        input (torch.Tensor, int32): The input tensor.
+        output_hs (torch.Tensor, float32): The output tensor with Hardswish activation.
+        output_silu (torch.Tensor, float32): The output tensor with SiLU activation.
+        gotten_output (torch.Tensor, float32): The output tensor from the DUT
 
     Returns:
     -------
         Tuple[torch.Tensor]: Preprocessed tensors for visualization.
     """
-    # Apply inverse transformation to the input
+    # Apply inverse transformation to the input to get the RGB values
     inverse_transform = transforms.Compose(
         [
             transforms.Normalize(mean=[-0.1307 / 0.3081], std=[1 / 0.3081]),
@@ -125,24 +128,34 @@ def postprocess_output(input, output_hs, output_silu, gotten_output):
     )
 
     input = inverse_transform(input)
+    input = (input * 255).int()
 
-    # Flip y axis for a tensor (idk why, plotly is doing weird stuff)
-    output_hs = torch.flip(output_hs, [1])
-    output_silu = torch.flip(output_silu, [1])
-    gotten_output = torch.flip(gotten_output, [1])
+    # Convert the output tensors to float32
+    gotten_output = torch.tensor(
+        np.array(convert_output_to_int(gotten_output)),
+        dtype=torch.float32,
+    )
+
+    # Add a batch dimension to the gotten output
+    gotten_output = gotten_output.unsqueeze(0)
 
     return input, output_hs, output_silu, gotten_output
 
 
 def generate_report_first_layer(
-    input, output_silu, output_hs, gotten_output, name="First Layer"
+    input,
+    output_hs,
+    output_silu,
+    gotten_output,
+    scale_factor,
+    name="First Layer",
 ):
     """
     Generate a report for the first layer inference.
+    A random channel and batch are selected for visualization.
 
     Parameters:
     ----------
-        generics (dict): Configuration dictionary.
         input (torch.Tensor): The input tensor.
         output_silu (torch.Tensor): The output tensor with SiLU activation.
         output_hs (torch.Tensor): The output tensor with Hardswish activation.
@@ -152,6 +165,19 @@ def generate_report_first_layer(
     -------
         None
     """
+
+    # Postprocess the output tensors
+    (
+        input,
+        output_hs,
+        output_silu,
+        gotten_output,
+    ) = postprocess_output(
+        input,
+        output_hs * scale_factor,
+        output_silu * scale_factor,
+        gotten_output,
+    )
 
     # Calculate the error
     abs_diff_hs, abs_diff_hs_avg, abs_diff_hs_max, abs_diff_hs_min = (
@@ -163,7 +189,10 @@ def generate_report_first_layer(
     )
 
     # Setup the data
-    num_channels, height, width = output_hs.shape
+    batch_size, num_channels, height, width = output_hs.shape
+
+    channel = randint(0, num_channels - 1)
+    batch = randint(0, batch_size - 1)
 
     # Create Generic Parameters for the report
     font = dict(family="Arial, sans-serif", size=12, color="black")
@@ -172,6 +201,7 @@ def generate_report_first_layer(
             f"<b>Convolutional Layer Report For {name} Inference</b><br>"
             f"<span style='font-size: 14px;'>"
             f"Input Shape: {input.shape}, Output Shape: {output_hs.shape}<br>"
+            f"Displaying Channel: {channel}, Batch: {batch}"
         ),
         x=0.0,
         y=0.95,
@@ -180,12 +210,9 @@ def generate_report_first_layer(
         yanchor="top",
     )
 
-    # Only use the first channel
-    channel = 0
-
     # Heatmap traces
     data_hs = go.Heatmap(
-        z=output_hs[channel],
+        z=output_hs[batch][channel],
         colorscale="Viridis",
         visible=False,
         coloraxis="coloraxis",
@@ -194,7 +221,7 @@ def generate_report_first_layer(
     )
 
     data_silu = go.Heatmap(
-        z=output_silu[channel],
+        z=output_silu[batch][channel],
         colorscale="Viridis",
         visible=False,
         coloraxis="coloraxis",
@@ -203,7 +230,7 @@ def generate_report_first_layer(
     )
 
     data_gotten = go.Heatmap(
-        z=gotten_output[channel],
+        z=gotten_output[batch][channel],
         colorscale="Viridis",
         visible=False,
         coloraxis="coloraxis",
@@ -212,7 +239,7 @@ def generate_report_first_layer(
     )
 
     data_abs_diff_hs = go.Heatmap(
-        z=abs_diff_hs[channel],
+        z=abs_diff_hs[batch][channel],
         colorscale="Thermal",
         visible=False,
         coloraxis="coloraxis2",
@@ -221,7 +248,7 @@ def generate_report_first_layer(
     )
 
     data_abs_diff_silu = go.Heatmap(
-        z=abs_diff_silu[channel],
+        z=abs_diff_silu[batch][channel],
         colorscale="Thermal",
         visible=False,
         coloraxis="coloraxis4",
@@ -339,14 +366,14 @@ def generate_report_first_layer(
             colorbar=dict(
                 title="Abs Diff Scale",
                 tickvals=[
-                    abs_diff_hs_min[channel],
-                    abs_diff_hs_avg[channel],
-                    abs_diff_hs_max[channel],
+                    abs_diff_hs_min[batch][channel],
+                    abs_diff_hs_avg[batch][channel],
+                    abs_diff_hs_max[batch][channel],
                 ],
                 ticktext=[
-                    f"min: {abs_diff_hs_min[channel]:.2f}",
-                    f"avg: {abs_diff_hs_avg[channel]:.2f}",
-                    f"max: {abs_diff_hs_max[channel]:.2f}",
+                    f"min: {abs_diff_hs_min[batch][channel]:.2f}",
+                    f"avg: {abs_diff_hs_avg[batch][channel]:.2f}",
+                    f"max: {abs_diff_hs_max[batch][channel]:.2f}",
                 ],
                 tickformat=".2f",
             ),
@@ -360,14 +387,14 @@ def generate_report_first_layer(
             colorbar=dict(
                 title="Abs Diff Scale",
                 tickvals=[
-                    abs_diff_silu_min[channel],
-                    abs_diff_silu_avg[channel],
-                    abs_diff_silu_max[channel],
+                    abs_diff_silu_min[batch][channel],
+                    abs_diff_silu_avg[batch][channel],
+                    abs_diff_silu_max[batch][channel],
                 ],
                 ticktext=[
-                    f"min: {abs_diff_silu_min[channel]:.2f}",
-                    f"avg: {abs_diff_silu_avg[channel]:.2f}",
-                    f"max: {abs_diff_silu_max[channel]:.2f}",
+                    f"min: {abs_diff_silu_min[batch][channel]:.2f}",
+                    f"avg: {abs_diff_silu_avg[batch][channel]:.2f}",
+                    f"max: {abs_diff_silu_max[batch][channel]:.2f}",
                 ],
                 tickformat=".2f",
             ),
@@ -380,6 +407,8 @@ def generate_report_first_layer(
         font=font,
         margin=dict(l=20, r=20, t=100, b=20),
     )
+
+    fig.update_yaxes(autorange=True)
 
     # Show the figure
     fig.show()
@@ -400,3 +429,179 @@ def preprocess_input(generics: dict, i_data: torch.Tensor):
     """
     scale_factor = 2 ** generics["DATA_SCALE_FACTOR"]
     return (i_data * scale_factor).int().tolist()
+
+
+def run_inference(image, model, dut_output):
+    """
+    Run inference on the model and the DUT and return the output tensors.
+
+    Parameters:
+    ----------
+        image (torch.Tensor): The input image tensor.
+        model (torch.nn.Module): The model used for inference.
+        dut_output (torch.Tensor): The output tensor from the DUT.
+
+    Returns:
+    -------
+        Tuple[torch.Tensor]: The output tensors from the model and the DUT.
+    """
+
+    # Run inference with the model and DUT
+    prediction_silu = model.forward_end(
+        model.forward_second_layer_silu(image.unsqueeze(0))
+    )
+    prediction_hs = model.forward_end(
+        model.forward_second_layer_hs(image.unsqueeze(0))
+    )
+    prediction_dut = model.forward_end(dut_output)
+
+    # Apply exponential to the output tensors (log_softmax -> softmax)
+    prediction_silu = torch.exp(prediction_silu)
+    prediction_hs = torch.exp(prediction_hs)
+    prediction_dut = torch.exp(prediction_dut)
+
+    return prediction_silu, prediction_hs, prediction_dut
+
+
+def generate_probabilty_plot(input, ground_truth, model, output, scale_factor):
+    """
+    Generate a probability plot for the MNIST dataset and compare the predictions
+    between different activation functions.
+
+    Parameters:
+    ----------
+        input (torch.Tensor): The input tensor.
+        ground_truth (torch.Tensor): The ground truth label.
+        model (torch.nn.Module): The model used for inference.
+        output (torch.Tensor): The output tensor from the DUT.
+        scale_factor (float): Factor to scale the DUT output.
+
+    Returns:
+    -------
+        None
+    """
+
+    # Convert DUT output to the correct tensor shape and type
+    dut_output = torch.tensor(
+        np.array(convert_output_to_int(output)), dtype=torch.float32
+    ).unsqueeze(0)
+    dut_output /= scale_factor
+
+    # Run inference
+    prediction_silu, prediction_hs, prediction_dut = run_inference(
+        input, model, dut_output
+    )
+
+    # Convert tensors to numpy arrays for Plotly
+    prediction_silu = prediction_silu.squeeze().detach().numpy()
+    prediction_hs = prediction_hs.squeeze().detach().numpy()
+    prediction_dut = prediction_dut.squeeze().detach().numpy()
+
+    # Define the x-axis labels (digits 0 to 9)
+    digits = list(range(10))
+
+    # Convert input to grayscale image for visualization
+    inverse_transform = transforms.Compose(
+        [
+            transforms.Normalize(mean=[-0.1307 / 0.3081], std=[1 / 0.3081]),
+        ]
+    )
+
+    image = inverse_transform(input)
+    image = (image * 255).int()[0]
+
+    digits = list(range(10))
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Bar(
+            x=digits,
+            y=prediction_silu,
+            name="SiLU Activation",
+            marker_color="royalblue",
+            hovertemplate="SiLU Activation: %{y:.3f}<extra></extra>",
+        )
+    )
+
+    fig.add_trace(
+        go.Bar(
+            x=digits,
+            y=prediction_hs,
+            name="Hardswish Activation",
+            marker_color="lightgreen",
+            hovertemplate="Hardswish Activation: %{y:.3f}<extra></extra>",
+        )
+    )
+
+    fig.add_trace(
+        go.Bar(
+            x=digits,
+            y=prediction_dut,
+            name="VHDL Output",
+            marker_color="salmon",
+            hovertemplate="VHDL Output: %{y:.3f}<extra></extra>",
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=[ground_truth.item(), ground_truth.item()],
+            y=[0, 1],
+            mode="lines",
+            line=dict(color="black", width=3, dash="dashdot"),
+            name=f"Ground Truth: {ground_truth.item()}",
+            hoverinfo="skip",
+        )
+    )
+
+    fig.update_layout(
+        title=dict(
+            text=(
+                f"<b>MNIST Prediction Comparison</b><br>"
+                f"<span style='font-size: 14px;'>"
+                f"Comparing SiLU, Hardswish Activations, and VHDL Outputs<br>"
+                f"Ground Truth: {ground_truth.item()}</span>"
+            ),
+            x=0.5,
+            y=0.95,
+            font=dict(family="Arial, sans-serif", size=18, color="black"),
+            xanchor="center",
+            yanchor="top",
+        ),
+        xaxis=dict(
+            title="<b>Digits (0-9)</b>",
+            titlefont=dict(size=14, family="Arial, sans-serif"),
+            tickfont=dict(size=12),
+            tickvals=digits,
+            showgrid=True,
+            gridcolor="lightgray",
+            zeroline=False,
+        ),
+        yaxis=dict(
+            title="<b>Probability</b>",
+            titlefont=dict(size=14, family="Arial, sans-serif"),
+            tickfont=dict(size=12),
+            showgrid=True,
+            gridcolor="lightgray",
+            range=[
+                0,
+                1.1,
+            ],
+        ),
+        barmode="group",
+        bargap=0.2,
+        legend=dict(
+            title="<b>Predictions</b>",
+            orientation="h",
+            yanchor="bottom",
+            y=-0.2,
+            xanchor="center",
+            x=0.5,
+            font=dict(size=12),
+        ),
+        margin=dict(l=50, r=50, t=100, b=80),
+        plot_bgcolor="rgba(0, 0, 0, 0)",
+        paper_bgcolor="white",
+    )
+
+    fig.show()
