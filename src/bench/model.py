@@ -31,8 +31,7 @@ class Net(nn.Module):
         self.bn2 = nn.BatchNorm2d(64)
         self.dropout1 = nn.Dropout(0.25)
         self.dropout2 = nn.Dropout(0.5)
-
-        self.fc1 = nn.Linear(2304, 128)
+        self.fc1 = nn.Linear(64 * 6 * 6, 128)
         self.fc2 = nn.Linear(128, 10)
 
     def forward(self, x):
@@ -46,6 +45,7 @@ class Net(nn.Module):
 
         x = F.max_pool2d(x, 2)
         x = self.dropout1(x)
+
         x = torch.flatten(x, 1)
         x = self.fc1(x)
         x = F.silu(x)
@@ -54,49 +54,53 @@ class Net(nn.Module):
         output = F.log_softmax(x, dim=1)
         return output
 
-    def forward_first_layer_hs(self, x, scaling_factor):
-        x = self.conv1(x)
-        x = self.bn1(x)
-        output = F.hardswish(x) * scaling_factor
+    def forward_first_layer_hs(self, x):
+        with torch.no_grad():
+            x = self.conv1(x)
+            x = self.bn1(x)
+            output = F.hardswish(x)
 
         return output
 
-    def forward_first_layer_silu(self, x, scaling_factor):
-        x = self.conv1(x)
-        x = self.bn1(x)
-        output = F.silu(x) * scaling_factor
+    def forward_first_layer_silu(self, x):
+        with torch.no_grad():
+            x = self.conv1(x)
+            x = self.bn1(x)
+            output = F.silu(x)
 
         return output
 
-    def forward_second_layer_hs(self, x, scaling_factor):
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = F.hardswish(x)
-        x = self.conv2(x)
-        x = self.bn2(x)
-        output = F.hardswish(x) * scaling_factor
+    def forward_second_layer_hs(self, x):
+        with torch.no_grad():
+            x = self.conv1(x)
+            x = self.bn1(x)
+            x = F.hardswish(x)
+            x = self.conv2(x)
+            x = self.bn2(x)
+            output = F.hardswish(x)
 
         return output
 
-    def forward_second_layer_silu(self, x, scaling_factor):
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = F.silu(x)
-        x = self.conv2(x)
-        x = self.bn2(x)
-        output = F.silu(x) * scaling_factor
+    def forward_second_layer_silu(self, x):
+        with torch.no_grad():
+            x = self.conv1(x)
+            x = self.bn1(x)
+            x = F.silu(x)
+            x = self.conv2(x)
+            x = self.bn2(x)
+            output = F.silu(x)
 
         return output
 
     def forward_end(self, x):
-        x = F.max_pool2d(x, 2)
-        x = self.dropout1(x)
-        x = torch.flatten(x, 1)
-        x = self.fc1(x)
-        x = F.silu(x)
-        x = self.dropout2(x)
-        x = self.fc2(x)
-        output = F.log_softmax(x, dim=1)
+        with torch.no_grad():
+            x = F.max_pool2d(x, 2)
+            x = torch.flatten(x, 1)
+            x = self.fc1(x)
+            x = F.silu(x)
+            x = self.fc2(x)
+            output = F.log_softmax(x, dim=1)
+
         return output
 
 
@@ -174,7 +178,7 @@ def load_dataset(model_path):
     dataset = datasets.MNIST(
         "../data", train=False, transform=transform, download=True
     )
-    test_loader = DataLoader(dataset, batch_size=500, shuffle=False)
+    test_loader = DataLoader(dataset, batch_size=500, shuffle=True)
 
     return model, test_loader
 
@@ -315,4 +319,4 @@ if __name__ == "__main__":
         test(model, device, test_loader)
         scheduler.step()
 
-    torch.save(model.state_dict(), "mnist_cnn.pt")
+    torch.save(model.state_dict(), "mnist_cnnTEMP.pt")
