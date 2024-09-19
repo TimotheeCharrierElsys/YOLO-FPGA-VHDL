@@ -66,32 +66,7 @@ def log_generics(dut):
 
 async def initialize_dut(dut, generics):
     """
-        Initialize the DUT with default values.
-                --
-
-            i_data_conv2d
-            i_kernel_conv2d
-            i_bias_conv2d_1
-    for conv2d
-
-            --
-    -- batchnorm2d
-            --
-
-    i_mean_bn_1   :
-    i_weight_bn_1 :
-    i_bias_bn_1   :
-    for batchnorm2d
-
-    conv2d input
-            i_kernel_conv2d
-            i_bias_conv2d_2
-    for conv2d
-
-    -- batchnorm2d
-    i_mean_bn_2   :
-    i_weight_bn_2 :
-    i_bias_bn_2   :
+    #TODO add docstring
     """
     await setup_clock(dut)
     dut.i_sys_enable.value = 0
@@ -150,9 +125,24 @@ async def async_reset_test(dut):
 
 
 @cocotb.test()
-async def mnist_test_first_layer(dut):
+async def mnist_prediction(dut):
     """
-    Test the DUT's first Conv layer behavior with random inputs from the MNIST dataset.
+    Test the MNIST model for a given DUT (Device Under Test).
+
+    This function performs the following steps:
+    1. Loads the dataset and model.
+    2. Asserts the reset state of the DUT.
+    3. Retrieves a random image and target from the dataset.
+    4. Preprocesses the CNN layers and input image.
+    5. Wait for the first layer to be done.
+    6. Generates a report for the first layer.
+    7. Waits for the second layer to be done.
+    8. Generates a report for the second layer.
+    9. Use the VHDL output to generate a probability plot and compare it with the PyTorch model.
+
+    Parameters:
+    -----------
+        dut: The Device Under Test (DUT) instance.
     """
     generics = get_generics(dut)
     scale_factor = 2 ** generics["DATA_SCALE_FACTOR"]
