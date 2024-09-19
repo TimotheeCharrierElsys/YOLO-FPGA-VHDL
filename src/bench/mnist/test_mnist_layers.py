@@ -32,7 +32,7 @@ np.set_printoptions(
 
 # Constants
 CLOCK_PERIOD_NS = 10
-PYTORCH_PATH = r"/home/tim/Project/YOLO-FPGA-VHDL/mnist_cnnTEMP.pt"
+PYTORCH_PATH = r"../mnist_cnn.pt"
 
 
 def get_generics(dut):
