@@ -408,7 +408,7 @@ def generate_report_first_layer(
         margin=dict(l=20, r=20, t=100, b=20),
     )
 
-    fig.update_yaxes(autorange=True)
+    fig.update_yaxes(autorange='reversed')
 
     # Show the figure
     fig.show()
