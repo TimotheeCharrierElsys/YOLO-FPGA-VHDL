@@ -319,4 +319,4 @@ if __name__ == "__main__":
         test(model, device, test_loader)
         scheduler.step()
 
-    torch.save(model.state_dict(), "mnist_cnnTEMP.pt")
+    torch.save(model.state_dict(), "mnist_cnn.pt")
