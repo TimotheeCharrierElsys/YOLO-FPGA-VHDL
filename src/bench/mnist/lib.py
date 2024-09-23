@@ -188,6 +188,10 @@ def generate_report_first_layer(
         calculate_error(output_silu, gotten_output)
     )
 
+    # Calculte Global Average Error
+    g_abs_diff_hs_avg = abs_diff_hs_avg.mean() / scale_factor * 100
+    g_abs_diff_avg_silu = abs_diff_silu_avg.mean() / scale_factor * 100
+
     # Setup the data
     batch_size, num_channels, height, width = output_hs.shape
 
@@ -201,7 +205,7 @@ def generate_report_first_layer(
             f"<b>Convolutional Layer Report For {name} Inference</b><br>"
             f"<span style='font-size: 14px;'>"
             f"Input Shape: {input.shape}, Output Shape: {output_hs.shape}<br>"
-            f"Displaying Channel: {channel}, Batch: {batch}"
+            f"Global Average Error (HS): {g_abs_diff_hs_avg:.2f}%, Global Average Error (SiLU): {g_abs_diff_avg_silu:.2f}%"
         ),
         x=0.0,
         y=0.95,
@@ -293,7 +297,11 @@ def generate_report_first_layer(
             method="update",
             args=[
                 {"visible": [False, True, False, False, False, False]},
-                {"xaxis": {"title": "Python Result with Hardswish Function"}},
+                {
+                    "xaxis": {
+                        "title": f"Python Result with Hardswish Function (Channel: {channel})"
+                    }
+                },
             ],
         ),
         dict(
@@ -301,7 +309,11 @@ def generate_report_first_layer(
             method="update",
             args=[
                 {"visible": [False, False, True, False, False, False]},
-                {"xaxis": {"title": "Python Result with SiLU Function"}},
+                {
+                    "xaxis": {
+                        "title": f"Python Result with SiLU Function (Channel: {channel})"
+                    }
+                },
             ],
         ),
         dict(
@@ -309,7 +321,7 @@ def generate_report_first_layer(
             method="update",
             args=[
                 {"visible": [False, False, False, True, False, False]},
-                {"xaxis": {"title": "VHDL Result"}},
+                {"xaxis": {"title": f"VHDL Result (Channel: {channel})"}},
             ],
         ),
         dict(
@@ -319,7 +331,7 @@ def generate_report_first_layer(
                 {"visible": [False, False, False, False, True, False]},
                 {
                     "xaxis": {
-                        "title": "Absolute Difference between Python HS and VHDL"
+                        "title": f"Absolute Difference between Python HS and VHDL (Channel: {channel})"
                     }
                 },
             ],
@@ -331,7 +343,7 @@ def generate_report_first_layer(
                 {"visible": [False, False, False, False, False, True]},
                 {
                     "xaxis": {
-                        "title": "Absolute Difference between Python SiLU and VHDL"
+                        "title": f"Absolute Difference between Python SiLU and VHDL (Channel: {channel})"
                     }
                 },
             ],
@@ -408,7 +420,7 @@ def generate_report_first_layer(
         margin=dict(l=20, r=20, t=100, b=20),
     )
 
-    fig.update_yaxes(autorange='reversed')
+    fig.update_yaxes(autorange="reversed")
 
     # Show the figure
     fig.show()
@@ -604,4 +616,5 @@ def generate_probabilty_plot(input, ground_truth, model, output, scale_factor):
         paper_bgcolor="white",
     )
 
+    # Show the figure
     fig.show()
