@@ -10,18 +10,6 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
 
-def relu6(x, scale_factor):
-    return np.minimum(np.maximum(x, 0), 6 * 2**scale_factor)
-
-
-def hardswish(x_prime, scale_factor):
-    return (
-        x_prime
-        * relu6(x_prime + 3 * 2**scale_factor, scale_factor)
-        / (6 * 2**scale_factor)
-    )
-
-
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
