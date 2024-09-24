@@ -3,6 +3,9 @@ import torch
 from torchvision import transforms
 from random import randint
 import numpy as np
+import warnings
+
+warnings.filterwarnings("ignore", category=ResourceWarning)
 
 
 def calculate_output_dimensions(generics):
@@ -120,15 +123,26 @@ def postprocess_output(input, output_hs, output_silu, gotten_output):
     -------
         Tuple[torch.Tensor]: Preprocessed tensors for visualization.
     """
-    # Apply inverse transformation to the input to get the RGB values
-    inverse_transform = transforms.Compose(
-        [
-            transforms.Normalize(mean=[-0.1307 / 0.3081], std=[1 / 0.3081]),
-        ]
-    )
+    # First case, the input is the output of the previous layer
+    if isinstance(input, list):
+        input = torch.tensor(
+            np.array(convert_output_to_int(input)),
+            dtype=torch.int32,
+        )
 
-    input = inverse_transform(input)
-    input = (input * 255).int()
+    # Second case, it is the first layer so the input is an image
+    elif isinstance(input, torch.Tensor) and input.shape == torch.Size(
+        [1, 28, 28]
+    ):
+        # Apply inverse transformation to the input to get the RGB values
+        inverse_transform = transforms.Compose(
+            [
+                transforms.Normalize(mean=[-0.1307 / 0.3081], std=[1 / 0.3081]),
+            ]
+        )
+
+        input = inverse_transform(input)
+        input = (input * 255).int()
 
     # Convert the output tensors to float32
     gotten_output = torch.tensor(
@@ -352,7 +366,6 @@ def generate_report_first_layer(
 
     # Create layout
     fig.update_layout(
-        # Update the Menu
         updatemenus=[
             dict(
                 buttons=buttons,
@@ -467,7 +480,7 @@ def run_inference(image, model, dut_output):
     )
     prediction_dut = model.forward_end(dut_output)
 
-    # Apply exponential to the output tensors (log_softmax -> softmax)
+    # Apply exponential to the output tensors (log_softmax -> softmax to get probabilities)
     prediction_silu = torch.exp(prediction_silu)
     prediction_hs = torch.exp(prediction_hs)
     prediction_dut = torch.exp(prediction_dut)
