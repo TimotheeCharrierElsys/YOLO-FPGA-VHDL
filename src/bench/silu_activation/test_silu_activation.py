@@ -29,7 +29,9 @@ def log_generics(dut):
     Log the generic parameters from the DUT in a table format.
     """
     generics = get_generics(dut)
-    table = tabulate(generics.items(), headers=["Parameter", "Value"], tablefmt="grid")
+    table = tabulate(
+        generics.items(), headers=["Parameter", "Value"], tablefmt="grid"
+    )
     dut._log.info(f"Running with generics:\n{table}")
 
 
@@ -161,10 +163,11 @@ async def test_interval(dut):
 
         expected_hardswish = hardswish(value, generics["DATA_SCALE_FACTOR"])
         expected_silu = silu(
-            value / 2 ** generics["DATA_SCALE_FACTOR"], generics["DATA_SCALE_FACTOR"]
+            value / 2 ** generics["DATA_SCALE_FACTOR"],
+            generics["DATA_SCALE_FACTOR"],
         )
-
-        output_value = int(dut.o_data.value.signed_integer)
+        await RisingEdge(dut.clock)
+        output_value = dut.o_data.value.signed_integer
 
         output_array.append(output_value)
         expected_hardswish_array.append(expected_hardswish)
@@ -203,12 +206,22 @@ async def test_interval(dut):
             stats_hardswish["Std Dev Error"],
             stats_silu["Std Dev Error"],
         ],
-        ["Median Error", stats_hardswish["Median Error"], stats_silu["Median Error"]],
-        ["Total Error", stats_hardswish["Total Error"], stats_silu["Total Error"]],
+        [
+            "Median Error",
+            stats_hardswish["Median Error"],
+            stats_silu["Median Error"],
+        ],
+        [
+            "Total Error",
+            stats_hardswish["Total Error"],
+            stats_silu["Total Error"],
+        ],
     ]
 
     dut._log.info(
-        tabulate(table, headers=["Metric", "Hardswish", "SiLU"], tablefmt="grid")
+        tabulate(
+            table, headers=["Metric", "Hardswish", "SiLU"], tablefmt="grid"
+        )
     )
 
     # Log the average errors
@@ -295,8 +308,12 @@ async def test_interval(dut):
             font=dict(size=16, color="black", family="Cambria, sans-serif"),
             x=0,
         ),
-        xaxis_title=dict(text="Input Value", font=dict(family="Cambria, sans-serif")),
-        xaxis2_title=dict(text="Input Value", font=dict(family="Cambria, sans-serif")),
+        xaxis_title=dict(
+            text="Input Value", font=dict(family="Cambria, sans-serif")
+        ),
+        xaxis2_title=dict(
+            text="Input Value", font=dict(family="Cambria, sans-serif")
+        ),
         yaxis_title=dict(
             text="Function Output", font=dict(family="Cambria, sans-serif")
         ),
@@ -348,7 +365,9 @@ async def test_interval(dut):
         tickfont=dict(family="Cambria, sans-serif"),
     )
 
-    fig.update_yaxes(title_text="Absolute Error (Log Scale)", type="log", row=2, col=1)
+    fig.update_yaxes(
+        title_text="Absolute Error (Log Scale)", type="log", row=2, col=1
+    )
     fig.update_xaxes(exponentformat="power")
     fig.update_yaxes(exponentformat="power")
 
