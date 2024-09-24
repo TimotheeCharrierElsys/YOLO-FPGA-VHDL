@@ -169,6 +169,7 @@ async def mnist_prediction(dut):
     data, target = next(iter(test_loader))
     random_index = random.randint(0, len(test_loader) - 1)
     image, ground_truth = data[random_index], target[random_index]
+    dut._log.info(f"Input Image Label is {ground_truth}")
 
     # Preprocess Conv2D and BatchNorm layers
     (
@@ -242,6 +243,9 @@ async def mnist_prediction(dut):
         name="First Layer",
     )
 
+    # Store first layer output from dut for next plot
+    temp = dut.r_data_conv2d_1_resized.value
+
     # Continue with the second layer. Wait for the second layer to be done
     startime = get_sim_time("us")
 
@@ -263,7 +267,7 @@ async def mnist_prediction(dut):
 
     # Generate report for the second layer
     generate_report_first_layer(
-        image,
+        temp,
         output_second_layer_hs,
         output_second_layer_silu,
         gotten_output_second_layer,
