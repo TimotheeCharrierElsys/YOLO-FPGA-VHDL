@@ -1098,9 +1098,9 @@
 <li><strong>File</strong>: conv2d_layer.vhd</li>
 </ul><ul>
 <li><strong>File:</strong>        conv2d_layer</li>
-<li><strong>Brief:</strong>       This entity implements a convolution layer using three different architectures.</li>
+<li><strong>Brief:</strong>       This entity implements a convolution layer using the mac architecture.</li>
 <li><strong>Author:</strong>      Timothée Charrier</li>
-</ul><h2 id="diagram">Diagram</h2><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" viewBox="0 0 1935 230"><svg id="SvgjsSvg1002" width="2" height="0" focusable="false" style="overflow:hidden;top:-100%;left:-100%;position:absolute;opacity:0"><polyline id="SvgjsPolyline1003" points="1165,0 1180,0"></polyline><path id="SvgjsPath1004" d="M0 0 "></path></svg><rect id="SvgjsRect1006" width="280" height="90" fill="black" x="1180" y="0"></rect><rect id="SvgjsRect1007" width="276" height="85" fill="#bdecb6" x="1182" y="2"></rect><text id="SvgjsText1008" font-family="Helvetica" x="1160" y="-5.698437500000001" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1009" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   std_logic </tspan></text><text id="SvgjsText1010" font-family="Helvetica" x="1195" y="-5.698437500000001" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1011" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   DO_PIPELINE </tspan></text><line id="SvgjsLine1012" x1="1165" y1="15" x2="1180" y2="15" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1013" font-family="Helvetica" x="1160" y="14.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1014" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   integer </tspan></text><text id="SvgjsText1015" font-family="Helvetica" x="1195" y="14.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1016" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   BITWIDTH </tspan></text><line id="SvgjsLine1017" x1="1165" y1="35" x2="1180" y2="35" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1018" font-family="Helvetica" x="1160" y="34.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1019" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   integer </tspan></text><text id="SvgjsText1020" font-family="Helvetica" x="1195" y="34.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1021" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   CHANNEL_NUMBER </tspan></text><line id="SvgjsLine1022" x1="1165" y1="55" x2="1180" y2="55" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1023" font-family="Helvetica" x="1160" y="54.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1024" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   integer </tspan></text><text id="SvgjsText1025" font-family="Helvetica" x="1195" y="54.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1026" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   KERNEL_SIZE </tspan></text><line id="SvgjsLine1027" x1="1165" y1="75" x2="1180" y2="75" stroke-linecap="rec" stroke="black" stroke-width="5"></line><rect id="SvgjsRect1028" width="280" height="130" fill="black" x="1180" y="95"></rect><rect id="SvgjsRect1029" width="276" height="125" fill="#fdfd96" x="1182" y="97"></rect><text id="SvgjsText1030" font-family="Helvetica" x="1160" y="89.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1031" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   std_logic </tspan></text><text id="SvgjsText1032" font-family="Helvetica" x="1195" y="89.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1033" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   clock </tspan></text><line id="SvgjsLine1034" x1="1165" y1="110" x2="1180" y2="110" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1035" font-family="Helvetica" x="1160" y="109.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1036" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   std_logic </tspan></text><text id="SvgjsText1037" font-family="Helvetica" x="1195" y="109.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1038" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   reset_n </tspan></text><line id="SvgjsLine1039" x1="1165" y1="130" x2="1180" y2="130" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1040" font-family="Helvetica" x="1160" y="129.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1041" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   std_logic </tspan></text><text id="SvgjsText1042" font-family="Helvetica" x="1195" y="129.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1043" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   i_sys_enable </tspan></text><line id="SvgjsLine1044" x1="1165" y1="150" x2="1180" y2="150" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1045" font-family="Helvetica" x="1160" y="149.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1046" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0) </tspan></text><text id="SvgjsText1047" font-family="Helvetica" x="1195" y="149.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1048" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   i_data </tspan></text><line id="SvgjsLine1049" x1="1165" y1="170" x2="1180" y2="170" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1050" font-family="Helvetica" x="1160" y="169.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1051" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0) </tspan></text><text id="SvgjsText1052" font-family="Helvetica" x="1195" y="169.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1053" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   i_kernels </tspan></text><line id="SvgjsLine1054" x1="1165" y1="190" x2="1180" y2="190" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1055" font-family="Helvetica" x="1160" y="189.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1056" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   std_logic_vector(2 \* BITWIDTH - 1 downto 0) </tspan></text><text id="SvgjsText1057" font-family="Helvetica" x="1195" y="189.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1058" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   i_bias </tspan></text><line id="SvgjsLine1059" x1="1165" y1="210" x2="1180" y2="210" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1060" font-family="Helvetica" x="1480" y="89.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1061" dy="26" x="1480" svgjs:data="{&quot;newLined&quot;:true}">   std_logic_vector(2 \* BITWIDTH - 1 downto 0) </tspan></text><text id="SvgjsText1062" font-family="Helvetica" x="1445" y="89.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1063" dy="26" x="1445" svgjs:data="{&quot;newLined&quot;:true}">   o_result </tspan></text><line id="SvgjsLine1064" x1="1460" y1="110" x2="1475" y2="110" stroke-linecap="rec" stroke="black" stroke-width="5"></line></svg>
+</ul><h2 id="diagram">Diagram</h2><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" viewBox="0 0 1965 450"><svg id="SvgjsSvg1002" width="2" height="0" focusable="false" style="overflow:hidden;top:-100%;left:-100%;position:absolute;opacity:0"><polyline id="SvgjsPolyline1003" points="1165,0 1180,0"></polyline><path id="SvgjsPath1004" d="M0 0 "></path></svg><rect id="SvgjsRect1006" width="310" height="90" fill="black" x="1180" y="0"></rect><rect id="SvgjsRect1007" width="306" height="85" fill="#bdecb6" x="1182" y="2"></rect><text id="SvgjsText1008" font-family="Helvetica" x="1160" y="-5.698437500000001" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1009" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   integer </tspan></text><text id="SvgjsText1010" font-family="Helvetica" x="1195" y="-5.698437500000001" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1011" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   DATA_SCALE_FACTOR </tspan></text><line id="SvgjsLine1012" x1="1165" y1="15" x2="1180" y2="15" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1013" font-family="Helvetica" x="1160" y="14.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1014" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   integer </tspan></text><text id="SvgjsText1015" font-family="Helvetica" x="1195" y="14.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1016" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   BITWIDTH </tspan></text><line id="SvgjsLine1017" x1="1165" y1="35" x2="1180" y2="35" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1018" font-family="Helvetica" x="1160" y="34.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1019" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   integer </tspan></text><text id="SvgjsText1020" font-family="Helvetica" x="1195" y="34.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1021" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   INPUT_CHANNELS </tspan></text><line id="SvgjsLine1022" x1="1165" y1="55" x2="1180" y2="55" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1023" font-family="Helvetica" x="1160" y="54.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1024" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   integer </tspan></text><text id="SvgjsText1025" font-family="Helvetica" x="1195" y="54.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1026" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   KERNEL_SIZE </tspan></text><line id="SvgjsLine1027" x1="1165" y1="75" x2="1180" y2="75" stroke-linecap="rec" stroke="black" stroke-width="5"></line><rect id="SvgjsRect1028" width="310" height="350" fill="black" x="1180" y="95"></rect><rect id="SvgjsRect1029" width="306" height="345" fill="#fdfd96" x="1182" y="97"></rect><text id="SvgjsText1030" font-family="Helvetica" x="1160" y="89.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1031" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   std_logic </tspan></text><text id="SvgjsText1032" font-family="Helvetica" x="1195" y="89.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1033" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   clock </tspan></text><line id="SvgjsLine1034" x1="1165" y1="110" x2="1180" y2="110" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1035" font-family="Helvetica" x="1160" y="109.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1036" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   std_logic </tspan></text><text id="SvgjsText1037" font-family="Helvetica" x="1195" y="109.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1038" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   reset_n </tspan></text><line id="SvgjsLine1039" x1="1165" y1="130" x2="1180" y2="130" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1040" font-family="Helvetica" x="1160" y="129.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1041" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   std_logic </tspan></text><text id="SvgjsText1042" font-family="Helvetica" x="1195" y="129.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1043" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   i_sys_enable </tspan></text><line id="SvgjsLine1044" x1="1165" y1="150" x2="1180" y2="150" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1045" font-family="Helvetica" x="1160" y="149.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1046" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   t_volume(INPUT_CHANNELS - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0) </tspan></text><text id="SvgjsText1047" font-family="Helvetica" x="1195" y="149.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1048" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   i_data_conv2d </tspan></text><line id="SvgjsLine1049" x1="1165" y1="170" x2="1180" y2="170" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1050" font-family="Helvetica" x="1160" y="169.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1051" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   t_volume(INPUT_CHANNELS - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0) </tspan></text><text id="SvgjsText1052" font-family="Helvetica" x="1195" y="169.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1053" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   i_kernel_conv2d </tspan></text><line id="SvgjsLine1054" x1="1165" y1="190" x2="1180" y2="190" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1055" font-family="Helvetica" x="1160" y="189.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1056" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   std_logic_vector(2 \* BITWIDTH - 1 downto 0) </tspan></text><text id="SvgjsText1057" font-family="Helvetica" x="1195" y="189.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1058" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   i_bias_conv2d </tspan></text><line id="SvgjsLine1059" x1="1165" y1="210" x2="1180" y2="210" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1060" font-family="Helvetica" x="1160" y="209.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1061" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   std_logic_vector(2 \* BITWIDTH - 1 downto 0) </tspan></text><text id="SvgjsText1062" font-family="Helvetica" x="1195" y="209.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1063" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   i_bias_bn </tspan></text><line id="SvgjsLine1064" x1="1165" y1="230" x2="1180" y2="230" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1065" font-family="Helvetica" x="1160" y="229.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1066" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   std_logic_vector(2 \* BITWIDTH - 1 downto 0) </tspan></text><text id="SvgjsText1067" font-family="Helvetica" x="1195" y="229.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1068" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   i_mean_bn </tspan></text><line id="SvgjsLine1069" x1="1165" y1="250" x2="1180" y2="250" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1070" font-family="Helvetica" x="1160" y="249.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1071" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   std_logic_vector(2 \* BITWIDTH - 1 downto 0) </tspan></text><text id="SvgjsText1072" font-family="Helvetica" x="1195" y="249.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1073" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   i_weight_bn </tspan></text><line id="SvgjsLine1074" x1="1165" y1="270" x2="1180" y2="270" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1075" font-family="Helvetica" x="1160" y="269.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1076" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   std_logic </tspan></text><text id="SvgjsText1077" font-family="Helvetica" x="1195" y="269.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1078" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   i_valid_mac </tspan></text><line id="SvgjsLine1079" x1="1165" y1="290" x2="1180" y2="290" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1080" font-family="Helvetica" x="1160" y="289.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1081" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   std_logic </tspan></text><text id="SvgjsText1082" font-family="Helvetica" x="1195" y="289.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1083" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   i_valid_adder </tspan></text><line id="SvgjsLine1084" x1="1165" y1="310" x2="1180" y2="310" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1085" font-family="Helvetica" x="1160" y="309.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1086" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   std_logic </tspan></text><text id="SvgjsText1087" font-family="Helvetica" x="1195" y="309.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1088" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   i_valid_bn </tspan></text><line id="SvgjsLine1089" x1="1165" y1="330" x2="1180" y2="330" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1090" font-family="Helvetica" x="1160" y="329.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1091" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   std_logic </tspan></text><text id="SvgjsText1092" font-family="Helvetica" x="1195" y="329.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1093" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   i_clear_mac </tspan></text><line id="SvgjsLine1094" x1="1165" y1="350" x2="1180" y2="350" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1095" font-family="Helvetica" x="1160" y="349.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1096" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   std_logic </tspan></text><text id="SvgjsText1097" font-family="Helvetica" x="1195" y="349.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1098" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   i_clear_adder </tspan></text><line id="SvgjsLine1099" x1="1165" y1="370" x2="1180" y2="370" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1100" font-family="Helvetica" x="1160" y="369.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1101" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   integer range 0 to KERNEL_SIZE - 1 </tspan></text><text id="SvgjsText1102" font-family="Helvetica" x="1195" y="369.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1103" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   current_row </tspan></text><line id="SvgjsLine1104" x1="1165" y1="390" x2="1180" y2="390" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1105" font-family="Helvetica" x="1160" y="389.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1106" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   integer range 0 to KERNEL_SIZE - 1 </tspan></text><text id="SvgjsText1107" font-family="Helvetica" x="1195" y="389.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1108" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   current_col </tspan></text><line id="SvgjsLine1109" x1="1165" y1="410" x2="1180" y2="410" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1110" font-family="Helvetica" x="1160" y="409.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1111" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   integer range 0 to INPUT_CHANNELS </tspan></text><text id="SvgjsText1112" font-family="Helvetica" x="1195" y="409.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1113" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   current_channel </tspan></text><line id="SvgjsLine1114" x1="1165" y1="430" x2="1180" y2="430" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1115" font-family="Helvetica" x="1510" y="89.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1116" dy="26" x="1510" svgjs:data="{&quot;newLined&quot;:true}">   std_logic_vector(2 \* BITWIDTH - 1 downto 0) </tspan></text><text id="SvgjsText1117" font-family="Helvetica" x="1475" y="89.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1118" dy="26" x="1475" svgjs:data="{&quot;newLined&quot;:true}">   o_result </tspan></text><line id="SvgjsLine1119" x1="1490" y1="110" x2="1505" y2="110" stroke-linecap="rec" stroke="black" stroke-width="5"></line></svg>
 <h2 id="description">Description</h2><p>It performs conv2d_layer operations.  Entity conv2d_layer  This entity implements a convolution layer using a pipelined MAC unit with a 3x3 kernel.</p><h2 id="generics">Generics</h2>
 <table>
 <thead>
@@ -1113,10 +1113,10 @@
 </thead>
 <tbody>
 <tr>
-<td>DO_PIPELINE</td>
-<td>std_logic</td>
-<td>'1'</td>
-<td>Define if the design is pipelined ('1') or not ('0')</td>
+<td>DATA_SCALE_FACTOR</td>
+<td>integer</td>
+<td>12</td>
+<td>Input data scale factor. For example, a value of 12 means input values are scaled by 2^12.</td>
 </tr>
 <tr>
 <td>BITWIDTH</td>
@@ -1125,10 +1125,10 @@
 <td>Bit width of each operand</td>
 </tr>
 <tr>
-<td>CHANNEL_NUMBER</td>
+<td>INPUT_CHANNELS</td>
 <td>integer</td>
 <td>3</td>
-<td>Number of channels in the image</td>
+<td>Number of input channels</td>
 </tr>
 <tr>
 <td>KERNEL_SIZE</td>
@@ -1168,22 +1168,88 @@
 <td>Enable signal, active at high state</td>
 </tr>
 <tr>
-<td>i_data</td>
+<td>i_data_conv2d</td>
 <td>in</td>
-<td>t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)</td>
-<td>Input data  (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)</td>
+<td>t_volume(INPUT_CHANNELS - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)</td>
+<td>Input data  (INPUT_CHANNELS x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)</td>
 </tr>
 <tr>
-<td>i_kernels</td>
+<td>i_kernel_conv2d</td>
 <td>in</td>
-<td>t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)</td>
-<td>Kernel data (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)</td>
+<td>t_volume(INPUT_CHANNELS - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)</td>
+<td>Kernel data (INPUT_CHANNELS x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)</td>
 </tr>
 <tr>
-<td>i_bias</td>
+<td>i_bias_conv2d</td>
 <td>in</td>
 <td>std_logic_vector(2 * BITWIDTH - 1 downto 0)</td>
-<td>Input bias value</td>
+<td>Input bias value for the conv2d</td>
+</tr>
+<tr>
+<td>i_bias_bn</td>
+<td>in</td>
+<td>std_logic_vector(2 * BITWIDTH - 1 downto 0)</td>
+<td>Input bias value for the bn</td>
+</tr>
+<tr>
+<td>i_mean_bn</td>
+<td>in</td>
+<td>std_logic_vector(2 * BITWIDTH - 1 downto 0)</td>
+<td>Input mean value for the bn</td>
+</tr>
+<tr>
+<td>i_weight_bn</td>
+<td>in</td>
+<td>std_logic_vector(2 * BITWIDTH - 1 downto 0)</td>
+<td>Input weight value for the bn</td>
+</tr>
+<tr>
+<td>i_valid_mac</td>
+<td>in</td>
+<td>std_logic</td>
+<td>Input valid signal for the MAC</td>
+</tr>
+<tr>
+<td>i_valid_adder</td>
+<td>in</td>
+<td>std_logic</td>
+<td>Input valid signal for the adder</td>
+</tr>
+<tr>
+<td>i_valid_bn</td>
+<td>in</td>
+<td>std_logic</td>
+<td>Input valid signal for the bn</td>
+</tr>
+<tr>
+<td>i_clear_mac</td>
+<td>in</td>
+<td>std_logic</td>
+<td>Input clear signal for the MAC</td>
+</tr>
+<tr>
+<td>i_clear_adder</td>
+<td>in</td>
+<td>std_logic</td>
+<td>Input clear signal for the adder</td>
+</tr>
+<tr>
+<td>current_row</td>
+<td>in</td>
+<td>integer range 0 to KERNEL_SIZE - 1</td>
+<td>Current row index</td>
+</tr>
+<tr>
+<td>current_col</td>
+<td>in</td>
+<td>integer range 0 to KERNEL_SIZE - 1</td>
+<td>Current column index</td>
+</tr>
+<tr>
+<td>current_channel</td>
+<td>in</td>
+<td>integer range 0 to INPUT_CHANNELS</td>
+<td>Current channel index</td>
 </tr>
 <tr>
 <td>o_result</td>
@@ -1203,13 +1269,39 @@
 </thead>
 <tbody>
 <tr>
+<td>conv2d_result</td>
+<td>std_logic_vector(2 * BITWIDTH - 1 downto 0)</td>
+<td></td>
+</tr>
+<tr>
 <td>r_results</td>
-<td>t_vec(CHANNEL_NUMBER downto 0)(2 * BITWIDTH - 1 downto 0)</td>
-<td>Intermediate signal to hold the output of each MAC unit for each channel. Add the bias to the vector.</td>
+<td>t_vec(INPUT_CHANNELS downto 0)(2 * BITWIDTH - 1 downto 0)</td>
+<td>Intermediate signal to hold the output of each MAC unit for each channel.</td>
+</tr>
+<tr>
+<td>intermediate_multiplier1</td>
+<td>t_vec(INPUT_CHANNELS - 1 downto 0)(BITWIDTH - 1 downto 0)</td>
+<td>Intermediate signal to avoid static</td>
+</tr>
+<tr>
+<td>intermediate_multiplier2</td>
+<td>t_vec(INPUT_CHANNELS - 1 downto 0)(BITWIDTH - 1 downto 0)</td>
+<td>Intermediate signal</td>
+</tr>
+<tr>
+<td>intermediate_result</td>
+<td>std_logic_vector(2 * BITWIDTH - 1 downto 0)</td>
+<td>Intermediate signal for output result sum</td>
 </tr>
 </tbody>
-</table><h2 id="instantiations">Instantiations</h2><ul>
-<li>adder_tree_inst: adder_tree</li>
+</table><h2 id="processes">Processes</h2><ul>
+<li>unnamed: ( all )</li>
+</ul><div id="descriptions"><p><strong>Description</strong><br />
+  Process Handles the assignment of the input data to the intermediate signals.</p></div><h2 id="instantiations">Instantiations</h2><ul>
+<li>gen_output_sum: mac</li>
+</ul><div id="descriptions"><p><strong>Description</strong><br />
+  Instantiate one accumulative adder for computing the output sum</p></div><ul>
+<li>batchnorm2d_layer_inst: batchnorm2d_layer</li>
 </ul>
         <br><br><br><br><br><br>
     </article class="markdown-body">

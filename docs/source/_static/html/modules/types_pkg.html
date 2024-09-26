@@ -1094,119 +1094,46 @@
   <article class="markdown-body">
 
 <div id="teroshdl" class='templateTerosHDL'>
-<h1 id="entity-maxpool2d_layer">Entity: maxpool2d_layer</h1><ul>
-<li><strong>File</strong>: maxpool2d_layer.vhd</li>
+<h1 id="package-types_pkg">Package: types_pkg</h1><ul>
+<li><strong>File</strong>: types_pkg.vhd</li>
 </ul><ul>
-<li><strong>File:</strong>        maxpool2d_layer</li>
-<li><strong>Brief:</strong>       This entity implements a max-pooling layer for a convolutional neural network.</li>
-<li><strong>Author:</strong>      Timothée Charrier</li>
-</ul><h2 id="diagram">Diagram</h2><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" viewBox="0 0 2115 190"><svg id="SvgjsSvg1002" width="2" height="0" focusable="false" style="overflow:hidden;top:-100%;left:-100%;position:absolute;opacity:0"><polyline id="SvgjsPolyline1003" points="1165,0 1180,0"></polyline><path id="SvgjsPath1004" d="M0 0 "></path></svg><rect id="SvgjsRect1006" width="320" height="70" fill="black" x="1180" y="0"></rect><rect id="SvgjsRect1007" width="316" height="65" fill="#bdecb6" x="1182" y="2"></rect><text id="SvgjsText1008" font-family="Helvetica" x="1160" y="-5.698437500000001" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1009" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   integer </tspan></text><text id="SvgjsText1010" font-family="Helvetica" x="1195" y="-5.698437500000001" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1011" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   BITWIDTH </tspan></text><line id="SvgjsLine1012" x1="1165" y1="15" x2="1180" y2="15" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1013" font-family="Helvetica" x="1160" y="14.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1014" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   integer </tspan></text><text id="SvgjsText1015" font-family="Helvetica" x="1195" y="14.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1016" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   CHANNEL_NUMBER </tspan></text><line id="SvgjsLine1017" x1="1165" y1="35" x2="1180" y2="35" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1018" font-family="Helvetica" x="1160" y="34.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1019" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   integer </tspan></text><text id="SvgjsText1020" font-family="Helvetica" x="1195" y="34.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1021" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   KERNEL_SIZE </tspan></text><line id="SvgjsLine1022" x1="1165" y1="55" x2="1180" y2="55" stroke-linecap="rec" stroke="black" stroke-width="5"></line><rect id="SvgjsRect1023" width="320" height="110" fill="black" x="1180" y="75"></rect><rect id="SvgjsRect1024" width="316" height="105" fill="#fdfd96" x="1182" y="77"></rect><text id="SvgjsText1025" font-family="Helvetica" x="1160" y="69.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1026" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   std_logic </tspan></text><text id="SvgjsText1027" font-family="Helvetica" x="1195" y="69.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1028" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   clock </tspan></text><line id="SvgjsLine1029" x1="1165" y1="90" x2="1180" y2="90" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1030" font-family="Helvetica" x="1160" y="89.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1031" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   std_logic </tspan></text><text id="SvgjsText1032" font-family="Helvetica" x="1195" y="89.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1033" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   reset_n </tspan></text><line id="SvgjsLine1034" x1="1165" y1="110" x2="1180" y2="110" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1035" font-family="Helvetica" x="1160" y="109.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1036" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   std_logic </tspan></text><text id="SvgjsText1037" font-family="Helvetica" x="1195" y="109.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1038" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   i_sys_enable </tspan></text><line id="SvgjsLine1039" x1="1165" y1="130" x2="1180" y2="130" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1040" font-family="Helvetica" x="1160" y="129.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1041" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   std_logic </tspan></text><text id="SvgjsText1042" font-family="Helvetica" x="1195" y="129.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1043" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   i_data_valid </tspan></text><line id="SvgjsLine1044" x1="1165" y1="150" x2="1180" y2="150" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1045" font-family="Helvetica" x="1160" y="149.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1046" dy="26" x="1160" svgjs:data="{&quot;newLined&quot;:true}">   t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0) </tspan></text><text id="SvgjsText1047" font-family="Helvetica" x="1195" y="149.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1048" dy="26" x="1195" svgjs:data="{&quot;newLined&quot;:true}">   i_data </tspan></text><line id="SvgjsLine1049" x1="1165" y1="170" x2="1180" y2="170" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1050" font-family="Helvetica" x="1520" y="69.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1051" dy="26" x="1520" svgjs:data="{&quot;newLined&quot;:true}">   t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0) </tspan></text><text id="SvgjsText1052" font-family="Helvetica" x="1485" y="69.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1053" dy="26" x="1485" svgjs:data="{&quot;newLined&quot;:true}">   o_data </tspan></text><line id="SvgjsLine1054" x1="1500" y1="90" x2="1515" y2="90" stroke-linecap="rec" stroke="black" stroke-width="5"></line><text id="SvgjsText1055" font-family="Helvetica" x="1520" y="89.3015625" font-size="20" text-anchor="start" family="Helvetica" size="20" anchor="start" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1056" dy="26" x="1520" svgjs:data="{&quot;newLined&quot;:true}">   std_logic </tspan></text><text id="SvgjsText1057" font-family="Helvetica" x="1485" y="89.3015625" font-size="20" text-anchor="end" family="Helvetica" size="20" anchor="end" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}"><tspan id="SvgjsTspan1058" dy="26" x="1485" svgjs:data="{&quot;newLined&quot;:true}">   o_data_valid </tspan></text><line id="SvgjsLine1059" x1="1500" y1="110" x2="1515" y2="110" stroke-linecap="rec" stroke="black" stroke-width="5"></line></svg>
-<h2 id="description">Description</h2><p>It finds the maximum value in each 3x3 kernel window.  Entity maxpool2d_layer  This entity implements a max-pooling layer</p><h2 id="generics">Generics</h2>
-<table>
-<thead>
-<tr>
-<th id="generic_name">Generic name</th>
-<th id="type">Type</th>
-<th id="value">Value</th>
-<th id="description">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>BITWIDTH</td>
-<td>integer</td>
-<td>8</td>
-<td>Bit width of each operand</td>
-</tr>
-<tr>
-<td>CHANNEL_NUMBER</td>
-<td>integer</td>
-<td>1</td>
-<td>Number of channels in the image</td>
-</tr>
-<tr>
-<td>KERNEL_SIZE</td>
-<td>integer</td>
-<td>3</td>
-<td>Size of the kernel (e.g., 3 for a 3x3 kernel)</td>
-</tr>
-</tbody>
-</table>
-<h2 id="ports">Ports</h2>
-<table>
-<thead>
-<tr>
-<th id="port_name">Port name</th>
-<th id="direction">Direction</th>
-<th id="type">Type</th>
-<th id="description">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>clock</td>
-<td>in</td>
-<td>std_logic</td>
-<td>Clock signal</td>
-</tr>
-<tr>
-<td>reset_n</td>
-<td>in</td>
-<td>std_logic</td>
-<td>Reset signal, active at low state</td>
-</tr>
-<tr>
-<td>i_sys_enable</td>
-<td>in</td>
-<td>std_logic</td>
-<td>Enable signal, active at high state</td>
-</tr>
-<tr>
-<td>i_data_valid</td>
-<td>in</td>
-<td>std_logic</td>
-<td>Input valid signal</td>
-</tr>
-<tr>
-<td>i_data</td>
-<td>in</td>
-<td>t_volume(CHANNEL_NUMBER - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(KERNEL_SIZE - 1 downto 0)(BITWIDTH - 1 downto 0)</td>
-<td>Input data  (CHANNEL_NUMBER x (KERNEL_SIZE x KERNEL_SIZE x BITWIDTH) bits)</td>
-</tr>
-<tr>
-<td>o_data</td>
-<td>out</td>
-<td>t_vec(CHANNEL_NUMBER - 1 downto 0)(BITWIDTH - 1 downto 0)</td>
-<td>Output values</td>
-</tr>
-<tr>
-<td>o_data_valid</td>
-<td>out</td>
-<td>std_logic</td>
-<td>Output data valid signal</td>
-</tr>
-</tbody>
-</table><h2 id="constants">Constants</h2>
+<li><strong>Brief:</strong>       This package provides the types definitions for the project.</li>
+<li><strong>Details:</strong>     The package defines two types: t_vec and t_mat. t_vec is an array</li>
+</ul><h2 id="description">Description</h2><p><a href="https://github.com/Package">@Package</a>    types_pkg  It defines the types necessary for creating arrays of std_logic_vectors  of std_logic_vectors with an unconstrained range, and t_mat is an  array of t_vec with an unconstrained range. These types are used to  represent the multi-dimensional arrays.  <a href="https://github.com/auth">@auth</a>       Timothée Charrier</p><h2 id="types">Types</h2>
 <table>
 <thead>
 <tr>
 <th id="name">Name</th>
 <th id="type">Type</th>
-<th id="value">Value</th>
 <th id="description">Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>DFF_DELAY</td>
-<td>integer</td>
-<td>2</td>
-<td>Total delay</td>
+<td>t_vec</td>
+<td>array (natural range &lt;&gt;) of std_logic_vector</td>
+<td><a href="https://github.com/type">@type</a> t_vec <a href="https://github.com/brief">@brief</a> Defines an unconstrained array of std_logic_vectors.        This type is used to represent a vector of std_logic_vectors.</td>
+</tr>
+<tr>
+<td>t_mat</td>
+<td>array (natural range &lt;&gt;) of t_vec</td>
+<td><a href="https://github.com/type">@type</a> t_mat  <a href="https://github.com/brief">@brief</a> Defines an unconstrained array of t_vec.</td>
+</tr>
+<tr>
+<td>t_volume</td>
+<td>array (natural range &lt;&gt;) of t_mat</td>
+<td><a href="https://github.com/type">@type</a> t_volume  <a href="https://github.com/brief">@brief</a> Defines an unconstrained array of t_mat.</td>
+</tr>
+<tr>
+<td>t_tensor</td>
+<td>array (natural range &lt;&gt;) of t_volume</td>
+<td><a href="https://github.com/type">@type</a> t_tensor  <a href="https://github.com/brief">@brief</a> Defines an unconstrained array of t_mat.</td>
 </tr>
 </tbody>
-</table><h2 id="instantiations">Instantiations</h2><ul>
-<li>pipeline_inst: pipeline</li>
-</ul>
+</table><h2 id="functions">Functions</h2><ul>
+<li>pad_input <font id="function_arguments">( i_data        : t_volume;<br><span style="padding-left:20px"> input_width   : integer;<br><span style="padding-left:20px"> input_channel : integer;<br><span style="padding-left:20px"> padding       : integer;<br><span style="padding-left:20px"> bitwidth      : integer )</font> <font id="function_return">return t_volume</font></li>
+</ul><div id="descriptions"><p><strong>Description</strong><br />
+  <a href="https://github.com/type">@type</a> function <a href="https://github.com/brief">@brief</a> Defines a function returning a padded input volume</p></div>
         <br><br><br><br><br><br>
     </article class="markdown-body">
     </body>
