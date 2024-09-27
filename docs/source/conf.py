@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "HDL CNN"
-copyright = "2024, Timothée CHARRIER"
+copyright = "2024, Elsys Design"
 author = "Timothée CHARRIER"
 
 
@@ -20,6 +20,7 @@ extensions = [
     "sphinx_copybutton",
     "sphinxcontrib.bibtex",
     "sphinx.ext.autosectionlabel",
+    "sphinx.ext.mathjax",
 ]
 
 autosectionlabel_prefix_document = True
@@ -41,3 +42,7 @@ html_static_path = ["_static"]
 
 pygments_style = "emacs"
 pygments_dark_style = "monokai"
+
+mathjax3_config = {
+    "jax": ["input/TeX", "output/HTML-CSS"],
+}
