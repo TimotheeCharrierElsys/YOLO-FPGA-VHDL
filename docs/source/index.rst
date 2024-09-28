@@ -17,6 +17,7 @@ CNN in Hardware Description Language
 
   docs/getting_started
   docs/deep_learning
+  docs/conv2d_implementation
   docs/modules
 
 
