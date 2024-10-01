@@ -13,8 +13,8 @@ VHDL_SOURCES	:= $(SRC_DIR)/types_pkg.vhd \
 # Cocotb and nvc flags
 SIM					:= nvc
 TOPLEVEL_LANG		:= vhdl
-TOPLEVEL			:= conv2d_layer.vhd
-COCOTB_TEST_MODULES	:= test_conv2d_layer.vhd
+TOPLEVEL			:= conv2d_layer
+COCOTB_TEST_MODULES	:= test_conv2d_layer
 MODULE				:= $(COCOTB_TEST_MODULES) # Retrocompatibility
 RTL_LIBRARY			:= LIB_RTL
 
