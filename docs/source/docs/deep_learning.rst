@@ -34,7 +34,7 @@ the hidden layers include one or more layers that perform convolutions. Typicall
 of the convolution kernel with the layer's input matrix. There are also other layers that perform operations such as pooling,
 batch normalization, and activation functions.
 
-The following Figure illustrates the architecture of VGG16, a popular CNN model:
+The following Figure illustrates the architecture of VGG16, a popular CNN model (created by `kennethleungty <https://github.com/kennethleungty/Neural-Network-Architecture-Diagrams>`_):
 
 .. image:: ../_static/images/deep_learning/vgg16_architecture.svg
    :alt: CNN Architecture
