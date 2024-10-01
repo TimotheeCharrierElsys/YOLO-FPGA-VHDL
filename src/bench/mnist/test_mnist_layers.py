@@ -38,6 +38,16 @@ PYTORCH_PATH = r"../mnist_cnn.pt"
 def get_generics(dut):
     """
     Retrieve the generic parameters from the DUT.
+
+    Parameters
+    ----------
+    dut : object
+        The device under test (DUT).
+
+    Returns
+    -------
+    dict
+        A dictionary containing the generic parameters.
     """
     return {
         "DATA_SCALE_FACTOR": dut.DATA_SCALE_FACTOR.value,
@@ -56,6 +66,11 @@ def get_generics(dut):
 def log_generics(dut):
     """
     Log the generic parameters from the DUT in a table format.
+
+    Parameters
+    ----------
+    dut : object
+        The device under test (DUT).
     """
     generics = get_generics(dut)
     table = tabulate(
@@ -109,6 +124,13 @@ async def initialize_dut(dut, generics):
 async def async_reset_test(dut):
     """
     Test the DUT's behavior during reset.
+
+    Verifies that the output is correctly reset and remains stable.
+
+    Parameters
+    ----------
+    dut : object
+        The device under test (DUT).
     """
     generics = get_generics(dut)
     log_generics(dut)

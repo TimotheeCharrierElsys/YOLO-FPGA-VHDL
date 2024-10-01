@@ -17,6 +17,16 @@ CLOCK_PERIOD_NS = 10
 def get_generics(dut):
     """
     Retrieve the generic parameters from the DUT.
+
+    Parameters
+    ----------
+    dut : object
+        The device under test (DUT).
+
+    Returns
+    -------
+    dict
+        A dictionary containing the generic parameters.
     """
     return {
         "BITWIDTH": dut.BITWIDTH.value,
@@ -27,6 +37,11 @@ def get_generics(dut):
 def log_generics(dut):
     """
     Log the generic parameters from the DUT in a table format.
+
+    Parameters
+    ----------
+    dut : object
+        The device under test (DUT).
     """
     generics = get_generics(dut)
     table = tabulate(
@@ -42,13 +57,18 @@ def relu6(x, data_scale_factor):
     The ReLU6 function is a variation of the ReLU (Rectified Linear Unit) function,
     which clips the input values to the range [0, 6 * 2^data_scale_factor].
 
-    Parameters:
-    - x: Input array or value to apply the ReLU6 function to.
-    - data_scale_factor: An integer scale factor applied to the upper bound.
+    Parameters
+    ----------
+    x : array-like
+        Input array or value to apply the ReLU6 function to.
+    data_scale_factor : int
+        An integer scale factor applied to the upper bound.
 
-    Returns:
-    - The result of applying the ReLU6 function to the input `x`, where the output
-      is clipped between 0 and 6 * 2^data_scale_factor.
+    Returns
+    -------
+    array-like
+        The result of applying the ReLU6 function to the input `x`, where the output
+        is clipped between 0 and 6 * 2^data_scale_factor.
     """
     return np.minimum(np.maximum(x, 0), 6 * 2**data_scale_factor)
 
@@ -61,14 +81,19 @@ def hardswish(x, data_scale_factor):
     Swish activation function, often used in neural networks. It combines the
     input with the ReLU6 activation and scales it accordingly.
 
-    Parameters:
-    - x: Input array or value to apply the HardSwish function to.
-    - data_scale_factor: An integer scale factor that influences the behavior of both
-      the ReLU6 and the final scaling.
+    Parameters
+    ----------
+    x : array-like
+        Input array or value to apply the HardSwish function to.
+    data_scale_factor : int
+        An integer scale factor that influences the behavior of both
+        the ReLU6 and the final scaling.
 
-    Returns:
-    - The result of applying the HardSwish function to the input `x`, where the
-      output is computed as x * relu6(x + 3 * 2^data_scale_factor, 2^data_scale_factor) / (6 * 2^data_scale_factor).
+    Returns
+    -------
+    array-like
+        The result of applying the HardSwish function to the input `x`, where the
+        output is computed as x * relu6(x + 3 * 2^data_scale_factor, 2^data_scale_factor) / (6 * 2^data_scale_factor).
     """
     return (
         x
@@ -85,12 +110,17 @@ def silu(x, data_scale_factor):
     It is similar to the Sigmoid function but with a linear component, which makes it
     more useful in certain machine learning applications.
 
-    Parameters:
-    - x: Input array or value to apply the SiLU function to.
-    - data_scale_factor: An integer scale factor that is applied to the result of the SiLU function.
+    Parameters
+    ----------
+    x : array-like
+        Input array or value to apply the SiLU function to.
+    data_scale_factor : int
+        An integer scale factor that is applied to the result of the SiLU function.
 
-    Returns:
-    - The result of applying the SiLU function to the input `x`, scaled by 2^data_scale_factor.
+    Returns
+    -------
+    array-like
+        The result of applying the SiLU function to the input `x`, scaled by 2^data_scale_factor.
     """
     return x / (1 + np.exp(-x)) * 2**data_scale_factor
 
@@ -98,6 +128,13 @@ def silu(x, data_scale_factor):
 async def initialize_dut(dut, generics):
     """
     Initialize the DUT with default values.
+
+    Parameters
+    ----------
+    dut : object
+        The device under test (DUT).
+    generics : dict
+        A dictionary containing the generic parameters.
     """
     await setup_clock(dut, CLOCK_PERIOD_NS)
 
@@ -110,7 +147,13 @@ async def initialize_dut(dut, generics):
 async def async_reset_test(dut):
     """
     Test the DUT's behavior during reset.
+
     Verifies that the output is correctly reset and remains stable.
+
+    Parameters
+    ----------
+    dut : object
+        The device under test (DUT).
     """
     generics = get_generics(dut)
     log_generics(dut)
@@ -127,7 +170,13 @@ async def async_reset_test(dut):
 async def test_interval(dut):
     """
     Test the DUT's behavior on the entire interval.
+
     Verifies that the output is correct and checks the average error.
+
+    Parameters
+    ----------
+    dut : object
+        The device under test (DUT).
     """
     generics = get_generics(dut)
 

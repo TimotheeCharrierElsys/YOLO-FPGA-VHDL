@@ -11,7 +11,33 @@ from torchvision import datasets, transforms
 
 
 class Net(nn.Module):
+    """
+    A simple convolutional neural network for MNIST classification.
+
+    Attributes
+    ----------
+    conv1 : nn.Conv2d
+        First convolutional layer.
+    bn1 : nn.BatchNorm2d
+        Batch normalization layer after the first convolution.
+    conv2 : nn.Conv2d
+        Second convolutional layer.
+    bn2 : nn.BatchNorm2d
+        Batch normalization layer after the second convolution.
+    dropout1 : nn.Dropout
+        Dropout layer after the first max pooling.
+    dropout2 : nn.Dropout
+        Dropout layer after the first fully connected layer.
+    fc1 : nn.Linear
+        First fully connected layer.
+    fc2 : nn.Linear
+        Second fully connected layer.
+    """
+
     def __init__(self):
+        """
+        Initialize the neural network layers.
+        """
         super(Net, self).__init__()
         self.conv1 = nn.Conv2d(1, 32, 3, 2, 1)
         self.bn1 = nn.BatchNorm2d(32)
@@ -23,6 +49,19 @@ class Net(nn.Module):
         self.fc2 = nn.Linear(128, 10)
 
     def forward(self, x):
+        """
+        Define the forward pass of the network.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Input tensor.
+
+        Returns
+        -------
+        torch.Tensor
+            Output tensor after passing through the network.
+        """
         x = self.conv1(x)
         x = self.bn1(x)
         x = F.silu(x)
@@ -43,6 +82,19 @@ class Net(nn.Module):
         return output
 
     def forward_first_layer_hs(self, x):
+        """
+        Forward pass through the first layer using HardSwish activation.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Input tensor.
+
+        Returns
+        -------
+        torch.Tensor
+            Output tensor after the first layer.
+        """
         with torch.no_grad():
             x = self.conv1(x)
             x = self.bn1(x)
@@ -51,6 +103,19 @@ class Net(nn.Module):
         return output
 
     def forward_first_layer_silu(self, x):
+        """
+        Forward pass through the first layer using SiLU activation.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Input tensor.
+
+        Returns
+        -------
+        torch.Tensor
+            Output tensor after the first layer.
+        """
         with torch.no_grad():
             x = self.conv1(x)
             x = self.bn1(x)
@@ -59,6 +124,19 @@ class Net(nn.Module):
         return output
 
     def forward_second_layer_hs(self, x):
+        """
+        Forward pass through the first two layers using HardSwish activation.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Input tensor.
+
+        Returns
+        -------
+        torch.Tensor
+            Output tensor after the second layer.
+        """
         with torch.no_grad():
             x = self.conv1(x)
             x = self.bn1(x)
@@ -70,6 +148,19 @@ class Net(nn.Module):
         return output
 
     def forward_second_layer_silu(self, x):
+        """
+        Forward pass through the first two layers using SiLU activation.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Input tensor.
+
+        Returns
+        -------
+        torch.Tensor
+            Output tensor after the second layer.
+        """
         with torch.no_grad():
             x = self.conv1(x)
             x = self.bn1(x)
@@ -81,6 +172,19 @@ class Net(nn.Module):
         return output
 
     def forward_end(self, x):
+        """
+        Forward pass through the final layers of the network.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Input tensor.
+
+        Returns
+        -------
+        torch.Tensor
+            Output tensor after the final layers.
+        """
         with torch.no_grad():
             x = F.max_pool2d(x, 2)
             x = torch.flatten(x, 1)
@@ -93,6 +197,24 @@ class Net(nn.Module):
 
 
 def train(args, model, device, train_loader, optimizer, epoch):
+    """
+    Train the model for one epoch.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Command-line arguments.
+    model : nn.Module
+        The neural network model.
+    device : torch.device
+        The device to run the model on.
+    train_loader : DataLoader
+        DataLoader for the training data.
+    optimizer : torch.optim.Optimizer
+        Optimizer for updating the model parameters.
+    epoch : int
+        The current epoch number.
+    """
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
@@ -116,6 +238,18 @@ def train(args, model, device, train_loader, optimizer, epoch):
 
 
 def test(model, device, test_loader):
+    """
+    Test the model on the test dataset.
+
+    Parameters
+    ----------
+    model : nn.Module
+        The neural network model.
+    device : torch.device
+        The device to run the model on.
+    test_loader : DataLoader
+        DataLoader for the test data.
+    """
     model.eval()
     test_loss = 0
     correct = 0
@@ -142,6 +276,19 @@ def test(model, device, test_loader):
 
 
 def process_batchnorm2d(layer):
+    """
+    Process a BatchNorm2d layer to normalize its weights.
+
+    Parameters
+    ----------
+    layer : nn.BatchNorm2d
+        The BatchNorm2d layer to process.
+
+    Returns
+    -------
+    torch.Tensor
+        The normalized weights.
+    """
     weights = layer.weight
     running_var = layer.running_var
 
@@ -149,6 +296,19 @@ def process_batchnorm2d(layer):
 
 
 def load_dataset(model_path):
+    """
+    Load the MNIST dataset and a pre-trained model.
+
+    Parameters
+    ----------
+    model_path : str
+        Path to the pre-trained model file.
+
+    Returns
+    -------
+    tuple
+        A tuple containing the model and the test DataLoader.
+    """
     model = Net()
     model.load_state_dict(
         torch.load(
@@ -172,6 +332,19 @@ def load_dataset(model_path):
 
 
 def load_model(model_path):
+    """
+    Load a pre-trained model.
+
+    Parameters
+    ----------
+    model_path : str
+        Path to the pre-trained model file.
+
+    Returns
+    -------
+    nn.Module
+        The loaded model.
+    """
     model = Net()
     model.load_state_dict(
         torch.load(
@@ -256,7 +429,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--save-model",
         action="store_true",
-        default=False,
+        default=True,
         help="For Saving the current Model",
     )
     args = parser.parse_args()
@@ -281,10 +454,32 @@ if __name__ == "__main__":
 
     # Custom scaling transform
     class ScaleTransform:
+        """
+        Custom scaling transform for data augmentation.
+
+        Parameters
+        ----------
+        scale_factor : float
+            Factor to scale the input tensor.
+        """
+
         def __init__(self, scale_factor):
             self.scale_factor = scale_factor
 
         def __call__(self, x):
+            """
+            Apply the scaling transform to the input tensor.
+
+            Parameters
+            ----------
+            x : torch.Tensor
+                Input tensor.
+
+            Returns
+            -------
+            torch.Tensor
+                Scaled tensor.
+            """
             return x * self.scale_factor
 
     transform = transforms.Compose(
@@ -293,7 +488,6 @@ if __name__ == "__main__":
     dataset1 = datasets.MNIST(
         "../data", train=True, download=True, transform=transform
     )
-    print(dataset1)
     dataset2 = datasets.MNIST("../data", train=False, transform=transform)
     train_loader = torch.utils.data.DataLoader(dataset1, **train_kwargs)
     test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
@@ -307,4 +501,5 @@ if __name__ == "__main__":
         test(model, device, test_loader)
         scheduler.step()
 
-    torch.save(model.state_dict(), "mnist_cnn.pt")
+    if args.save_model:
+        torch.save(model.state_dict(), "mnist_cnn.pt")

@@ -20,6 +20,16 @@ CLOCK_PERIOD_NS = 10
 def get_generics(dut):
     """
     Retrieve the generic parameters from the DUT.
+
+    Parameters
+    ----------
+    dut : object
+        The device under test (DUT).
+
+    Returns
+    -------
+    dict
+        A dictionary containing the generic parameters.
     """
     return {
         "DO_MULTIPLICATION": dut.DO_MULTIPLICATION.value,
@@ -31,9 +41,16 @@ def get_generics(dut):
 def log_generics(dut):
     """
     Log the generic parameters from the DUT in a table format.
+
+    Parameters
+    ----------
+    dut : object
+        The device under test (DUT).
     """
     generics = get_generics(dut)
-    table = tabulate(generics.items(), headers=["Parameter", "Value"], tablefmt="grid")
+    table = tabulate(
+        generics.items(), headers=["Parameter", "Value"], tablefmt="grid"
+    )
     dut._log.info(f"Running with generics:\n{table}")
 
 
@@ -47,7 +64,7 @@ def check_generics(generics):
     If `DO_MULTIPLICATION` is set to 0:
         - The `OUTPUT_WIDTH` should be equal to the `INPUT_WIDTH`.
 
-    Parameters:
+    Parameters
     ----------
     generics : dict
         A dictionary containing the generics configuration with keys:
@@ -55,14 +72,13 @@ def check_generics(generics):
         - "INPUT_WIDTH": int
         - "OUTPUT_WIDTH": int
 
-    Raises:
+    Raises
     ------
-    ValueError:
+    ValueError
         If the `OUTPUT_WIDTH` does not match the expected value based on
         the `DO_MULTIPLICATION` setting.
         If `DO_MULTIPLICATION` is not 0 or 1.
     """
-
     do_multiplication = generics.get("DO_MULTIPLICATION")
     input_width = generics.get("INPUT_WIDTH")
     output_width = generics.get("OUTPUT_WIDTH")
@@ -90,16 +106,40 @@ def check_generics(generics):
                     output_width > input_width
                 ), f"DO_MULTIPLICATION is not set, so OUTPUT_WIDTH should be\nequal to INPUT_WIDTH ({input_width}), but got {output_width}."
     else:
-        raise ValueError("Invalid value for DO_MULTIPLICATION. It should be 0 or 1.")
+        raise ValueError(
+            "Invalid value for DO_MULTIPLICATION. It should be 0 or 1."
+        )
 
 
 def get_random_operands(min_val, max_val):
+    """
+    Generate a pair of random operands within the specified range.
+
+    Parameters
+    ----------
+    min_val : int
+        The minimum value for the random operands.
+    max_val : int
+        The maximum value for the random operands.
+
+    Returns
+    -------
+    tuple
+        A tuple containing two random integers within the specified range.
+    """
     return randint(min_val, max_val), randint(min_val, max_val)
 
 
 async def initialize_dut(dut, generics):
     """
     Initialize the DUT with default values.
+
+    Parameters
+    ----------
+    dut : object
+        The device under test (DUT).
+    generics : dict
+        A dictionary containing the generic parameters.
     """
     await setup_clock(dut)
 
@@ -112,6 +152,14 @@ async def initialize_dut(dut, generics):
 
 @cocotb.test()
 async def test_generics(dut):
+    """
+    Test the generic parameters of the DUT.
+
+    Parameters
+    ----------
+    dut : object
+        The device under test (DUT).
+    """
     generics = get_generics(dut)
     check_generics(generics)
     log_generics(dut)
@@ -123,6 +171,11 @@ async def test_generics(dut):
 async def async_reset_test(dut):
     """
     Test the DUT's behavior during reset.
+
+    Parameters
+    ----------
+    dut : object
+        The device under test (DUT).
     """
     generics = get_generics(dut)
 
@@ -136,6 +189,11 @@ async def async_reset_test(dut):
 async def computation_test(dut):
     """
     Test the DUT's behavior during normal computation.
+
+    Parameters
+    ----------
+    dut : object
+        The device under test (DUT).
     """
     generics = get_generics(dut)
 
@@ -164,7 +222,11 @@ async def computation_test(dut):
     for i in range(total_iterations):
         # Update Progress Bar
         print_progress_bar(
-            i + 1, total_iterations, prefix="Progress:", suffix="Complete", length=50
+            i + 1,
+            total_iterations,
+            prefix="Progress:",
+            suffix="Complete",
+            length=50,
         )
 
         # Generate Random Inputs and set them to DUT
@@ -199,13 +261,18 @@ async def computation_test(dut):
         await RisingEdge(dut.clock)
         assert dut.o_result.value == 0, "DUT output was not reset correctly"
 
-    dut._log.info("\nRandom Multiplication without accumualtion test passed.")
+    dut._log.info("\nRandom Multiplication without accumulation test passed.")
 
 
 @cocotb.test()
 async def accumulation_test(dut):
     """
     Test the DUT's behavior during accumulation.
+
+    Parameters
+    ----------
+    dut : object
+        The device under test (DUT).
     """
     generics = get_generics(dut)
 
@@ -234,7 +301,11 @@ async def accumulation_test(dut):
     for i in range(total_iterations):
         # Update Progress Bar
         print_progress_bar(
-            i + 1, total_iterations, prefix="Progress:", suffix="Complete", length=50
+            i + 1,
+            total_iterations,
+            prefix="Progress:",
+            suffix="Complete",
+            length=50,
         )
 
         # Determine the number of accumulations (random between 1 and 20)
@@ -245,7 +316,9 @@ async def accumulation_test(dut):
 
         for _ in range(num_accumulations):
             # Generate Random Inputs and set them to DUT
-            random_operand1, random_operand2 = get_random_operands(min_val, max_val)
+            random_operand1, random_operand2 = get_random_operands(
+                min_val, max_val
+            )
             dut.i_operand1.value = random_operand1
             dut.i_operand2.value = random_operand2
 
