@@ -90,14 +90,14 @@ begin
                 next_state <= mac;
 
             when mac =>
-                if i_current_row_conv2d = KERNEL_SIZE - 1 and i_current_col_conv2d = KERNEL_SIZE - 1 then
+                if i_current_row_conv2d >= KERNEL_SIZE - 1 and i_current_col_conv2d >= KERNEL_SIZE - 1 then
                     next_state <= adder;
                 else
                     next_state <= mac;
                 end if;
 
             when adder =>
-                if i_current_channel_conv2d = INPUT_CHANNELS then
+                if i_current_channel_conv2d >= INPUT_CHANNELS then
                     next_state <= batchnorm;
                 else
                     next_state <= adder;
@@ -110,7 +110,7 @@ begin
                 next_state <= output_update;
 
             when output_update =>
-                if i_current_row_win = OUTPUT_SIZE - 1 and i_current_col_win = OUTPUT_SIZE - 1 then
+                if i_current_row_win >= OUTPUT_SIZE - 1 and i_current_col_win >= OUTPUT_SIZE - 1 then
                     next_state <= done;
                 else
                     next_state <= start;
