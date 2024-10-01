@@ -1,19 +1,29 @@
+-----------------------------------------------------------------------------------
+--!     @file       conv
+--!     @brief      This entity implements two layers of a convolutional neural network
+--!                 defined for MNIST dataset. It is used to test the VHDL implementation
+--!                 on real data. See 'src/bench/mnist/' for the testbench and 
+--!                 'src/bench/model.py' for the Python model.
+--!     @author     Timothée Charrier
+-----------------------------------------------------------------------------------
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
-use IEEE.MATH_REAL.all;
 
 library LIB_RTL;
 use LIB_RTL.types_pkg.all;
 
+--! Entity mnist_layers
+--! This entity implements  two layers of a convolutional neural network defined for MNIST dataset.
 entity mnist_layers is
     generic (
         DATA_SCALE_FACTOR : integer := 12; --! Define the general scale factor of the input data (12 -> 2**12)
         BITWIDTH          : integer := 16; --! Bit width of each operand
-        INPUT_SIZE        : integer := 28;  --! Width and Height of the input
+        INPUT_SIZE        : integer := 28; --! Width and Height of the input
         KERNEL_SIZE       : integer := 3;  --! Size of the kernel
         INPUT_CHANNELS_1  : integer := 1;  --! Number of channels in the input
-        OUTPUT_CHANNELS_1 : integer := 32;  --! Number of kernels
+        OUTPUT_CHANNELS_1 : integer := 32; --! Number of kernels
         PADDING           : integer := 1;  --! Padding value
         STRIDE_1          : integer := 2;  --! Stride value 
 
@@ -63,6 +73,9 @@ end mnist_layers;
 
 architecture mnist_layers_arch of mnist_layers is
 
+    -------------------------------------------------------------------------------------
+    -- COMPONENTS
+    -------------------------------------------------------------------------------------
     component conv
         generic (
             DATA_SCALE_FACTOR : integer;
@@ -90,12 +103,24 @@ architecture mnist_layers_arch of mnist_layers is
         );
     end component;
 
-    signal r_data_conv2d_1         : t_volume(OUTPUT_CHANNELS_1 - 1 downto 0)(0 to (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE_1 + 1 - 1)(0 to (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE_1 + 1 - 1)(2 * BITWIDTH - 1 downto 0);
-    signal r_data_conv2d_1_resized : t_volume(OUTPUT_CHANNELS_1 - 1 downto 0)(0 to (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE_1 + 1 - 1)(0 to (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE_1 + 1 - 1)(BITWIDTH - 1 downto 0);
-    signal r_data_conv2d_1_valid   : std_logic;
+    -------------------------------------------------------------------------------------
+    -- SIGNALS
+    -------------------------------------------------------------------------------------
+    signal r_data_conv2d_1 : t_volume(OUTPUT_CHANNELS_1 - 1 downto 0)
+    (0 to (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE_1 + 1 - 1)
+    (0 to (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE_1 + 1 - 1)
+    (2 * BITWIDTH - 1 downto 0); --! Output data from the first conv2d layer
+    signal r_data_conv2d_1_resized : t_volume(OUTPUT_CHANNELS_1 - 1 downto 0)
+    (0 to (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE_1 + 1 - 1)
+    (0 to (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE_1 + 1 - 1)
+    (BITWIDTH - 1 downto 0);                  --! Resized output data from the first conv2d layer
+    signal r_data_conv2d_1_valid : std_logic; --! Output valid signal from the first conv2d layer
 
 begin
 
+    -------------------------------------------------------------------------------------
+    -- INSTANTIATIONS
+    -------------------------------------------------------------------------------------
     -- First conv2d layer
     conv_inst : conv
     generic map(
@@ -124,7 +149,9 @@ begin
     );
 
     -- Resize the output data from the first conv2d layer
-    process (all)
+    -- This is necessary because the output data from the first layer is 2 * BITWIDTH wide,
+    -- which is not necessary and would only increase the design size.
+    resize_data : process (all)
     begin
         for i in 0 to OUTPUT_CHANNELS_1 - 1 loop
             for j in 0 to (INPUT_SIZE + 2 * PADDING - KERNEL_SIZE)/STRIDE_1 + 1 - 1 loop
@@ -133,7 +160,7 @@ begin
                 end loop;
             end loop;
         end loop;
-    end process;
+    end process resize_data;
 
     -- Second conv2d layer
     conv_inst_2 : conv
