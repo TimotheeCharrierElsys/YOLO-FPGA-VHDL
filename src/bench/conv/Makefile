@@ -20,8 +20,7 @@ COCOTB_TEST_MODULES	:= test_conv
 MODULE				:= $(COCOTB_TEST_MODULES) # Retrocompatibility
 RTL_LIBRARY			:= LIB_RTL
 
-# Generic Parameters (unfortunately, I was not able to set std_logic as generic in the Makefile,
-# so to use different architectures, you need to change the VHDL code)
+# Generic Parameters
 SIM_ARGS			+= -gDATA_SCALE_FACTOR=12 -gBITWIDTH=16
 SIM_ARGS			+= -gOUTPUT_CHANNELS=32 -gINPUT_CHANNELS=1 -gINPUT_SIZE=28
 SIM_ARGS			+= -gKERNEL_SIZE=3 -gPADDING=1 -gSTRIDE=2
