@@ -8,7 +8,11 @@ from plotly.subplots import make_subplots
 from tabulate import tabulate
 
 sys.path.insert(1, "../")
+import warnings
+
 from utils import reset_dut, setup_clock
+
+warnings.filterwarnings("ignore", category=ResourceWarning)
 
 # Constants
 CLOCK_PERIOD_NS = 10
