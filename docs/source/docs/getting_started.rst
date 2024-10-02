@@ -38,7 +38,7 @@ Cloning the repo
 
       git clone https://github.com/TimotheeCharrierElsys/YOLO-FPGA-VHDL.git
 
-2. Go to `dev` branch
+2. Go to `feat` branch
 
    .. code-block:: bash
 
