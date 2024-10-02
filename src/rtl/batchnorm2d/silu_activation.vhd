@@ -36,8 +36,8 @@ architecture silu_activation_arch of silu_activation is
     constant RELU6_POSITIVE_THRESHOLD     : integer := 6 * 2 ** DATA_SCALE_FACTOR;   --! Positive threshold for relu6 function
 
     -- Constants for HardSwish calculation
-    constant HARDSWISH_ADDITION_CONSTANT_SIGNED : signed(BITWIDTH - 1 downto 0)              := to_signed(3 * 2 ** DATA_SCALE_FACTOR, BITWIDTH);
-    constant HARDSWISH_DIVISION_FACTOR_SIGNED   : signed(DIVISION_SCALE_FACTOR - 2 downto 0) := to_signed(2 ** DIVISION_SCALE_FACTOR / 6, DIVISION_SCALE_FACTOR - 1);
+    constant HARDSWISH_ADDITION_CONSTANT_SIGNED : signed(BITWIDTH - 1 downto 0)              := to_signed(3 * 2 ** DATA_SCALE_FACTOR, BITWIDTH);                      --! Constant three used in HardSwish calculation
+    constant HARDSWISH_DIVISION_FACTOR_SIGNED   : signed(DIVISION_SCALE_FACTOR - 2 downto 0) := to_signed(2 ** DIVISION_SCALE_FACTOR / 6, DIVISION_SCALE_FACTOR - 1); --! Constant 1/6 used in HardSwish calculation
 
 begin
 
@@ -83,6 +83,8 @@ begin
                 else -- Test if x > 3
                     o_data <= i_data;
                 end if;
+            else
+                o_data <= (others => '0');
             end if;
         end if;
     end process;

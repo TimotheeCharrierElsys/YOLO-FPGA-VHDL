@@ -98,6 +98,8 @@ begin
 
                     r_data_to_silu <= std_logic_vector(resize(signed(v_mult), BITWIDTH));
                 end if;
+            else
+                r_data_to_silu <= (others => '0');
             end if;
         end if;
     end process;

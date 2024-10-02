@@ -81,21 +81,21 @@ architecture conv_arch of conv is
     signal s_current_col_win : integer range 0 to OUTPUT_SIZE - 1; --! Counter to track the current col within the slicing window
 
     -- Control signals
-    signal s_valid_mac     : std_logic; --! Valid signal for the MAC
-    signal s_valid_adder   : std_logic; --! Valid signal for the adder
-    signal s_valid_bn      : std_logic; --! Valid signal for the bn
-    signal s_clear_mac     : std_logic; --! Clear signal for the MAC
-    signal s_clear_adder   : std_logic; --! Clear signal for the adder
-    signal s_conv2d_done   : std_logic; --! Signal Indicating the end of the conv2d layer
+    signal s_valid_mac   : std_logic; --! Valid signal for the MAC
+    signal s_valid_adder : std_logic; --! Valid signal for the adder
+    signal s_valid_bn    : std_logic; --! Valid signal for the bn
+    signal s_clear_mac   : std_logic; --! Clear signal for the MAC
+    signal s_clear_adder : std_logic; --! Clear signal for the adder
+    signal s_conv2d_done : std_logic; --! Signal Indicating the end of the conv2d layer
 
     -------------------------------------------------------------------------------------
     -- COMPONENTS
     -------------------------------------------------------------------------------------
     component conv_fsm
         generic (
-            KERNEL_SIZE       : integer;
-            INPUT_CHANNELS    : integer;
-            OUTPUT_SIZE       : integer
+            KERNEL_SIZE    : integer;
+            INPUT_CHANNELS : integer;
+            OUTPUT_SIZE    : integer
         );
         port (
             clock                    : in std_logic;
@@ -205,9 +205,9 @@ begin
 
     conv2d_control_inst : conv_fsm
     generic map(
-        KERNEL_SIZE       => KERNEL_SIZE,
-        INPUT_CHANNELS    => INPUT_CHANNELS,
-        OUTPUT_SIZE       => OUTPUT_SIZE
+        KERNEL_SIZE    => KERNEL_SIZE,
+        INPUT_CHANNELS => INPUT_CHANNELS,
+        OUTPUT_SIZE    => OUTPUT_SIZE
     )
     port map(
         clock                    => clock,
@@ -286,6 +286,13 @@ begin
                         s_current_col_win <= s_current_col_win + 1;
                     end if;
                 end if;
+            else
+                s_current_row_conv2d     <= 0;
+                s_current_col_conv2d     <= 0;
+                s_current_channel_conv2d <= 0;
+                s_current_row_win        <= 0;
+                s_current_col_win        <= 0;
+                o_data                   <= (others => (others => (others => (others => '0'))));
             end if;
         end if;
     end process;
