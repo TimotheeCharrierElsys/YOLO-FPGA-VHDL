@@ -42,7 +42,7 @@ Cloning the repo
 
    .. code-block:: bash
 
-      cd YOLO-FPGA-VHDL && git checkout dev
+      cd YOLO-FPGA-VHDL && git checkout feat
 
 3. Install the requirements for the project
 
@@ -65,14 +65,14 @@ Cloning the repo
 
    .. code-block:: bash
 
-      git clone https://github.com/nickg/nvc.git &&
-      cd nvc
+      wget https://github.com/nickg/nvc/releases/download/r1.14.0/nvc-1.14.0.tar.gz
+      tar -xvf nvc-1.14.0.tar.gz
+      cd nvc-1.14.0
 
    And run the following commands:
 
    .. code-block:: bash
 
-      ./autogen.sh &&
       mkdir build && cd build &&
       ../configure &&
       make &&

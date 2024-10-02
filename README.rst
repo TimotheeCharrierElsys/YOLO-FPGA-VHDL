@@ -13,6 +13,22 @@ Setup WSL
 
       wsl --install -d Ubuntu-24.04
 
+2. Open the Ubuntu terminal and run the following commands:
+   
+   .. code-block:: bash
+   
+      sudo apt-get update && sudo apt-get upgrade -y
+      sudo apt-get install git python3.12 python3-pip python3.12-venv -y
+
+3. Install the following packages for NVC and OSS CAD Suite:
+
+   .. code-block:: bash
+
+      sudo apt-get install build-essential automake autoconf \
+         flex check llvm-dev pkg-config zlib1g-dev libdw-dev \
+         libffi-dev libzstd-dev libjson-c-dev libjson-c-dev \
+
+
 Cloning the repo
 ================
 
@@ -26,7 +42,7 @@ Cloning the repo
 
    .. code-block:: bash
 
-      cd YOLO-FPGA-VHDL && git checkout dev
+      cd YOLO-FPGA-VHDL && git checkout feat
 
 3. Install the requirements for the project
 
@@ -42,6 +58,27 @@ Cloning the repo
    .. code-block:: bash
 
       source /Utils/oss-cad-suite/environment
+
+4. Install NVC for Cocotb simulation.
+
+   Clone the repository and build it:
+
+   .. code-block:: bash
+
+      wget https://github.com/nickg/nvc/releases/download/r1.14.0/nvc-1.14.0.tar.gz
+      tar -xvf nvc-1.14.0.tar.gz
+      cd nvc-1.14.0
+
+   And run the following commands:
+
+   .. code-block:: bash
+
+      mkdir build && cd build &&
+      ../configure &&
+      make &&
+      sudo make install
+
+   Now, NVC should be installed globally.
 
 Setup virtual environment and build documentation
 =================================================
@@ -70,15 +107,15 @@ You are now ready to go to build the documentation. Go to the ``docs`` folder an
 
    make html
 
-Open the build ``DOCS/build/index.html``.
+Open the build ``docs/build/index.html``.
 
 Informations
 ============
 
-Synthesizable source code is found in the ``SRC/RTL`` folder.
-Testbench source code is found in the ``SRC/BENCH`` folder.
+Synthesizable source code is found in the ``src/rtl`` folder.
+Testbench source code is found in the ``src/bench`` folder.
 
 The library ``types_pkg`` is required for all modules.
 
 .. warning::
-    All files must be handled as VHDL-2008.
+    All files must be handled as VHDL-2008. Using unconstrained arrays is not allowed in VHDL-93.
