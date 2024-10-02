@@ -5,7 +5,14 @@ from random import randint
 import numpy as np
 import warnings
 
-warnings.filterwarnings("ignore", category=ResourceWarning)
+warnings.filterwarnings(
+    "ignore", category=ResourceWarning
+)  # ignore plotly resource warning
+warnings.filterwarnings(
+    "ignore",
+    category=DeprecationWarning,
+    message="__array__ implementation doesn't accept a copy keyword",
+)  # Plotly is using deprecated numpy functions
 
 
 def calculate_output_dimensions(generics):
