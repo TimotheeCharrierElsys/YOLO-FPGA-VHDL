@@ -69,7 +69,7 @@ architecture conv_arch of conv is
     -------------------------------------------------------------------------------------
     signal padded_input_data   : t_volume(0 to INPUT_CHANNELS - 1)(0 to INPUT_PADDED_SIZE - 1)(0 to INPUT_PADDED_SIZE - 1)(BITWIDTH - 1 downto 0); --! Padded input data
     signal sliced_input_volume : t_volume(0 to INPUT_CHANNELS - 1)(0 to KERNEL_SIZE - 1)(0 to KERNEL_SIZE - 1)(BITWIDTH - 1 downto 0);             --! Sliced input volume
-    signal s_result            : t_vec(0 to OUTPUT_CHANNELS - 1)(2 * BITWIDTH - 1 downto 0);
+    signal s_result            : t_vec(0 to OUTPUT_CHANNELS - 1)(2 * BITWIDTH - 1 downto 0);                                                       --! Channel-wise results
 
     -- Counters for the mac architecture
     signal s_current_row_conv2d     : integer range 0 to KERNEL_SIZE - 1; --! Counter to track the current row within the kernel for Conv2d.
