@@ -9,9 +9,9 @@ use IEEE.STD_LOGIC_1164.all;
 
 entity conv_fsm is
     generic (
-        KERNEL_SIZE       : integer := 3; --! Size of the kernel
-        INPUT_CHANNELS    : integer := 3; --! Number of channels in the input
-        OUTPUT_SIZE       : integer := 3  --! Size of the output
+        KERNEL_SIZE    : integer := 3; --! Size of the kernel
+        INPUT_CHANNELS : integer := 3; --! Number of channels in the input
+        OUTPUT_SIZE    : integer := 3  --! Size of the output
     );
     port (
         clock        : in std_logic; --! Clock signal
@@ -43,7 +43,15 @@ architecture conv_fsm_arch of conv_fsm is
     -------------------------------------------------------------------------------------
     -- TYPES
     -------------------------------------------------------------------------------------
-    type type_state is (idle, start, mac, adder, batchnorm, silu, output_update, done); --! States of the FSM
+    type type_state is (idle, --! Idle State: Waiting for the start signal
+        start,                    --! Start State: Start the Convolution Operation
+        mac,                      --! MAC State: Perform the MAC Operation for Conv2d
+        adder,                    --! Adder State: Perform the Adder Operation for Conv2d
+        batchnorm,                --! BatchNorm State: Perform the BatchNorm2d Operation
+        silu,                     --! SiLU State: Perform the SiLU Operation
+        output_update,            --! Output Update State: Update the Output
+        done                      --! Done State: Done with the Convolution Operation
+    );                        --! States of the FSM
 
     -------------------------------------------------------------------------------------
     -- SIGNALS
